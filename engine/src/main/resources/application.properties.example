@@ -1,0 +1,23 @@
+spring.application.name=engine
+spring
+
+
+# Application
+server.port=10001
+
+# OpenAPI Doc Url
+springdoc.api-docs.path=/api/v1/api-docs
+springdoc.swagger-ui.path=/api/v1/swagger
+springdoc.swagger-ui.operationsSorter=method
+
+
+# DataSource settings
+spring.datasource.url=jdbc:postgresql://localhost:5432/engine_01
+spring.datasource.username=pg_user
+spring.datasource.password=pg_pass
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA settings
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
