@@ -4,7 +4,6 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-# TODO: this file will be created on project setup from the example
 src/main/resources/application.properties
 
 ### STS ###

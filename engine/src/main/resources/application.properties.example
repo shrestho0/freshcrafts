@@ -1,23 +1,26 @@
 spring.application.name=engine
-spring
+server.port=10000
 
+# Application Specific
+freshCrafts.JWT_ACCESS_SECRET=
+freshCrafts.JWT_REFRESH_SECRET=
+freshCrafts.JWT_ACCESS_EXPIRES_IN=5m
+freshCrafts.JWT_REFRESH_EXPIRES_IN=7d
 
-# Application
-server.port=10001
+# MongoDB SystemConfig Collection Id
+freshCrafts.MONGO_CONFIG_SYSTEM_CONFIG_COLLECTION_ID=
+
+# Cockpit setup key
+freshCrafts.COCKPIT_SETUP_KEY=
+
+spring.data.mongodb.host=localhost
+spring.data.mongodb.port=27017
+spring.data.mongodb.database=crafts_starter
 
 # OpenAPI Doc Url
 springdoc.api-docs.path=/api/v1/api-docs
 springdoc.swagger-ui.path=/api/v1/swagger
-springdoc.swagger-ui.operationsSorter=method
+springdoc.default-produces-media-type=application/json
+springdoc.default-consumes-media-type=application/json
 
-
-# DataSource settings
-spring.datasource.url=jdbc:postgresql://localhost:5432/engine_01
-spring.datasource.username=pg_user
-spring.datasource.password=pg_pass
-spring.datasource.driver-class-name=org.postgresql.Driver
-
-# JPA settings
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.show-sql=true
-spring.jpa.hibernate.ddl-auto=update
+ 
