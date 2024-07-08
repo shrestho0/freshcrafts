@@ -8,4 +8,4 @@ import fresh.crafts.engine.v1.models.SystemConfig;
 @Repository
 public interface SystemConfigRepository extends MongoRepository<SystemConfig, String> {
     SystemConfig findFirSystemConfigById(String id);
- }
+}

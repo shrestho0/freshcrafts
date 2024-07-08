@@ -6,3 +6,4 @@ export const load: PageServerLoad = async ({ locals }) => {
         return redirect(308, '/dashboard');
     }
 };
+

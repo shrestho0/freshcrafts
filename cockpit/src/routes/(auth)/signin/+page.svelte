@@ -1,8 +1,7 @@
 <script lang="ts">
+	import { browser } from '$app/environment';
 	import type { OAuthProviderEnum } from '@/types/enums';
-	import HeaderThemeSwitcher from '@/ui/HeaderThemeSwitcher.svelte';
-
-	export let data: { oProviders: OAuthProviderEnum[] };
+	import HeaderThemeSwitcher from '@/components/HeaderThemeSwitcher.svelte';
 
 	import {
 		Header,
@@ -21,32 +20,48 @@
 		Button,
 		Form,
 		FormItem,
-		PasswordInput
+		PasswordInput,
+		InlineNotification
 	} from 'carbon-components-svelte';
 	import { ArrowRight, ButtonCentered, Label, LogoGithub, PortInput } from 'carbon-icons-svelte';
+	import { onDestroy, onMount } from 'svelte';
+	import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
+	import { applyAction, enhance } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import type { ActionResult } from '@sveltejs/kit';
 
-	import { browser } from '$app/environment';
+	export let data;
 
-	import { PUBLIC_GITHUB_CLIENT_ID, PUBLIC_OAUTH_CALLBACK_URL } from '$env/static/public';
-	import { ulid } from 'ulid';
-	import { page } from '$app/stores';
+	const { githubLoginUrl, googleLoginUrl } = data;
 
-	let github_base_url = 'https://github.com/login/oauth/authorize';
-	let github_login_url = new URL(github_base_url);
-	github_login_url.searchParams.append('client_id', PUBLIC_GITHUB_CLIENT_ID);
-	github_login_url.searchParams.append(
-		'redirect_uri',
-		'http://localhost:5173/_/oauth-callback?p=github'
-	);
-	github_login_url.searchParams.append('scope', 'user:email repo workflow');
-	const state = ulid(); // request state to verify later
+	// let githubUrl = initializeAndReturnGithubUrl();
+	// let googleUrl = initializeAndReturnGoogleUrl();
 
-	github_login_url.searchParams.append('state', state);
+	onMount(() => {
+		if (browser) {
+			document.cookie = 'fromPage=login; path=/; max-age=0'; //
+		}
+	});
+	// onDestroy(() => {
+	// 	if (browser) {
+	// 		document.cookie = 'fromPage=login; path=/; max-age=0 ';
+	// 	}
+	// });
+	let error_message = '';
 
-	$: console.log(github_login_url.toString()), $page.url.host;
-
-	if (browser) {
-		document.cookie = `gh_state=${state}; path=/;`;
+	function enhancedEmailPasswordLogin() {
+		return async ({ result }: { result: ActionResult }) => {
+			console.log(result);
+			switch (result.type) {
+				case 'success':
+					await applyAction(result);
+					invalidateAll();
+					break;
+				case 'failure':
+					error_message = result?.error?.message ?? 'Failed to login';
+					break;
+			}
+		};
 	}
 </script>
 
@@ -55,15 +70,7 @@
 		<div class="outer table absolute h-full w-full">
 			<div class="middle align-middle table-cell h-full">
 				<div class="inner">
-					<Header platformName="FreshCrafts" href="/">
-						<svelte:fragment slot="skip-to-content">
-							<SkipToContent />
-						</svelte:fragment>
-						<HeaderNav></HeaderNav>
-						<HeaderUtilities>
-							<HeaderThemeSwitcher />
-						</HeaderUtilities>
-					</Header>
+					<HeaderUnAuthenticated />
 					<div class="login-container h-full m-auto">
 						<div class="login-grid h-full bx--grid">
 							<div class="main-row bx--row h-full w-full text-center md:text-left my-0 mx-auto">
@@ -72,7 +79,13 @@
 										<Row>
 											<Column class="w-full    h-full">
 												<div class="login-form">
-													<Form name="loginForm" method="POST" action="">
+													<form
+														class="bx--form"
+														name="loginForm"
+														method="POST"
+														action=""
+														use:enhance={enhancedEmailPasswordLogin}
+													>
 														<div class="heading-container">
 															<div class="bx--row">
 																<div class="bx--col">
@@ -82,6 +95,14 @@
 																</div>
 															</div>
 														</div>
+														{#if error_message}
+															<InlineNotification
+																title="Error:"
+																subtitle={error_message}
+																hideCloseButton
+																class="py-0 my-2 bg-[#393939] text-white  "
+															/>
+														{/if}
 														<Row>
 															<Column class="flex flex-col gap-2">
 																<TextInput
@@ -110,48 +131,57 @@
 																</button>
 															</Column>
 														</Row>
-													</Form>
+													</form>
 
-													{#if data.oProviders?.length > 0}
+													{#if data.provider?.length > 0}
 														<div class="oauth-container oauth-container">
 															<div class=" w-full max-w-full gap-3 flex flex-col">
-																<button
-																	on:click={() => {
-																		// open new window and listen to it
-																		// const popup = window.open(
-																		// 	github_login_url.toString(),
-																		// 	'_blank',
-																		// 	'width=600,height=600'
-																		// );
-																		// const listener = (event) => {
-																		// 	if (event.origin !== window.location.origin) return;
-																		// 	if (event.data === 'github:success') {
-																		// 		popup.close();
-																		// 		window.removeEventListener('message', listener);
-																		// 	}
-																		// };
-																		window.location.href = github_login_url.toString();
-																	}}
-																	class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
-																	>Sign in with Github
-																	<LogoGithub class="w-6 h-6" />
-																</button>
-																<button
-																	class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
-																>
-																	Sign in with Google
-																	<svg
-																		xmlns="http://www.w3.org/2000/svg"
-																		x="0px"
-																		y="0px"
-																		class="w-6 h-6 fill-current"
-																		viewBox="0 0 30 30"
+																{#if data.provider?.includes('OAUTH_GITHUB')}
+																	<button
+																		on:click={() => {
+																			// open new window and listen to it
+																			// const popup = window.open(
+																			// 	github_login_url.toString(),
+																			// 	'_blank',
+																			// 	'width=600,height=600'
+																			// );
+																			// const listener = (event) => {
+																			// 	if (event.origin !== window.location.origin) return;
+																			// 	if (event.data === 'github:success') {
+																			// 		popup.close();
+																			// 		window.removeEventListener('message', listener);
+																			// 	}
+																			// };
+																			if (githubLoginUrl)
+																				window.location.href = githubLoginUrl?.toString();
+																		}}
+																		class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
+																		>Sign in with Github
+																		<LogoGithub class="w-6 h-6" />
+																	</button>
+																{/if}
+																{#if data.provider?.includes('OAUTH_GOOGLE')}
+																	<button
+																		class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
+																		on:click={() => {
+																			if (googleLoginUrl)
+																				window.location.href = googleLoginUrl?.toString();
+																		}}
 																	>
-																		<path
-																			d="M 15.003906 3 C 8.3749062 3 3 8.373 3 15 C 3 21.627 8.3749062 27 15.003906 27 C 25.013906 27 27.269078 17.707 26.330078 13 L 25 13 L 22.732422 13 L 15 13 L 15 17 L 22.738281 17 C 21.848702 20.448251 18.725955 23 15 23 C 10.582 23 7 19.418 7 15 C 7 10.582 10.582 7 15 7 C 17.009 7 18.839141 7.74575 20.244141 8.96875 L 23.085938 6.1289062 C 20.951937 4.1849063 18.116906 3 15.003906 3 z"
-																		></path>
-																	</svg>
-																</button>
+																		Sign in with Google
+																		<svg
+																			xmlns="http://www.w3.org/2000/svg"
+																			x="0px"
+																			y="0px"
+																			class="w-6 h-6 fill-current"
+																			viewBox="0 0 30 30"
+																		>
+																			<path
+																				d="M 15.003906 3 C 8.3749062 3 3 8.373 3 15 C 3 21.627 8.3749062 27 15.003906 27 C 25.013906 27 27.269078 17.707 26.330078 13 L 25 13 L 22.732422 13 L 15 13 L 15 17 L 22.738281 17 C 21.848702 20.448251 18.725955 23 15 23 C 10.582 23 7 19.418 7 15 C 7 10.582 10.582 7 15 7 C 17.009 7 18.839141 7.74575 20.244141 8.96875 L 23.085938 6.1289062 C 20.951937 4.1849063 18.116906 3 15.003906 3 z"
+																			></path>
+																		</svg>
+																	</button>
+																{/if}
 															</div>
 														</div>
 													{:else}

@@ -7,6 +7,7 @@
 	let loading = true;
 	let selectedTheme: string;
 	let themeIcon: any;
+
 	$: themeIcon = selectedTheme === 'g100' ? BrightnessContrast : AsleepFilled;
 
 	onMount(() => {
