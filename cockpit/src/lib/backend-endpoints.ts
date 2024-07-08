@@ -2,10 +2,13 @@ import { ENGINE_BASE_URL } from "$env/static/private";
 
 const _endpoints = {
     PROVIDERS: '/tokens/allowed-providers',
-    GENERATE: '/tokens/generate',
-    REFRESH: '/tokens/refresh',
+
+    GENERATE_TOKEN: '/tokens/generate',
+    REFRESH_TOKEN: '/tokens/refresh',
+    INVALIDATE_TOKEN: '/tokens/invalidate',
 
     SETUP_SYSCONFIG: '/config/sysconf',
+
 }
 
 type BackendEndpointsType = typeof _endpoints;

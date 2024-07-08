@@ -1,19 +1,55 @@
+import { BackendEndpoints } from "@/backend-endpoints";
+import type { EngineSystemConfigResponseDto } from "@/types/dtos";
+import type { SetupPageAccountData, SetupPageOauthData } from "@/types/internal";
+import { json, type RequestHandler } from "@sveltejs/kit";
 
 
-import { error } from '@sveltejs/kit';
-import type { RequestHandler } from './$types';
+export const POST: RequestHandler = async ({ locals, request }) => {
+    try {
 
-export const GET: RequestHandler = ({ url }) => {
-    const min = Number(url.searchParams.get('min') ?? '0');
-    const max = Number(url.searchParams.get('max') ?? '1');
+        const data = await request.json() as {
+            account: SetupPageAccountData,
+            oauth: SetupPageOauthData
+        }
+        console.log(data)
 
-    const d = max - min;
+        const sanitizeSystemConfig: EngineSystemConfigResponseDto = {
+            systemUserSetupComplete: true,
+            systemUserEmail: data.account.email,
+            systemUserName: data.account.name,
+            systemUserPasswordHash: data.account.password,
+            systemUserOauthGithubEnabled: data.oauth.githubStatus === 'connected',
+            systemUserOauthGithubData: data.oauth.githubStatus === 'connected' ? data.oauth.githubOAuthJson : null,
 
-    if (isNaN(d) || d < 0) {
-        error(400, 'min and max must be numbers, and min must be less than max');
+            systemUserOAuthGithubId: data.oauth.oAuthGithubId,
+            systemUserOAuthGoogleEmail: data.oauth.oAuthGoogleEmail,
+
+            systemUserOauthGoogleEnabled: data.oauth.googleStatus === 'connected',
+            systemUserOauthGoogleData: data.oauth.googleStatus === 'connected' ? data.oauth.googleOAuthJson : null,
+
+        }
+
+
+        // sanitize data
+
+        // Send to engine
+        const res = await fetch(BackendEndpoints.SETUP_SYSCONFIG, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(sanitizeSystemConfig)
+        }).then(res => res.json()).catch(err => null)
+
+        // console.log(res)
+        // throw new Error('Not implemented');
+        // return json(res);
+        return json(res);
+    } catch (err) {
+        return json({
+            success: false,
+            message: 'Failed to setup system config due to invalid data'
+        })
     }
 
-    const random = min + Math.random() * d;
-
-    return new Response(String(random));
 };

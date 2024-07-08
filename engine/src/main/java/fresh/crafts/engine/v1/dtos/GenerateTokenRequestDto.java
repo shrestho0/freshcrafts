@@ -5,13 +5,23 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class GenerateTokenRequestDto {
-    private LoginTypeEnum login_type;
-    private String email;
-    private String password;
-    private Object oauthData;
+    public LoginTypeEnum provider;
+
+    // for provider: EMAIL_PASSWORD
+    public String email;
+    public String password; // for EMAIL_PASSWORD auth only
+
+    // for provider: OAUTH_GITHUB
+    public String githubId;
+    // for provider: OAUTH_GOOGLE
+    public String googleEmail;
+
+//    public ArrayList<String> oAuthEmails; // not sure, it may have refresh token and email if required
     
 }

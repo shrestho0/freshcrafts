@@ -19,6 +19,7 @@
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/eslint": "^8.56.7",
+		"@types/jsonwebtoken": "^9.0.6",
 		"autoprefixer": "^10.4.19",
 		"carbon-components-svelte": "^0.85.0",
 		"carbon-icons-svelte": "^12.10.0",
@@ -40,6 +41,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"googleapis": "^140.0.1",
+		"jsonwebtoken": "^9.0.2",
+		"jwt-decode": "^4.0.0",
+		"lucide-svelte": "^0.399.0",
 		"svelte-sonner": "^0.3.24",
 		"ulid": "^2.3.0"
 	}
