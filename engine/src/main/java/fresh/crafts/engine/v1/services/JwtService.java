@@ -9,7 +9,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 
 import fresh.crafts.engine.v1.entities.JwtPayload;
-import fresh.crafts.engine.v1.types.Tokens;
+import fresh.crafts.engine.v1.entities.Tokens;
 import fresh.crafts.engine.v1.utils.JwtProperties;
 
 @Service

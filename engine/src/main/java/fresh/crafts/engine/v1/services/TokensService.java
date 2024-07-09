@@ -12,8 +12,8 @@ import fresh.crafts.engine.v1.entities.JwtPayload;
 import fresh.crafts.engine.v1.models.BlacklistedToken;
 import fresh.crafts.engine.v1.models.SystemConfig;
 import fresh.crafts.engine.v1.repositories.BlacklistedTokenRepository;
-import fresh.crafts.engine.v1.types.Tokens;
-import fresh.crafts.engine.v1.types.enums.OAuthProviderEnum;
+import fresh.crafts.engine.v1.entities.Tokens;
+import fresh.crafts.engine.v1.utils.enums.AuthProviderType;
 
 @Service
 public class TokensService {
@@ -27,18 +27,48 @@ public class TokensService {
     @Autowired
     BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public List<OAuthProviderEnum> getEnabledOAuthProviders() {
-        List<OAuthProviderEnum> l = new ArrayList<>();
-        SystemConfig conf = systemConfigService.getOnly().orElse(null);
-        if (conf != null) {
-            if (conf.getSystemUserOauthGithubEnabled()) {
-                l.add(OAuthProviderEnum.OAUTH_GITHUB);
+    public CommonResponseDto getAllowedAuthProviders() {
+
+        CommonResponseDto response = new CommonResponseDto(false, "", null );
+        SystemConfig systemConfig = systemConfigService.getOnly().orElse(null);
+
+
+        System.err.println("[DEBUG] Get Provider Service:");
+        System.err.println("[DEBUG] systemConfig: " + systemConfig);
+
+
+
+        List<AuthProviderType> allowedProviders = new ArrayList<>();
+
+
+        if (systemConfig != null && systemConfig.getSystemUserSetupComplete()) {
+
+            if(systemConfig.getSystemUserEmail() != null && systemConfig.getSystemUserEmail().length() > 4 && systemConfig.getSystemUserPasswordHash() != null){
+            allowedProviders.add(AuthProviderType.EMAIL_PASSWORD);
             }
-            if (conf.getSystemUserOauthGoogleEnabled()) {
-                l.add(OAuthProviderEnum.OAUTH_GOOGLE);
+            if (systemConfig.getSystemUserOauthGithubEnabled()) {
+                allowedProviders.add(AuthProviderType.OAUTH_GITHUB);
             }
+            if (systemConfig.getSystemUserOauthGoogleEnabled()) {
+                allowedProviders.add(AuthProviderType.OAUTH_GOOGLE);
+            }
+
+            response.setSuccess(true);
+            response.setData(allowedProviders);
+        }else{
+            response.setSuccess(false);
+            response.setMessage("User setup incomplete!");
+
         }
-        return l;
+
+        System.err.println("[DEBUG] TokensController - authProviders: " + response);
+
+
+        return response;
+
+
+
+
 
     }
 

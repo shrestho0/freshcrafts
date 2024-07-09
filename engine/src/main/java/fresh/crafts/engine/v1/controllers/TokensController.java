@@ -20,15 +20,8 @@ public class TokensController {
 
 
     @GetMapping("/allowed-providers")
-    public ProvidersResponseDto authProviders() {
-        ProvidersResponseDto response = new ProvidersResponseDto(false, null);
-
-        response.setSuccess(true);
-        response.setProviders(tokensService.getEnabledOAuthProviders());
-
-        System.err.println("[DEBUG] TokensController - authProviders: " + response);
-
-        return response;
+    public CommonResponseDto allowedAuthProviders() {
+        return tokensService.getAllowedAuthProviders();
 
     }
 

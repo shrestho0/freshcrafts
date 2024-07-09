@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import {
 		Header,
@@ -14,14 +14,21 @@
 		Content,
 		Grid,
 		Row,
-		Column
+		Column,
+		Button,
+		HeaderSearch
 	} from 'carbon-components-svelte';
 	import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
 	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
 	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
+	import { onMount } from 'svelte';
 	import { toast } from 'svelte-sonner';
+	import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
+	import HeaderSearchThingy from './HeaderSearchThingy.svelte';
+	import { HtmlReference } from 'carbon-icons-svelte';
+	import ClientScreenSize from './dev/ClientScreenSize.svelte';
 
-	let isSideNavOpen = false;
+	export let isSideNavOpen: boolean;
 
 	async function handleLogout() {
 		const bres = await fetch('/logout', {
@@ -41,13 +48,23 @@
 	}
 </script>
 
-<Header company="IBM" platformName="Carbon Svelte" bind:isSideNavOpen>
+<!-- <Header platformName="FreshCrafts" href="/" persistentHamburgerMenu bind:isSideNavOpen> -->
+<Header platformName="FreshCrafts" href="/" bind:isSideNavOpen>
 	<svelte:fragment slot="skip-to-content">
 		<SkipToContent />
 	</svelte:fragment>
+
 	<HeaderUtilities>
-		<HeaderGlobalAction iconDescription="Settings" tooltipAlignment="start" icon={SettingsAdjust} />
-		<HeaderGlobalAction iconDescription="Profile" icon={UserAvatarFilledAlt} />
+		<HeaderSearchThingy />
+		<HeaderThemeSwitcher />
+		<HeaderGlobalAction
+			iconDescription="Settings"
+			tooltipAlignment="start"
+			icon={SettingsAdjust}
+			on:click={() => {
+				goto('/settings');
+			}}
+		/>
 		<HeaderGlobalAction
 			iconDescription="Logout"
 			tooltipAlignment="end"
@@ -56,26 +73,6 @@
 		/>
 	</HeaderUtilities>
 </Header>
-
-<SideNav bind:isOpen={isSideNavOpen}>
-	<SideNavItems>
-		<SideNavLink text="Link 1" />
-		<SideNavLink text="Link 2" />
-		<SideNavLink text="Link 3" />
-		<SideNavMenu text="Menu">
-			<SideNavMenuItem href="/" text="Link 1" />
-			<SideNavMenuItem href="/" text="Link 2" />
-			<SideNavMenuItem href="/" text="Link 3" />
-		</SideNavMenu>
-	</SideNavItems>
-</SideNav>
-
-<Content>
-	<Grid>
-		<Row>
-			<Column>
-				<h1>Welcome</h1>
-			</Column>
-		</Row>
-	</Grid>
-</Content>
+<!-- {#if isSideNavOpen}
+	<div class="custom-overlay custom-overlay--active" style="z-index: 6000;"></div>
+{/if} -->

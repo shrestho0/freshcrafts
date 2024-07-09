@@ -66,6 +66,9 @@ public class SystemConfigService {
 
         // save new config
         systemConfig.setId(existingConfig.getId());
+        String passwordHash = BCrypt.hashpw(systemConfig.getSystemUserPasswordHash() , BCrypt.gensalt());
+
+        systemConfig.setSystemUserPasswordHash(passwordHash);
 
 
         systemConfig.setUpdated(new Date());

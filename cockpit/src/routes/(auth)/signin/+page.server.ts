@@ -1,7 +1,9 @@
-import { redirect, type Actions } from "@sveltejs/kit";
+import { fail, redirect, type Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
 import { BackendEndpoints } from "@/backend-endpoints";
 import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME } from "$env/static/private";
+import type { AuthProviderType } from "@/types/enums";
+import messages from "@/utils/messages";
 
 export const load: PageServerLoad = async ({ locals }) => {
     // request server authorized oauth providers and emails associated
@@ -20,14 +22,21 @@ export const load: PageServerLoad = async ({ locals }) => {
     }).then(res => res.json()).catch(() => {
         return {
             success: false,
+            message: messages.RESPONSE_ERROR
         };
     });
-    console.log(serverProviders);
-    if (serverProviders.success) {
-        return {
-            provider: serverProviders.providers
-        };
+    if (serverProviders.data) {
+        serverProviders.providers = serverProviders.data as {
+            providers: AuthProviderType[],
+            message: string
+        }
+        delete serverProviders.data;
     }
+
+    console.log("From Server Login ", serverProviders);
+
+    return serverProviders;
+
 };
 
 export const actions: Actions = {
@@ -60,6 +69,8 @@ export const actions: Actions = {
                 maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
             });
 
+        } else {
+            return fail(res.message);
         }
 
 
