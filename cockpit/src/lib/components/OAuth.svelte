@@ -1,11 +1,31 @@
+<!-- 
+
+Refactor Required
+
+-->
+
 <script lang="ts">
 	import { LogoGithub } from 'carbon-icons-svelte';
 	import { InlineLoading, Loading } from 'carbon-components-svelte';
 	import { CircleCheckBig, CircleX } from 'lucide-svelte';
 	import type { SetupPageOauthData } from '@/types/internal';
-	import { parse } from 'svelte/compiler';
-	import { page } from '$app/stores';
+	import { AuthProviderType } from '@/types/enums';
 	export let data: SetupPageOauthData;
+
+	export let connectionCallback: ({
+		provider,
+		githubId,
+		googleEmail
+	}: {
+		provider: AuthProviderType;
+		githubId?: string;
+		googleEmail?: string;
+	}) => void = () => {
+		console.log('connectionCallback not set');
+	};
+	export let disconnectionCallback: ({ provider }: { provider: AuthProviderType }) => void = () => {
+		console.log('disconnectionCallback not set');
+	};
 
 	// let githubUrl = initializeAndReturnGithubUrl();
 	// let googleUrl = initializeAndReturnGoogleUrl();
@@ -44,10 +64,18 @@
 								data.googleStatus = 'connected';
 								data.googleOAuthJson = parsedData.data;
 								data.oAuthGoogleEmail = parsedData.data.oAuthGoogleEmail;
+								connectionCallback({
+									provider: AuthProviderType.OAUTH_GOOGLE,
+									googleEmail: parsedData.data.oAuthGoogleEmail
+								});
 							} else if (oauthType == 'github') {
 								data.githubStatus = 'connected';
 								data.githubOAuthJson = parsedData.data;
 								data.oAuthGithubId = parsedData.data.oAuthGithubId;
+								connectionCallback({
+									provider: AuthProviderType.OAUTH_GITHUB,
+									githubId: parsedData.data.oAuthGithubId
+								});
 							}
 							currentOk = true;
 						} else {
@@ -94,17 +122,22 @@
 	<div class=" w-full max-w-full gap-3 flex flex-col">
 		<button
 			on:click={() => handleOauthLogin('github')}
+			disabled={data.githubStatus === 'connected'}
 			class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem] text-md"
 		>
 			<p class="flex items-center justify-center gap-2">
-				Connect with Github
 				{#if data.githubStatus === 'loading'}
+					Connecting with Github
 					<InlineLoading class=" " />
 				{:else if data.githubStatus === 'connected'}
+					Connected with Github
 					<CircleCheckBig class="text-green-600 h-5" />
 				{:else if data.githubStatus === 'error'}
+					Failed to connect with Github
 					<CircleX class="text-red-500 h-5" />
-				{:else if data.githubStatus === 'idle'}{/if}
+				{:else if data.githubStatus === 'idle'}
+					Connect with Github
+				{/if}
 			</p>
 			<div class="inline-flex items-center">
 				<LogoGithub class=" col-span-1 min-w-6 min-h-6" />
@@ -113,16 +146,21 @@
 		<button
 			on:click={() => handleOauthLogin('google')}
 			class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem] text-md"
+			disabled={data.googleStatus === 'connected'}
 		>
 			<p class="flex items-center justify-center gap-2">
-				Connect with Google
 				{#if data.googleStatus === 'loading'}
+					Connecting with Google
 					<InlineLoading class=" " />
 				{:else if data.googleStatus === 'connected'}
+					Connected with Github
 					<CircleCheckBig class="text-green-600 h-5" />
 				{:else if data.googleStatus === 'error'}
+					Failed to connect with Github
 					<CircleX class="text-red-500 h-5" />
-				{:else if data.googleStatus === 'idle'}{/if}
+				{:else if data.googleStatus === 'idle'}
+					Connect with Google
+				{/if}
 			</p>
 			<svg
 				xmlns="http://www.w3.org/2000/svg"

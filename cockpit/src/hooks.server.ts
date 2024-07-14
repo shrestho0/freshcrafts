@@ -1,7 +1,7 @@
 import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, JWT_ACCESS_SECRET, JWT_ISSUER, JWT_REFRESH_SECRET } from '$env/static/private';
 import { BackendEndpoints } from '@/backend-endpoints';
 import type { SystemUser } from '@/types/entities';
-import type { LoginTypeEnum } from '@/types/enums';
+import type { AuthProviderType } from '@/types/enums';
 import type { Handle } from '@sveltejs/kit';
 
 import jwt from "jsonwebtoken"
@@ -44,15 +44,16 @@ export const handle: Handle = async ({ event, resolve }) => {
                     iss: string,
                     systemUserName: string,
                     systemUserEmail: string,
-                    provider: LoginTypeEnum,
+                    provider: AuthProviderType,
                     exp: number,
                     sub: 'ACCESS_TOKEN' | 'REFRESH_TOKEN'
                 }
+                console.log("Verified access token payload", verifiedAccessToken)
 
                 event.locals.user = {
                     name: verifiedAccessToken.systemUserName,
                     email: verifiedAccessToken.systemUserEmail,
-                    provider: verifiedAccessToken.provider as LoginTypeEnum
+                    provider: verifiedAccessToken.provider as AuthProviderType
                 } as SystemUser;
 
 
@@ -67,7 +68,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                         iss: string,
                         systemUserName: string,
                         systemUserEmail: string,
-                        provider: LoginTypeEnum,
+                        provider: AuthProviderType,
                         exp: number,
                         sub: 'ACCESS_TOKEN' | 'REFRESH_TOKEN'
                     }
@@ -88,7 +89,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                         event.locals.user = {
                             name: verifiedRefreshToken.systemUserName,
                             email: verifiedRefreshToken.systemUserEmail,
-                            provider: verifiedRefreshToken.provider as LoginTypeEnum
+                            provider: verifiedRefreshToken.provider as AuthProviderType
                         } as SystemUser;
 
                         // console.log("Refreshed token: ", res.tokens)

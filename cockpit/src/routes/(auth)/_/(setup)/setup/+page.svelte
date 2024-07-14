@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Button, InlineNotification, Loading } from 'carbon-components-svelte';
-	import OAuth from './OAuth.svelte';
+	import OAuth from '@/components/OAuth.svelte';
 	import Account from './Account.svelte';
 	import Review from './Review.svelte';
 	import { onDestroy, onMount } from 'svelte';

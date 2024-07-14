@@ -28,7 +28,7 @@ public class SystemConfig {
     private String setupKey;
 
     
-    private Boolean systemUserSetupComplete = false;
+    private Boolean systemUserSetupComplete;
 
     // These will be used as token payload
     private String SystemUserName;
@@ -37,8 +37,8 @@ public class SystemConfig {
 
 
     // OAuth 
-    private Boolean systemUserOauthGoogleEnabled = false;
-    private Boolean systemUserOauthGithubEnabled = false;
+    private Boolean systemUserOauthGoogleEnabled;
+    private Boolean systemUserOauthGithubEnabled;
 
     // we'll use this to check, email for Google and id for GitHub
     // these will have their own classes later like ProviderGoogle, ProviderGithub
@@ -48,8 +48,8 @@ public class SystemConfig {
 
     // Parsing json will give us the result
     // TODO: this will be OauthProvider consiting oauth_email, oauth_id (if possible), oauth_refresh_token
-    private Map<String,Object> systemUserOauthGoogleData = null;
-    private Map<String,Object> systemUserOauthGithubData = null;
+    private Map<String,Object> systemUserOauthGoogleData;
+    private Map<String,Object> systemUserOauthGithubData;
 
 
 

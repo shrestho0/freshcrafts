@@ -1,7 +1,7 @@
-import type { LoginTypeEnum } from "./enums";
+import type { AuthProviderType } from "./enums";
 
 export type SystemUser = {
     name: string;
     email: string;
-    provider: LoginTypeEnum;
+    provider: AuthProviderType;
 }

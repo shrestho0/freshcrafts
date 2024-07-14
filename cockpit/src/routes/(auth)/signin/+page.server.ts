@@ -4,6 +4,7 @@ import { BackendEndpoints } from "@/backend-endpoints";
 import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME } from "$env/static/private";
 import type { AuthProviderType } from "@/types/enums";
 import messages from "@/utils/messages";
+import { EngineConnection } from "@/server/EngineConnection";
 
 export const load: PageServerLoad = async ({ locals }) => {
     // request server authorized oauth providers and emails associated
@@ -15,27 +16,31 @@ export const load: PageServerLoad = async ({ locals }) => {
     }
 
     // get providers 
-    const serverProviders = await fetch(BackendEndpoints.PROVIDERS, {
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    }).then(res => res.json()).catch(() => {
-        return {
-            success: false,
-            message: messages.RESPONSE_ERROR
-        };
-    });
-    if (serverProviders.data) {
-        serverProviders.providers = serverProviders.data as {
-            providers: AuthProviderType[],
-            message: string
-        }
-        delete serverProviders.data;
-    }
+    // const serverProviders = await fetch(BackendEndpoints.PROVIDERS, {
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //     }
+    // }).then(res => res.json()).catch(() => {
+    //     return {
+    //         success: false,
+    //         message: messages.RESPONSE_ERROR
+    //     };
+    // });
 
-    console.log("From Server Login ", serverProviders);
+    // if (serverProviders.data) {
+    //     serverProviders.providers = serverProviders.data as {
+    //         providers: AuthProviderType[],
+    //         message: string
+    //     }
+    //     delete serverProviders.data;
+    // }
 
-    return serverProviders;
+    const engine = EngineConnection.getInstance()
+    const contextData = engine.getProviders()
+
+    console.log("From Server Login ", contextData);
+
+    return contextData;
 
 };
 

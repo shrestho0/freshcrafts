@@ -1,35 +1,20 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { AuthProviderType, type AuthProviderType } from '@/types/enums';
-	import HeaderThemeSwitcher from '@/components/HeaderThemeSwitcher.svelte';
+	import { AuthProviderType } from '@/types/enums';
 
 	import {
-		Header,
-		HeaderNav,
-		HeaderNavItem,
-		HeaderNavMenu,
-		SkipToContent,
-		Content,
-		Grid,
 		Row,
 		Column,
-		HeaderUtilities,
-		HeaderGlobalAction,
 		TextInput,
-		FormLabel,
-		Button,
-		Form,
-		FormItem,
 		PasswordInput,
 		InlineNotification
 	} from 'carbon-components-svelte';
-	import { ArrowRight, ButtonCentered, Label, LogoGithub, PortInput } from 'carbon-icons-svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { ArrowRight, LogoGithub } from 'carbon-icons-svelte';
+	import { onMount } from 'svelte';
 	import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
 	import { applyAction, enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
 	import type { ActionResult } from '@sveltejs/kit';
-	import PreDebug from '@/components/dev/PreDebug.svelte';
 
 	export let data;
 

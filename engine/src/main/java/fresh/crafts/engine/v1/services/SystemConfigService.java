@@ -139,6 +139,13 @@ public class SystemConfigService {
 //        }
 
 
+        if(systemConfig.getSystemUserOAuthGoogleEmail() != null){
+            existingConfig.setSystemUserOAuthGoogleEmail(systemConfig.getSystemUserOAuthGoogleEmail());
+        }
+        if(systemConfig.getSystemUserOAuthGithubId() != null){
+            existingConfig.setSystemUserOAuthGithubId(systemConfig.getSystemUserOAuthGithubId());
+        }
+
         if (systemConfig.getSystemUserOauthGoogleData() != null) {
             existingConfig.setSystemUserOauthGoogleData(systemConfig.getSystemUserOauthGoogleData());
         }
