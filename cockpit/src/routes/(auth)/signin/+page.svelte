@@ -1,30 +1,16 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import type { OAuthProviderEnum } from '@/types/enums';
-	import HeaderThemeSwitcher from '@/components/HeaderThemeSwitcher.svelte';
+	import { AuthProviderType } from '@/types/enums';
 
 	import {
-		Header,
-		HeaderNav,
-		HeaderNavItem,
-		HeaderNavMenu,
-		SkipToContent,
-		Content,
-		Grid,
 		Row,
 		Column,
-		HeaderUtilities,
-		HeaderGlobalAction,
 		TextInput,
-		FormLabel,
-		Button,
-		Form,
-		FormItem,
 		PasswordInput,
 		InlineNotification
 	} from 'carbon-components-svelte';
-	import { ArrowRight, ButtonCentered, Label, LogoGithub, PortInput } from 'carbon-icons-svelte';
-	import { onDestroy, onMount } from 'svelte';
+	import { ArrowRight, LogoGithub } from 'carbon-icons-svelte';
+	import { onMount } from 'svelte';
 	import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
 	import { applyAction, enhance } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
@@ -58,7 +44,7 @@
 					invalidateAll();
 					break;
 				case 'failure':
-					error_message = result?.error?.message ?? 'Failed to login';
+					error_message = result?.data?.message ?? 'Failed to login';
 					break;
 			}
 		};
@@ -78,80 +64,68 @@
 									<div>
 										<Row>
 											<Column class="w-full    h-full">
-												<div class="login-form">
-													<form
-														class="bx--form"
-														name="loginForm"
-														method="POST"
-														action=""
-														use:enhance={enhancedEmailPasswordLogin}
-													>
-														<div class="heading-container">
-															<div class="bx--row">
-																<div class="bx--col">
-																	<div class="text-left text-[2rem] font-medium space-x-3">
-																		Log in to FreshCrafts
-																	</div>
-																</div>
+												<div class="">
+													<div class="bx--row">
+														<div class="bx--col">
+															<div class="text-left text-[2rem] font-medium space-x-3">
+																Log in to FreshCrafts
 															</div>
 														</div>
-														{#if error_message}
-															<InlineNotification
-																title="Error:"
-																subtitle={error_message}
-																hideCloseButton
-																class="py-0 my-2 bg-[#393939] text-white  "
-															/>
+													</div>
+												</div>
+												<div class="login-form">
+													{#if data?.providers?.length > 0}
+														{#if data.providers?.includes(AuthProviderType.EMAIL_PASSWORD)}
+															<form
+																class="bx--form regular-auth-container"
+																name="loginForm"
+																method="POST"
+																action=""
+																use:enhance={enhancedEmailPasswordLogin}
+															>
+																{#if error_message}
+																	<InlineNotification
+																		title="Error:"
+																		subtitle={error_message}
+																		hideCloseButton
+																		class="py-0 my-2 bg-[#393939] text-white  "
+																	/>
+																{/if}
+																<Row>
+																	<Column class="flex flex-col gap-2">
+																		<TextInput
+																			size="xl"
+																			class="w-full"
+																			name="x-email"
+																			type="email"
+																			labelText="Email"
+																			placeholder="hello@example.com"
+																		/>
+
+																		<PasswordInput
+																			size="xl"
+																			class="w-full"
+																			name="x-password"
+																			type="password"
+																			labelText="Password"
+																			placeholder="*************"
+																		/>
+
+																		<button
+																			type="submit"
+																			class="w-full flex justify-between items-center max-w-full bx--btn--primary text-left px-4 min-h-[3rem]"
+																			>Sign In
+																			<ArrowRight />
+																		</button>
+																	</Column>
+																</Row>
+															</form>
 														{/if}
-														<Row>
-															<Column class="flex flex-col gap-2">
-																<TextInput
-																	size="xl"
-																	class="w-full"
-																	name="x-email"
-																	type="email"
-																	labelText="Email"
-																	placeholder="hello@example.com"
-																/>
-
-																<PasswordInput
-																	size="xl"
-																	class="w-full"
-																	name="x-password"
-																	type="password"
-																	labelText="Password"
-																	placeholder="*************"
-																/>
-
-																<button
-																	type="submit"
-																	class="w-full flex justify-between items-center max-w-full bx--btn--primary text-left px-4 min-h-[3rem]"
-																	>Sign In
-																	<ArrowRight />
-																</button>
-															</Column>
-														</Row>
-													</form>
-
-													{#if data.provider?.length > 0}
 														<div class="oauth-container oauth-container">
 															<div class=" w-full max-w-full gap-3 flex flex-col">
-																{#if data.provider?.includes('OAUTH_GITHUB')}
+																{#if data.providers?.includes(AuthProviderType.OAUTH_GITHUB)}
 																	<button
 																		on:click={() => {
-																			// open new window and listen to it
-																			// const popup = window.open(
-																			// 	github_login_url.toString(),
-																			// 	'_blank',
-																			// 	'width=600,height=600'
-																			// );
-																			// const listener = (event) => {
-																			// 	if (event.origin !== window.location.origin) return;
-																			// 	if (event.data === 'github:success') {
-																			// 		popup.close();
-																			// 		window.removeEventListener('message', listener);
-																			// 	}
-																			// };
 																			if (githubLoginUrl)
 																				window.location.href = githubLoginUrl?.toString();
 																		}}
@@ -160,7 +134,7 @@
 																		<LogoGithub class="w-6 h-6" />
 																	</button>
 																{/if}
-																{#if data.provider?.includes('OAUTH_GOOGLE')}
+																{#if data.providers?.includes(AuthProviderType.OAUTH_GOOGLE)}
 																	<button
 																		class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
 																		on:click={() => {
@@ -185,7 +159,12 @@
 															</div>
 														</div>
 													{:else}
-														<div class="center">Add oAuth Providers from Account Settings</div>
+														<InlineNotification
+															title="Error:"
+															subtitle={data?.message ?? 'No login providers available'}
+															hideCloseButton
+															class="py-0 my-2 bg-[#393939] text-white  "
+														/>
 													{/if}
 												</div>
 											</Column>
@@ -223,15 +202,16 @@
 		overflow: hidden;
 		max-width: 99rem;
 	}
-	.login-form .heading-container {
+	.heading-container {
 		padding-bottom: 2rem;
 		margin-bottom: 1rem;
 		border-bottom: 1px solid #e0e0e0;
 	}
-	.oauth-container {
+	.oauth-container,
+	.regular-auth-container {
+		border-top: 1px solid #e0e0e0;
 		padding-top: 1rem;
 		margin-top: 1rem;
-		border-top: 1px solid #e0e0e0;
 	}
 
 	.login-container .right-pannel .canvas-container .login-canvas {
@@ -270,24 +250,4 @@
 			margin-bottom: 48px;
 		}
 	}
-	/* .login-canvas {
-		position: absolute;
-		left: 0;
-		width: 100%;
-		min-width: 1000px;
-		height: 100%;
-		background-repeat: no-repeat;
-		background-position-x: left;
-		background-position-y: bottom;
-	}
-	.heading-container {
-		padding-bottom: 2rem;
-		margin-bottom: 1rem;
-		border-bottom: 1px solid #e0e0e0;
-	}
-	.oauth-container {
-		padding-top: 2rem;
-		margin-top: 1rem;
-		border-top: 1px solid #e0e0e0;
-	} */
 </style>

@@ -3,17 +3,24 @@ package fresh.crafts.engine.v1.services;
 import java.util.ArrayList;
 import java.util.List;
 
-import fresh.crafts.engine.v1.dtos.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import fresh.crafts.engine.v1.dtos.ChangePasswordDto;
+import fresh.crafts.engine.v1.dtos.CommonResponseDto;
+import fresh.crafts.engine.v1.dtos.GenerateRefreshTokenRequestDto;
+import fresh.crafts.engine.v1.dtos.GenerateRefreshTokenResponseDto;
+import fresh.crafts.engine.v1.dtos.GenerateTokenRequestDto;
+import fresh.crafts.engine.v1.dtos.GenerateTokenResponseDto;
+import fresh.crafts.engine.v1.dtos.InvalidateTokenRequestDto;
 import fresh.crafts.engine.v1.entities.JwtPayload;
+import fresh.crafts.engine.v1.entities.Tokens;
 import fresh.crafts.engine.v1.models.BlacklistedToken;
 import fresh.crafts.engine.v1.models.SystemConfig;
 import fresh.crafts.engine.v1.repositories.BlacklistedTokenRepository;
-import fresh.crafts.engine.v1.types.Tokens;
-import fresh.crafts.engine.v1.types.enums.OAuthProviderEnum;
+import fresh.crafts.engine.v1.utils.enums.AuthProviderType;
+import fresh.crafts.engine.v1.utils.exceptions.SystemConfigurationsNotSetException;
 
 @Service
 public class TokensService {
@@ -27,18 +34,40 @@ public class TokensService {
     @Autowired
     BlacklistedTokenRepository blacklistedTokenRepository;
 
-    public List<OAuthProviderEnum> getEnabledOAuthProviders() {
-        List<OAuthProviderEnum> l = new ArrayList<>();
-        SystemConfig conf = systemConfigService.getOnly().orElse(null);
-        if (conf != null) {
-            if (conf.getSystemUserOauthGithubEnabled()) {
-                l.add(OAuthProviderEnum.OAUTH_GITHUB);
+    public CommonResponseDto getAllowedAuthProviders() {
+
+        CommonResponseDto response = new CommonResponseDto(false, "", null, null, null);
+        SystemConfig systemConfig = systemConfigService.getOnly().orElse(null);
+
+        System.err.println("[DEBUG] Get Provider Service:");
+        System.err.println("[DEBUG] systemConfig: " + systemConfig);
+
+        List<AuthProviderType> allowedProviders = new ArrayList<>();
+
+        if (systemConfig != null && systemConfig.getSystemUserSetupComplete()) {
+
+            if (systemConfig.getSystemUserEmail() != null && systemConfig.getSystemUserEmail().length() > 4
+                    && systemConfig.getSystemUserPasswordHash() != null) {
+                allowedProviders.add(AuthProviderType.EMAIL_PASSWORD);
             }
-            if (conf.getSystemUserOauthGoogleEnabled()) {
-                l.add(OAuthProviderEnum.OAUTH_GOOGLE);
+            if (systemConfig.getSystemUserOauthGithubEnabled()) {
+                allowedProviders.add(AuthProviderType.OAUTH_GITHUB);
             }
+            if (systemConfig.getSystemUserOauthGoogleEnabled()) {
+                allowedProviders.add(AuthProviderType.OAUTH_GOOGLE);
+            }
+
+            response.setSuccess(true);
+            response.setData(allowedProviders);
+        } else {
+            response.setSuccess(false);
+            response.setMessage("User setup incomplete!");
+
         }
-        return l;
+
+        System.err.println("[DEBUG] TokensController - authProviders: " + response);
+
+        return response;
 
     }
 
@@ -182,6 +211,9 @@ public class TokensService {
             // as we want this to be latest
             payload.setSystemUserEmail(conf.getSystemUserEmail());
             payload.setSystemUserName(conf.getSystemUserName());
+            // TODO: Check if provider is valid and currently accepted
+            // If not, don't refresh token and send error
+            // from this.getAllowedAuthProviders()
             payload.setProvider(refreshToken.getProvider());
             Tokens tokens = jwtService.generate(payload);
 
@@ -213,5 +245,37 @@ public class TokensService {
         return res;
     }
 
+    public CommonResponseDto changePassword(CommonResponseDto res, ChangePasswordDto passwordDto)
+            throws SystemConfigurationsNotSetException {
+        System.out.println("Password Change Request: " + passwordDto);
+        SystemConfig conf = systemConfigService.getOnly().orElse(null);
+
+        // check with old pass
+        assert conf != null;
+        // System.out.println("old"+ passwordDto.getOldPassword()+" new "+
+        // passwordDto.getNewPassword()+ " conf"+conf.getSystemUserPasswordHash());
+        // System.out.println("bcrypt"+ BCrypt.checkpw(passwordDto.getOldPassword(),
+        // conf.getSystemUserPasswordHash()));
+        //
+        // if (BCrypt.checkpw("dev@shrestho.me", conf.getSystemUserPasswordHash())){
+        // System.out.println("milese");
+        // }
+        //
+        if (BCrypt.checkpw(passwordDto.getOldPassword(), conf.getSystemUserPasswordHash())) {
+            SystemConfig partialConfForPassword = new SystemConfig();
+            partialConfForPassword.setSystemUserPasswordHash(passwordDto.getNewPassword());
+            systemConfigService.update(partialConfForPassword);
+            // change on success
+            // send success message on success
+            res.setSuccess(true);
+            res.setMessage("Password Changed Successfully");
+        } else {
+            // send error message on success
+            res.setSuccess(false);
+            res.setMessage("Password Changed Failed. Incorrect old password");
+        }
+
+        return res;
+    }
 
 }

@@ -1,4 +1,4 @@
-package fresh.crafts.engine.v1.types;
+package fresh.crafts.engine.v1.entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

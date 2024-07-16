@@ -2,7 +2,7 @@ package fresh.crafts.engine.v1.dtos;
 
 import java.util.List;
 
-import fresh.crafts.engine.v1.types.enums.OAuthProviderEnum;
+import fresh.crafts.engine.v1.utils.enums.AuthProviderType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,7 +11,8 @@ import lombok.Data;
 public class ProvidersResponseDto {
 
     private boolean success;
-    private List<OAuthProviderEnum> providers;
+    private List<AuthProviderType> providers;
+    private String message;
     
     
 }

@@ -2,20 +2,22 @@ spring.application.name=engine
 server.port=10000
 
 # Application Specific
-freshCrafts.JWT_ACCESS_SECRET=
-freshCrafts.JWT_REFRESH_SECRET=
-freshCrafts.JWT_ACCESS_EXPIRES_IN=5m
-freshCrafts.JWT_REFRESH_EXPIRES_IN=7d
+freshCrafts.JWT_ISSUER=freshCrafts
+freshCrafts.JWT_ACCESS_SECRET=SOME_ACCESS_SECRET
+freshCrafts.JWT_REFRESH_SECRET=SOME_REFRESH_SECRET
+# 30 seconds 30*60
+freshCrafts.JWT_ACCESS_EXPIRES_IN=10
+# 7 days 7*24*60*60
+freshCrafts.JWT_REFRESH_EXPIRES_IN=604800
 
-# MongoDB SystemConfig Collection Id
-freshCrafts.MONGO_CONFIG_SYSTEM_CONFIG_COLLECTION_ID=
 
-# Cockpit setup key
-freshCrafts.COCKPIT_SETUP_KEY=
-
+freshCrafts.MONGO_CONFIG_SYSTEM_CONFIG_COLLECTION_ID=TheConfig
+freshCrafts.COCKPIT_SSE_AUTHORIZATION_TOKEN=SOME_TOKEN
 spring.data.mongodb.host=localhost
 spring.data.mongodb.port=27017
 spring.data.mongodb.database=crafts_starter
+# depricated
+# freshCrafts.COCKPIT_SETUP_KEY=SOME_SETUP_KEY_XD
 
 # OpenAPI Doc Url
 springdoc.api-docs.path=/api/v1/api-docs
@@ -23,4 +25,12 @@ springdoc.swagger-ui.path=/api/v1/swagger
 springdoc.default-produces-media-type=application/json
 springdoc.default-consumes-media-type=application/json
 
- 
+
+## Kafka Stuff
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=engine
+
+# springdoc.swagger-ui.operationsSorter=method
+
+
+

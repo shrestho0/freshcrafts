@@ -21,7 +21,6 @@ public class BlacklistedToken {
     @Indexed(unique = true)
     private String token;
 
-
     public BlacklistedToken(String token) {
         this.id = UlidGenerator.generate();
         this.token = token;

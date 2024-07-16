@@ -1,6 +1,7 @@
 package fresh.crafts.engine.v1.controllers;
 
 import fresh.crafts.engine.v1.dtos.*;
+import fresh.crafts.engine.v1.utils.exceptions.SystemConfigurationsNotSetException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,15 +21,8 @@ public class TokensController {
 
 
     @GetMapping("/allowed-providers")
-    public ProvidersResponseDto authProviders() {
-        ProvidersResponseDto response = new ProvidersResponseDto(false, null);
-
-        response.setSuccess(true);
-        response.setProviders(tokensService.getEnabledOAuthProviders());
-
-        System.err.println("[DEBUG] TokensController - authProviders: " + response);
-
-        return response;
+    public CommonResponseDto allowedAuthProviders() {
+        return tokensService.getAllowedAuthProviders();
 
     }
 
@@ -62,6 +56,19 @@ public class TokensController {
         } catch (Exception e) {
             res.setMessage(e.getMessage());
         }
+        return res;
+    }
+
+    @PostMapping("/change-password")
+    public  CommonResponseDto changePassword(@RequestBody ChangePasswordDto changePasswordDto ){
+        CommonResponseDto res = new CommonResponseDto();
+        try {
+            return tokensService.changePassword(res, changePasswordDto);
+        } catch (SystemConfigurationsNotSetException e) {
+            res.setSuccess(false);
+            res.setMessage(e.getMessage());
+        }
+
         return res;
     }
 

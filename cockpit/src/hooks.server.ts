@@ -1,8 +1,10 @@
-import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, JWT_ACCESS_SECRET, JWT_ISSUER, JWT_REFRESH_SECRET } from '$env/static/private';
+import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, JWT_ACCESS_SECRET, JWT_ISSUER, JWT_REFRESH_SECRET, SSE_AUTHORIZATION_TOKEN } from '$env/static/private';
 import { BackendEndpoints } from '@/backend-endpoints';
+import { EngineConnection } from '@/server/EngineConnection';
 import type { SystemUser } from '@/types/entities';
-import type { LoginTypeEnum } from '@/types/enums';
-import type { Handle } from '@sveltejs/kit';
+import type { AuthProviderType } from '@/types/enums';
+import type { CustomJwtPayload } from '@/types/internal';
+import { json, type Handle } from '@sveltejs/kit';
 
 import jwt from "jsonwebtoken"
 
@@ -14,6 +16,8 @@ type User = {
 export const handle: Handle = async ({ event, resolve }) => {
 
     console.log("Entered hook.server.ts")
+
+
 
     // Cokies and System wide data setup
     const authCookie = event.cookies.get(AUTH_COOKIE_NAME)
@@ -40,47 +44,28 @@ export const handle: Handle = async ({ event, resolve }) => {
                 const verifiedAccessToken = jwt.verify(access, JWT_ACCESS_SECRET, {
                     issuer: JWT_ISSUER,
                     subject: "ACCESS_TOKEN"
-                }) as {
-                    iss: string,
-                    systemUserName: string,
-                    systemUserEmail: string,
-                    provider: LoginTypeEnum,
-                    exp: number,
-                    sub: 'ACCESS_TOKEN' | 'REFRESH_TOKEN'
-                }
+                }) as CustomJwtPayload;
+
+                // console.log("Verified access token payload", verifiedAccessToken)
+                console.log("Verified access token payload")
 
                 event.locals.user = {
                     name: verifiedAccessToken.systemUserName,
                     email: verifiedAccessToken.systemUserEmail,
-                    provider: verifiedAccessToken.provider as LoginTypeEnum
+                    provider: verifiedAccessToken.provider as AuthProviderType
                 } as SystemUser;
 
 
-                console.log("Verified access cookie: ", verifiedAccessToken)
+                // console.log("Verified access cookie: ", verifiedAccessToken)
             } catch (e: Error | any) {
                 if (e?.message?.includes("jwt expired")) {
                     console.log("Access token expired. trying to refresh token")
                     const verifiedRefreshToken = jwt.verify(refresh, JWT_REFRESH_SECRET, {
                         issuer: JWT_ISSUER,
                         subject: "REFRESH_TOKEN"
-                    }) as {
-                        iss: string,
-                        systemUserName: string,
-                        systemUserEmail: string,
-                        provider: LoginTypeEnum,
-                        exp: number,
-                        sub: 'ACCESS_TOKEN' | 'REFRESH_TOKEN'
-                    }
-                    const res = await fetch(BackendEndpoints.REFRESH_TOKEN, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            refreshToken: unverifiedRefreshToken,
-                            provider: verifiedRefreshToken.provider
-                        })
-                    }).then(res => res.json()).catch(() => { return { success: false } })
+                    }) as CustomJwtPayload;
+
+                    const res = await EngineConnection.getInstance().refreshToken(unverifiedAccessToken, verifiedRefreshToken.provider)
 
                     if (res.success == true) {
                         event.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), { path: '/', maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN) });
@@ -88,7 +73,7 @@ export const handle: Handle = async ({ event, resolve }) => {
                         event.locals.user = {
                             name: verifiedRefreshToken.systemUserName,
                             email: verifiedRefreshToken.systemUserEmail,
-                            provider: verifiedRefreshToken.provider as LoginTypeEnum
+                            provider: verifiedRefreshToken.provider as AuthProviderType
                         } as SystemUser;
 
                         // console.log("Refreshed token: ", res.tokens)

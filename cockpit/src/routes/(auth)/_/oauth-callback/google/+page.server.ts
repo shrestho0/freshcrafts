@@ -5,7 +5,7 @@ import { google } from "googleapis";
 
 import { jwtDecode } from "jwt-decode";
 import { BackendEndpoints } from "@/backend-endpoints";
-import { LoginTypeEnum } from "@/types/enums";
+import { AuthProviderType } from "@/types/enums";
 import { redirect } from "@sveltejs/kit";
 
 
@@ -72,7 +72,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    provider: LoginTypeEnum.OAUTH_GOOGLE,
+                    provider: AuthProviderType.OAUTH_GOOGLE,
                     // check all email with all emails, bad approach, nedda fix on refactor, proceeding for now
                     // email: dataToSendToEngine.emails,
                     // oAuthEmails: dataToSendToEngine.emails

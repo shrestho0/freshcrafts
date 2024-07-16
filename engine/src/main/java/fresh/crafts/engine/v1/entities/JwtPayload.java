@@ -1,6 +1,6 @@
 package fresh.crafts.engine.v1.entities;
 
-import fresh.crafts.engine.v1.types.enums.LoginTypeEnum;
+import fresh.crafts.engine.v1.utils.enums.LoginTypeEnum;
 import lombok.Data;
 
 

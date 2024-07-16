@@ -2,7 +2,7 @@ import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, GITHUB_CLIENT_ID, GITHUB_CLIE
 import type { OAuthCallbackInternalResponse, OAuthGithubDataRequestDto } from "@/types/internal";
 import type { PageServerLoad } from "./$types";
 import { BackendEndpoints } from "@/backend-endpoints";
-import { LoginTypeEnum, OAuthProviderEnum } from "@/types/enums";
+import { AuthProviderType } from "@/types/enums";
 import { redirect } from "@sveltejs/kit";
 
 
@@ -13,7 +13,10 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
 
 
     const dataToSendToEngine: OAuthGithubDataRequestDto = { token: undefined, userInfo: undefined, dataJson: undefined, emails: [], oAuthGithubId: "" };
-    const responseObject: OAuthCallbackInternalResponse = { success: false, provider: "github", closeWindow: false, message: "", data: dataToSendToEngine }
+    const responseObject: OAuthCallbackInternalResponse = {
+        success: false, provider: "github", closeWindow: false, message: "", data: dataToSendToEngine,
+        redirect: ""
+    }
 
     // popup for this page only rest will be redirected
     let fromPage: 'setup' | 'link' | undefined = cookies.get('fromPage') as any
@@ -107,7 +110,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                provider: LoginTypeEnum.OAUTH_GITHUB,
+                provider: AuthProviderType.OAUTH_GITHUB,
                 // check all email with all emails, bad approach, nedda fix on refactor, proceeding for now
                 // email: dataToSendToEngine.emails,
                 // oAuthEmails: dataToSendToEngine.emails
@@ -131,7 +134,10 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
             });
 
             // redirecting to dashboard, seems all fine
-            return redirect(307, '/dashboard')
+            // return redirect(307, '/dashboard')
+            // redirect from frontend
+            responseObject.success = true
+            responseObject.redirect = '/dashboard'
         }
 
 
