@@ -37,6 +37,13 @@
 	<dependencies>
 
 		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+			<version>3.2.2</version>
+		</dependency>
+
+
+		<dependency>
 			<groupId>de.huxhorn.sulky</groupId>
 			<artifactId>de.huxhorn.sulky.ulid</artifactId>
 			<version>8.3.0</version>
@@ -74,11 +81,7 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.kafka</groupId>
-			<artifactId>spring-kafka</artifactId>
-		</dependency>
-
+ 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>

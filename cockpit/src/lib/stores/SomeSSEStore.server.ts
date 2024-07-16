@@ -16,7 +16,8 @@ const SomeSSEStoreDataBus: SomeSSEStoreData[] = [];
 const SomeSSEStore = writable<SomeSSEStoreData>();
 
 SomeSSEStore.subscribe((value) => {
-    SomeSSEStoreDataBus.push(value);
+    console.log("Some SSE Store Updated")
+    // SomeSSEStoreDataBus.push(value);
 })
 
 export default SomeSSEStore;

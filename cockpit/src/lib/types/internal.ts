@@ -4,6 +4,7 @@
 
 
 import type { GoogleOAuthLoginCallbackDto } from "./dtos";
+import type { AuthProviderType } from "./enums";
 
 export type SetupPageOauthData = {
     githubLoginUrl: string,
@@ -41,6 +42,7 @@ export type OAuthGithubDataRequestDto = {
 }
 
 export type OAuthCallbackInternalResponse = {
+    redirect: string;
     success: boolean;
     provider: string;
     closeWindow: boolean;
@@ -62,4 +64,13 @@ export type OAuthGoogleIdTokenData = {
     family_name: string;
     iat: number;
     exp: number;
+}
+
+export type CustomJwtPayload = {
+    iss: string,
+    systemUserName: string,
+    systemUserEmail: string,
+    provider: AuthProviderType,
+    exp: number,
+    sub: 'ACCESS_TOKEN' | 'REFRESH_TOKEN'
 }

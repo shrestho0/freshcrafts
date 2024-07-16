@@ -11,16 +11,17 @@
 		Button,
 		Form,
 		FormGroup,
-		PasswordInput
+		PasswordInput,
+		InlineLoading
 	} from 'carbon-components-svelte';
 	import { LogoGithub } from 'carbon-icons-svelte';
 	import { onMount, onDestroy } from 'svelte';
 	import type { SetupPageOauthData } from '@/types/internal';
+	import { toast } from 'svelte-sonner';
+	import type { ActionResult } from '@sveltejs/kit';
+	import { invalidateAll } from '$app/navigation';
 	export let data;
 	const oauth = {
-		title: 'OAuth',
-		description: 'Setup OAuth accounts for signing in with Google, Github',
-		component: OAuth,
 		data: {
 			githubLoginUrl: data?.githubLoginUrl,
 			googleLoginUrl: data?.googleLoginUrl,
@@ -32,22 +33,10 @@
 			oAuthGithubId: ''
 		} as SetupPageOauthData
 	};
-	onMount(() => {
-		if (browser) {
-			document.cookie = 'fromPage=link; path=/; max-age=600'; //
-		}
-	});
-	onDestroy(() => {
-		if (browser) {
-			document.cookie = 'fromPage=link; path=/; max-age=0 ';
-		}
-	});
 
 	const { providers } = data?.providers ?? {};
-	let userWantsToChangeEmail = false;
-	let userWantsToChangePassword = false;
-
-	function enhancedFormSubmission() {}
+	let userWantsToChangeEmail: 'idle' | 'loading' | 'editing' = 'idle';
+	let userWantsToChangePassword: 'idle' | 'loading' | 'editing' = 'idle';
 
 	async function connectionCallback({
 		provider,
@@ -70,17 +59,82 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify({
+				update_type: 'oauth_connect',
 				provider,
 				githubId,
 				googleEmail
 			})
 		}).then((res) => res.json());
 
+		if (res?.success) {
+			toast.success(provider + 'Connected successfully');
+		} else {
+			toast.error('Failed to connect with oauth provider.');
+		}
+
 		console.log('response', res);
 	}
-	function disconnectionCallback({ provider }: { provider: AuthProviderType }) {
-		console.log('disconnectionCallback', oauth.data);
+	async function disconnectionCallback({ provider }: { provider: AuthProviderType }) {
+		console.log('disconnectionCallback', provider);
+
+		const res = await fetch('', {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				update_type: 'oauth_disconnect',
+				provider
+			})
+		}).then((res) => res.json());
+
+		console.log('response', res);
+
+		if (res.success) {
+			if (provider === AuthProviderType.OAUTH_GITHUB) {
+				oauth.data.githubStatus = 'idle';
+				oauth.data.githubOAuthJson = null;
+				oauth.data.oAuthGithubId = '';
+			} else if (provider === AuthProviderType.OAUTH_GOOGLE) {
+				oauth.data.googleStatus = 'idle';
+				oauth.data.googleOAuthJson = null;
+				oauth.data.oAuthGoogleEmail = '';
+			}
+			toast.success(provider + ' disconnected successfully');
+		} else {
+			toast.error('Failed to disconnect');
+		}
 	}
+
+	function enhancedFormSubmission() {
+		return async ({ result }: { result: ActionResult }) => {
+			switch (result.type) {
+				case 'success':
+					toast.success(result?.data?.message);
+					applyAction(result);
+					if (userWantsToChangeEmail) userWantsToChangeEmail = 'idle';
+					if (userWantsToChangePassword) userWantsToChangePassword = 'idle';
+					invalidateAll();
+					break;
+				case 'failure':
+					toast.error(result?.data?.message);
+					break;
+				default:
+					break;
+			}
+		};
+	}
+
+	onMount(() => {
+		if (browser) {
+			document.cookie = 'fromPage=link; path=/; max-age=600'; //
+		}
+	});
+	onDestroy(() => {
+		if (browser) {
+			document.cookie = 'fromPage=link; path=/; max-age=0 ';
+		}
+	});
 </script>
 
 <div>
@@ -89,57 +143,70 @@
 		{#if providers?.includes(AuthProviderType.EMAIL_PASSWORD)}
 			<Column>
 				<h2 class="text-xl">Email Password Settings</h2>
-				<Form method="post" class="py-3">
+				<form
+					method="post"
+					class="py-3 bx--form"
+					action="?/changeInfo"
+					use:enhance={enhancedFormSubmission}
+				>
 					<TextInput
 						name="name"
 						id="name"
 						labelText="Name"
 						value={data?.user?.name}
-						disabled={!userWantsToChangeEmail}
+						disabled={userWantsToChangeEmail != 'editing'}
 					/>
 					<TextInput
 						name="email"
 						id="email"
 						labelText="Email"
 						value={data?.user?.email}
-						disabled={!userWantsToChangeEmail}
+						disabled={userWantsToChangeEmail != 'editing'}
 					/>
-					{#if userWantsToChangeEmail}
+					{#if userWantsToChangeEmail == 'editing'}
 						<div class="my-2">
 							<Button
 								class=" py-2.5"
 								kind="secondary"
 								type="button"
 								size="small"
-								on:click={() => (userWantsToChangeEmail = !userWantsToChangeEmail)}
-								>Cancel Action</Button
+								on:click={() => {
+									userWantsToChangeEmail = 'idle';
+									invalidateAll();
+								}}>Cancel Action</Button
 							>
 							<Button size="small" class="py-2.5" type="submit">Request Change</Button>
 						</div>
-					{:else}
+					{:else if userWantsToChangeEmail === 'idle'}
 						<Button
 							type="button"
 							kind="secondary"
 							size="small"
 							class="py-2.5 my-2"
-							on:click={() => (userWantsToChangeEmail = !userWantsToChangeEmail)}
-							>Change Info</Button
+							on:click={() => (userWantsToChangeEmail = 'editing')}>Change Info</Button
 						>
+					{:else if userWantsToChangeEmail === 'loading'}
+						<InlineLoading description="Loading" />
 					{/if}
-				</Form>
-				<Form method="post">
-					{#if userWantsToChangePassword}
+				</form>
+				<form
+					method="post"
+					class="py-3 bx--form"
+					action="?/changePassword"
+					use:enhance={enhancedFormSubmission}
+				>
+					{#if userWantsToChangePassword === 'editing'}
 						<FormGroup>
 							<PasswordInput name="oldPassword" id="oldPassword" labelText="Old Password" />
 							<PasswordInput name="newPassword" id="newPassword" labelText="New Password" />
 						</FormGroup>
+
 						<Button
 							kind="secondary"
-							type="button"
+							type="reset"
 							size="small"
 							class="py-2.5"
-							on:click={() => (userWantsToChangePassword = !userWantsToChangePassword)}
-							>Cancel Action</Button
+							on:click={() => (userWantsToChangePassword = 'idle')}>Cancel Action</Button
 						>
 						<Button size="small" class="py-2.5" type="submit">Request Password Change</Button>
 					{:else}
@@ -149,12 +216,12 @@
 								kind="secondary"
 								size="small"
 								class="py-2.5"
-								on:click={() => (userWantsToChangePassword = !userWantsToChangePassword)}
+								on:click={() => (userWantsToChangePassword = 'editing')}
 								>Change Password
 							</Button>
 						</FormGroup>
 					{/if}
-				</Form>
+				</form>
 			</Column>
 		{:else}
 			<Column>
@@ -173,13 +240,13 @@
 			<OAuth {connectionCallback} {disconnectionCallback} bind:data={oauth.data} />
 		</Row>
 	</Tile>
-
-	<pre>
-[User email]
-[User Password field]
-[OAuth google connection status and button]
-[OAuth github connection status and button]
-{JSON.stringify(oauth, null, 2)}
-    {JSON.stringify(data, null, 2)}
-        </pre>
 </div>
+
+<!-- <pre>
+	[User email]
+	[User Password field]
+	[OAuth google connection status and button]
+	[OAuth github connection status and button]
+	{JSON.stringify(oauth, null, 2)}
+		{JSON.stringify(data, null, 2)}
+			</pre> -->

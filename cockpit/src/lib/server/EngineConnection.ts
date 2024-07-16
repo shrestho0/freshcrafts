@@ -1,6 +1,6 @@
 import { BackendEndpoints } from "@/backend-endpoints";
 import type { EngineSystemConfigResponseDto } from "@/types/dtos";
-import type { AuthProviderType } from "@/types/enums";
+import { AuthProviderType } from "@/types/enums";
 import messages from "@/utils/messages";
 
 export class EngineConnection {
@@ -57,6 +57,75 @@ export class EngineConnection {
             },
             body: JSON.stringify(new_sysconf)
         }).then(res => res.json()).catch((err) => { return { success: false, message: messages.RESPONSE_ERROR } }) as unknown as { success: boolean, message: string, data: EngineSystemConfigResponseDto }
+    }
+
+    public async generateToken(provider: AuthProviderType, data: {
+        email?: string,
+        password?: string,
+        googleEmail?: string,
+        githubId?: string,
+    }) {
+
+        switch (provider) {
+            case AuthProviderType.EMAIL_PASSWORD:
+                return await fetch(BackendEndpoints.GENERATE_TOKEN, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        provider,
+                        email: data.email,
+                        password: data.password
+
+                    })
+                }).then(res => res.json()).catch(() => {
+                    return {
+                        success: false,
+                        message: messages.COMMUNICATION_FAILURE
+                    };
+                });
+                break;
+            default:
+                console.log("Requested Generate Token", provider, data)
+                break
+        }
+
+    }
+
+    public async refreshToken(refreshToken: string, provider: AuthProviderType) {
+        return await fetch(BackendEndpoints.REFRESH_TOKEN, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                refreshToken,
+                provider
+            })
+        }).then(res => res.json()).catch(() => { return { success: false } })
+    }
+
+    public async changePassword({ oldPassword,
+        newPassword }: {
+            oldPassword: string,
+            newPassword: string
+        }) {
+        return await fetch(BackendEndpoints.CHANGE_PASSWORD, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                oldPassword,
+                newPassword
+            })
+        }).then(res => res.json()).catch(e => {
+            return {
+                success: false,
+                message: messages.COMMUNICATION_FAILURE
+            }
+        })
     }
 
 }

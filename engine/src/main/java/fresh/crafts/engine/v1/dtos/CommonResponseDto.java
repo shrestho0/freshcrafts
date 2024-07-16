@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 public class CommonResponseDto {
     private Boolean success;
     private String message;
+
+    // TODO: remove this one from everywhere
     private Object data;
-    
+
+    private Object payload;
+    private Object errors;
+
 }

@@ -13,8 +13,8 @@ export type EngineSystemConfigResponseDto = {
     systemUserOauthGithubEnabled: boolean;
     systemUserOauthGoogleData: Object | null;
     systemUserOauthGithubData: Object | null;
-    systemUserOAuthGithubId?: string;
-    systemUserOAuthGoogleEmail?: string;
+    systemUserOAuthGithubId?: string | null;
+    systemUserOAuthGoogleEmail?: string | null;
     created: null;
     updated: Date;
 }

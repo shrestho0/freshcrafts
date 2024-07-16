@@ -7,17 +7,16 @@ import fresh.crafts.engine.v1.utils.UlidGenerator;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-
 @Data
-@Document(collation="deployments")
+@Document(collation = "deployments")
 @AllArgsConstructor
 public class DeploymentModel {
-    
+
     @Id
     public String id;
 
-    public DeploymentModel(){
+    public DeploymentModel() {
         this.id = UlidGenerator.generate();
     }
-    
+
 }

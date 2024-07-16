@@ -13,7 +13,10 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
 
 
     const dataToSendToEngine: OAuthGithubDataRequestDto = { token: undefined, userInfo: undefined, dataJson: undefined, emails: [], oAuthGithubId: "" };
-    const responseObject: OAuthCallbackInternalResponse = { success: false, provider: "github", closeWindow: false, message: "", data: dataToSendToEngine }
+    const responseObject: OAuthCallbackInternalResponse = {
+        success: false, provider: "github", closeWindow: false, message: "", data: dataToSendToEngine,
+        redirect: ""
+    }
 
     // popup for this page only rest will be redirected
     let fromPage: 'setup' | 'link' | undefined = cookies.get('fromPage') as any
@@ -131,7 +134,10 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
             });
 
             // redirecting to dashboard, seems all fine
-            return redirect(307, '/dashboard')
+            // return redirect(307, '/dashboard')
+            // redirect from frontend
+            responseObject.success = true
+            responseObject.redirect = '/dashboard'
         }
 
 

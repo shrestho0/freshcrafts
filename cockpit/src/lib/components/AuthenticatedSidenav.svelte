@@ -28,12 +28,12 @@
 			children: undefined
 		},
 		{
-			serviceType: 'projects',
-			title: 'Projects',
-			href: '/projects',
+			serviceType: 'deployments',
+			title: 'Deployments',
+			href: '/deployments',
 			children: [
-				{ title: 'All Projects', href: '/projects/all' },
-				{ title: 'New Projects', href: '/projects/new' }
+				{ title: 'All Deployments', href: '/deployments/all' },
+				{ title: 'New Deployments', href: '/deployments/new' }
 
 				// TODO: these are children of each deployment
 				// { title: 'Metrics', href: '/deployments/metrics' }, // data from watchdog

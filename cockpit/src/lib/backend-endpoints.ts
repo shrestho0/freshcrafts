@@ -6,8 +6,11 @@ const _endpoints = {
     GENERATE_TOKEN: '/tokens/generate',
     REFRESH_TOKEN: '/tokens/refresh',
     INVALIDATE_TOKEN: '/tokens/invalidate',
+    CHANGE_PASSWORD: '/tokens/change-password',
 
     SETUP_SYSCONFIG: '/config/sysconf',
+
+    MYSQL_NEW: '/db-mysql',
 
 }
 

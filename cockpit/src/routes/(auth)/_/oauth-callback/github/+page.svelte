@@ -1,7 +1,5 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { page } from '$app/stores';
-	import { CodeSnippet, CodeSnippetSkeleton } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 
 	export let data;
@@ -10,11 +8,16 @@
 			localStorage.setItem('oc_data', JSON.stringify(data));
 			if (data?.closeWindow) {
 				window.close();
+				console.log('data from oauth redirect page', data);
+			} else if (data?.redirect) {
+				window.location.href = data?.redirect ? data?.redirect : '/';
 			}
 		}
 	});
 </script>
 
 OAUTH CALLBACK PAGE
+<pre>
 
-{JSON.stringify(data, null, 2)}
+	{JSON.stringify(data, null, 2)}
+</pre>

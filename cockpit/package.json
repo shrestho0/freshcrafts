@@ -23,6 +23,7 @@
 		"autoprefixer": "^10.4.19",
 		"carbon-components-svelte": "^0.85.0",
 		"carbon-icons-svelte": "^12.10.0",
+		"dotenv": "^16.4.5",
 		"eslint": "^9.0.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.36.0",
