@@ -1,0 +1,57 @@
+# version: '3.8'
+
+# Group: freshcrafts
+
+services:
+
+  # kafka
+  primary-kafka:
+    container_name: primary-kafka
+    image: apache/kafka:3.7.1
+    ports:
+      - 9092:9092
+
+  primary-mongo:
+    container_name: primary-mongo
+    image: 'mongo:latest'
+    ports:
+      - '27017:27017'
+    volumes:
+      - ./fc_data/primary/mongodb:/data/db
+
+  # secondary are for end usages
+  secondary-mysql:
+    container_name: secondary-mysql
+    image: 'mysql:latest'
+    ports:
+      - '13306:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+    volumes:
+      - ./fc_data/secondary/mysql/:/var/lib/mysql
+
+  secondary-postgres:
+    container_name: secondary-postgres
+    image: 'postgres:latest'
+    ports:
+      - '15432:5432'
+    environment:
+      POSTGRES_USER: 'root'
+      POSTGRES_PASSWORD: 'password'
+
+    volumes:
+      - ./fc_data/secondary/postgresql/data:/var/lib/postgresql/data
+  secondary-mongo:
+    container_name: secondary-mongo
+    image: 'mongo:latest'
+    ports:
+      - '17017:27017'
+    volumes:
+      - ./fc_data/secondary/mongodb:/data/db
+    # volumes:
+    #   kafka_data:
+    #   zookeeper_data:
+    #   primary_mongo_data:
+    #   secondary_mysql_data:
+    #   secondary_postgres_data:
+    #   secondary_mongo_data:
