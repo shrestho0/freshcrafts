@@ -1,12 +1,11 @@
 <script lang="ts">
 	import { Button, InlineNotification, Loading } from 'carbon-components-svelte';
-	import OAuth from '@/components/OAuth.svelte';
 	import Account from './Account.svelte';
 	import Review from './Review.svelte';
 	import { onDestroy, onMount } from 'svelte';
 	import { browser } from '$app/environment';
 	import type { SetupPageAccountData, SetupPageOauthData } from '@/types/internal';
-	import PreDebug from '@/components/dev/PreDebug.svelte';
+	import OAuth from '@/components/OAuth.svelte';
 
 	export let data;
 	const { githubLoginUrl, googleLoginUrl } = data;

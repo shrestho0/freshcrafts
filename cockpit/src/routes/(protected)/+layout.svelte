@@ -1,18 +1,7 @@
 <script lang="ts">
 	import AuthenticatedHeader from '@/components/AuthenticatedHeader.svelte';
-	import HeaderAuthenticated from '@/components/AuthenticatedHeader.svelte';
 	import AuthenticatedSidenav from '@/components/AuthenticatedSidenav.svelte';
-	import ClientScreenSize from '@/components/dev/ClientScreenSize.svelte';
-	import PreDebug from '@/components/dev/PreDebug.svelte';
-	import {
-		Content,
-		Grid,
-		Row,
-		Column,
-		SkeletonPlaceholder,
-		TextAreaSkeleton,
-		Loading
-	} from 'carbon-components-svelte';
+	import { Content, Grid, Row, Column, Loading } from 'carbon-components-svelte';
 	import { onMount } from 'svelte';
 	export let data;
 

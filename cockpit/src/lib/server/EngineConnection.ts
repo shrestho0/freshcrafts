@@ -1,5 +1,6 @@
 import { BackendEndpoints } from "@/backend-endpoints";
-import type { EngineSystemConfigResponseDto } from "@/types/dtos";
+import type { CommonPagination, EngineCommonResponseDto, EngineMySQLGetOneError, EngineMySQLGetOnePayload, EnginePaginatedDto, EngineSystemConfigResponseDto } from "@/types/dtos";
+import type { DBMysql } from "@/types/entities";
 import { AuthProviderType } from "@/types/enums";
 import messages from "@/utils/messages";
 
@@ -126,6 +127,91 @@ export class EngineConnection {
                 message: messages.COMMUNICATION_FAILURE
             }
         })
+    }
+
+    public async getNotificaions({ page = 1, limit = 1, order = 'id', sort = 'desc' }: {
+        page: number, limit: number, order: 'id' | any, sort: 'desc' | 'asc'
+    }) {
+        console.log({ page, limit, order, sort })
+        return {
+            page: 1,
+            limit: 5,
+            orderBy: '_id',
+            sortBy: 'desc',
+            data: [
+                {
+
+                }
+            ]
+        }
+    }
+
+    public async getMysqlDB(db_id: string): Promise<EngineCommonResponseDto<EngineMySQLGetOnePayload, EngineMySQLGetOneError>> {
+        return await fetch(BackendEndpoints.MYSQL_GET_BY_ID.replace(":id", db_id), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
+
+    }
+
+    // temporary, no type
+    public async getMysqlDBs({
+        page = 1,
+        pageSize = 10,
+        orderBy = "id",
+        sort = "DESC"
+    }: CommonPagination): Promise<EnginePaginatedDto<DBMysql>> {
+
+        console.log(page, pageSize, orderBy, sort)
+
+        const url = new URL(BackendEndpoints.MYSQL_FIND_ALL);
+        url.searchParams.append("page", page.toString());
+        url.searchParams.append("pageSize", pageSize.toString());
+        url.searchParams.append("orderBy", orderBy);
+        url.searchParams.append("sort", sort);
+
+        return await fetch(url.toString(), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
+    }
+
+
+    public async searchMysqlDBs(query: string) {
+        return await fetch(BackendEndpoints.MYSQL_SEARCH.replace(":query", query), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
     }
 
 }

@@ -5,7 +5,7 @@ import java.util.Date;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import fresh.crafts.engine.v1.utils.UlidGenerator;
@@ -23,8 +23,13 @@ public class Notification {
     // if any, optional
     private Object data;
 
+    // FIXME: created can be found from id(ulid), ensure no dependents and remove
+    // this..
     @CreatedDate
     private Date timestamp;
+
+    @LastModifiedDate
+    private Date updated;
 
     public Notification(String message, Object data) {
         this.id = UlidGenerator.generate();

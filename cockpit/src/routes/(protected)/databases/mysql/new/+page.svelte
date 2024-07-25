@@ -1,11 +1,19 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { page } from '$app/stores';
+	import type {
+		EngineCommonResponseDto,
+		EngineMySQLCreateError,
+		EngineMySQLCreatePayload
+	} from '@/types/dtos';
 	import {
 		Button,
 		Form,
 		FormItem,
 		Loading,
 		PasswordInput,
-		TextInput
+		TextInput,
+		InlineNotification
 	} from 'carbon-components-svelte';
 
 	const newDBData = {
@@ -15,7 +23,14 @@
 	};
 
 	let loading = false;
+
+	let errors: EngineMySQLCreateError = {
+		dbName: '',
+		dbUser: '',
+		dbPassword: ''
+	};
 	let error_message = '';
+
 	async function handleFormSubmission() {
 		console.log(newDBData);
 		loading = true;
@@ -26,24 +41,58 @@
 				'Content-Type': 'application/json'
 			},
 			body: JSON.stringify(newDBData)
-		}).then((res) => res.json())) as {
-			success: boolean;
-			message?: string;
-		};
+		}).then((res) => res.json())) as EngineCommonResponseDto<
+			EngineMySQLCreatePayload,
+			EngineMySQLCreateError
+		>;
+		// as {
+		// 	success: boolean;
+		// 	message?: string;
+		// 	payload: {
+		// 		id: '01J3FM5SKADJ81V6CYH1FFB694';
+		// 		dbName: 'test__3';
+		// 		dbUser: 'test__3';
+		// 		dbPassword: 'test__3';
+		// 		status: null;
+		// 		reasonFailed: null;
+		// 	};
+		// 	errors: {
+		// 		dbName: string;
+		// 		dbUser: string;
+		// 		dbPassword: string;
+		// 	};
+		// };
+
 		if (res.success) {
 			// redirect to the new database page. /mysql/:id
+			let url = $page.url.href;
+			url = url.split('/').slice(0, -1).join('/');
+			url += `/${res.payload.id}`;
+			goto(url);
 		} else {
 			// show error message
-			error_message = res?.message ? res.message : 'An error occurred';
+			if (res?.message) error_message = res.message;
+			if (res?.errors) errors = res.errors;
 		}
+
 		loading = false;
 		console.log(res);
+		JSON.parse('{}');
 	}
 </script>
 
 <h2 class="text-2xl pb-4">New MySQL Database</h2>
 
 <div class="max-w-lg">
+	{#each Array(20) as _, i}
+		<Button
+			on:click={() => {
+				newDBData.dbName = `test__${i}`;
+				newDBData.dbUser = `test__${i}`;
+				newDBData.dbPassword = `test__${i}`;
+			}}>test__{i}</Button
+		>
+	{/each}
 	<form
 		method="post"
 		class="flex flex-col justify-center gap-3"
@@ -59,8 +108,8 @@
 			labelText="Database Name"
 			placeholder="db_name"
 			bind:value={newDBData.dbName}
-			invalid={error_message?.includes('name')}
-			invalidText={error_message}
+			invalid={Boolean(errors.dbName)}
+			invalidText={errors.dbName}
 			disabled={loading}
 		/>
 		<TextInput
@@ -72,8 +121,8 @@
 			labelText="Database User"
 			placeholder="db_user"
 			bind:value={newDBData.dbUser}
-			invalid={error_message?.includes('user')}
-			invalidText={error_message}
+			invalid={Boolean(errors.dbUser)}
+			invalidText={errors.dbUser}
 			disabled={loading}
 		/>
 		<PasswordInput
@@ -84,13 +133,15 @@
 			labelText="Database Password"
 			placeholder="########"
 			minlength={8}
+			invalid={Boolean(errors.dbPassword)}
+			invalidText={errors.dbPassword}
 			bind:value={newDBData.dbPassword}
 			disabled={loading}
 		/>
 
-		<!-- {#if error_message}
-			<p class="text-red-500">{error_message}</p>
-		{/if} -->
+		{#if error_message}
+			<InlineNotification title={'Error'} subtitle={error_message} />
+		{/if}
 
 		<div class="w-full">
 			<Button type="reset" kind="secondary" disabled={loading}>Reset</Button>

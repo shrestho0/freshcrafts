@@ -1,15 +1,15 @@
 package fresh.crafts.engine.v1.consumers;
 
-import org.springframework.kafka.annotation.KafkaListener;
-import org.springframework.stereotype.Component;
+// As notification will be handled from engine, we don't need notification
+// channel
 
-@Component
-public class NotificationMessageConsumer {
+// @Component
+// public class NotificationMessageConsumer {
 
-    @KafkaListener(topics = "notification", groupId = "engine")
-    public void listen(String message) {
+// @KafkaListener(topics = "NOTIFICATION", groupId = "freshCrafts")
+// public void listen(String message) {
 
-        System.out.println("Received message from notification: " + message);
-    }
+// System.out.println("Received message from notification: " + message);
+// }
 
-}
+// }

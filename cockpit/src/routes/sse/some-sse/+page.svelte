@@ -13,13 +13,18 @@
 	// 	// console.log('from sse', dataobj);
 	// 	// messages.update((arr) => arr.concat(dataobj));
 	// };
-	const value = source('/sse/some-sse').select('message');
+	// const value = source('/sse/some-sse').select('message');
+	const value = source('/sse/notification').select('message');
 
+	// const setNotificationUrl = `/sse/some-sse`;
+	const setNotificationUrl = `/sse/notification`;
 	async function sendEvent() {
-		const res = await fetch('/sse/some-sse', {
+		const res = await fetch(setNotificationUrl, {
 			method: 'PATCH',
 			headers: {
-				'Content-Type': 'application/json'
+				'Content-Type': 'application/json',
+				// TODO: Delete this page
+				authorization: 'Bearer VERY_SECRET_TOKEN'
 			},
 			body: JSON.stringify({
 				message: d,

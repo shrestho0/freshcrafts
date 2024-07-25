@@ -138,6 +138,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, }) =>
             // redirect from frontend
             responseObject.success = true
             responseObject.redirect = '/dashboard'
+            return responseObject
         }
 
 

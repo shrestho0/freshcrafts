@@ -1,0 +1,58 @@
+<div style="border:2px solid cornflowerblue; margin:1rem;padding:2rem;display: flex;gap: 5px;">
+  <span>
+    Templates
+  </span>
+
+  <button onclick="populate('NOTIFICATION')">NOTIFICATION</button>
+  <button onclick="populate('ENGINE')">ENGINE</button>
+  <button onclick="populate('WIZARD_MYSQL')">WIZARD_MYSQL</button>
+  <button onclick="populate('WIZARD_POSTGRES')">WIZARD_POSTGRES</button>
+  <button onclick="populate('WIZARD_MONGO')">WIZARD_MONGO</button>
+  <button onclick="populate('WIZARD_NGINX')">WIZARD_NGINX</button>
+  <button onclick="populate('WIZARD_APPLICATION')">WIZARD_APPLICATION</button>
+
+</div>
+<script>
+  var templates = {
+    "NOTIFICATION": `
+{
+    "id": "some_random_id",
+    "message": "the message",
+    "markedAsRead": false,
+    "type": "SUCCESS",
+    "actionUrlHints": "MYSQL_THEID_VIEW"
+}
+      `,
+    "ENGINE": ``,
+    "WIZARD_MYSQL": ``,
+    "WIZARD_POSTGRES": ``,
+    "WIZARD_MONGO": ``,
+    "WIZARD_NGINX": ``,
+    "WIZARD_APPLICATION": ``,
+  }
+
+
+  function populate(type) {
+    console.log("Pop", type);
+
+    document.theForm.message.value = templates[type]
+    document.theForm.topic.value = type
+  }
+</script>
+
+<form name="theForm" method="get" style="border:2px solid cornflowerblue; margin:1rem;padding:2rem; display: flex;flex-direction: column;">
+  <br>
+  <select name="topic">
+    <option {{NOTIFICATION}} value="NOTIFICATION">NOTIFICATION</option>
+    <option {{ENGINE}} value="ENGINE">ENGINE</option>
+    <option {{WIZARD_MYSQL}} value="WIZARD_MYSQL">WIZARD_MYSQL</option>
+    <option {{WIZARD_POSTGRES}} value="WIZARD_POSTGRES">WIZARD_POSTGRES</option>
+    <option {{WIZARD_MONGO}} value="WIZARD_MONGO">WIZARD_MONGO</option>
+    <option {{WIZARD_NGINX}} value="WIZARD_NGINX">WIZARD_NGINX</option>
+    <option {{WIZARD_APPLICATION}} value="WIZARD_APPLICATION">WIZARD_APPLICATION</option>
+  </select>
+  <br>
+  <textarea rows="10" cols="50" name="message">{{VALUE}}</textarea>
+  <br>
+  <button>Send</button>
+</form>

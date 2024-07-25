@@ -11,7 +11,9 @@ const _endpoints = {
     SETUP_SYSCONFIG: '/config/sysconf',
 
     MYSQL_NEW: '/db-mysql',
-
+    MYSQL_SEARCH: '/db-mysql/search/:query',
+    MYSQL_GET_BY_ID: '/db-mysql/:id',
+    MYSQL_FIND_ALL: '/db-mysql',
 }
 
 type BackendEndpointsType = typeof _endpoints;

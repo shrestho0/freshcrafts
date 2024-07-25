@@ -39,8 +39,8 @@ public class TokensService {
         CommonResponseDto response = new CommonResponseDto(false, "", null, null, null);
         SystemConfig systemConfig = systemConfigService.getOnly().orElse(null);
 
-        System.err.println("[DEBUG] Get Provider Service:");
-        System.err.println("[DEBUG] systemConfig: " + systemConfig);
+        // System.err.println("[DEBUG] Get Provider Service:");
+        // System.err.println("[DEBUG] systemConfig: " + systemConfig);
 
         List<AuthProviderType> allowedProviders = new ArrayList<>();
 
@@ -58,6 +58,8 @@ public class TokensService {
             }
 
             response.setSuccess(true);
+            // FIXME: Use setPayload as setData is depricated
+            // FIXME: Also change on the cockpit
             response.setData(allowedProviders);
         } else {
             response.setSuccess(false);
@@ -65,7 +67,7 @@ public class TokensService {
 
         }
 
-        System.err.println("[DEBUG] TokensController - authProviders: " + response);
+        // System.err.println("[DEBUG] TokensController - authProviders: " + response);
 
         return response;
 
@@ -83,7 +85,7 @@ public class TokensService {
             return res;
         }
 
-        System.out.println("[DEBUG] TokensService - generateToken: " + tokenDto);
+        // System.out.println("[DEBUG] TokensService - generateToken: " + tokenDto);
 
         if (tokenDto == null) {
             res.setMessage("Invalid Data");
@@ -178,7 +180,7 @@ public class TokensService {
 
     public GenerateRefreshTokenResponseDto refreshToken(GenerateRefreshTokenRequestDto refreshToken) {
         GenerateRefreshTokenResponseDto res = new GenerateRefreshTokenResponseDto();
-        System.out.println("[DEBUG] TokensService - refreshToken: " + refreshToken);
+        // System.out.println("[DEBUG] TokensService - refreshToken: " + refreshToken);
 
         SystemConfig conf = systemConfigService.getOnly().orElse(null);
 
@@ -247,7 +249,7 @@ public class TokensService {
 
     public CommonResponseDto changePassword(CommonResponseDto res, ChangePasswordDto passwordDto)
             throws SystemConfigurationsNotSetException {
-        System.out.println("Password Change Request: " + passwordDto);
+        // System.out.println("Password Change Request: " + passwordDto);
         SystemConfig conf = systemConfigService.getOnly().orElse(null);
 
         // check with old pass

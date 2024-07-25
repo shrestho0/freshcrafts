@@ -1,7 +1,6 @@
 <!-- screen size in px -->
 
 <script lang="ts">
-	import { CodeSnippet } from 'carbon-components-svelte';
 	import CustomCodeSnippet from '../CustomCodeSnippet.svelte';
 	import { onMount } from 'svelte';
 

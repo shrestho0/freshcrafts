@@ -1,8 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
 	import { enhance, applyAction } from '$app/forms';
-	import { AuthProviderType } from '@/types/enums';
-	import OAuth from '@/components/OAuth.svelte';
 	import {
 		Column,
 		Row,
@@ -16,10 +14,12 @@
 	} from 'carbon-components-svelte';
 	import { LogoGithub } from 'carbon-icons-svelte';
 	import { onMount, onDestroy } from 'svelte';
-	import type { SetupPageOauthData } from '@/types/internal';
+	import type { SetupPageOauthData } from '@/types/internal.js';
 	import { toast } from 'svelte-sonner';
 	import type { ActionResult } from '@sveltejs/kit';
 	import { invalidateAll } from '$app/navigation';
+	import OAuth from '@/components/OAuth.svelte';
+	import { AuthProviderType } from '@/types/enums';
 	export let data;
 	const oauth = {
 		data: {

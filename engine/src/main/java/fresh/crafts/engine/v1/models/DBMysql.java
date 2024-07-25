@@ -4,7 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import fresh.crafts.engine.v1.utils.enums.DBMysqlCreationType;
+import fresh.crafts.engine.v1.utils.enums.DBMysqlCreationStatuses;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,7 +26,7 @@ public class DBMysql {
 
     private String dbPassword;
 
-    private DBMysqlCreationType status;
+    private DBMysqlCreationStatuses status;
     private String reasonFailed;
 
     // public DBMysql(String db_name, String db_user, String db_password) {

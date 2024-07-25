@@ -7,18 +7,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(value="/api/v1", consumes = "application/json", produces="application/json")
+@RequestMapping(value = "/api/v1", consumes = "application/json", produces = "application/json")
 class BaseController {
 
     @GetMapping("")
-    public HashMap<String, String> index(){
+    public HashMap<String, String> index() {
         HashMap<String, String> res = new HashMap<>();
-        
-        res.put("description","Engine Service Index Page" );
-        res.put("documentation","/api/v1/api-docs" );
+
+        res.put("description", "Engine Service Index Page");
+        res.put("documentation", "/api/v1/api-docs");
 
         return res;
     }
 
-    
 }

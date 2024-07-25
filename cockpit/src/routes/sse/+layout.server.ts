@@ -3,8 +3,10 @@ import { error, fail } from "@sveltejs/kit";
 import type { LayoutServerLoad } from "./$types";
 
 export const load: LayoutServerLoad = async ({ request, locals }) => {
-    console.log("Entered layout.server.ts")
+    console.log("Entered SSE layout.server.ts", request.method)
     if (locals.user) { return }
+
+    // FIXME: This is redundent
     try {
         const bearer = request.headers.get("authorization")?.split(" ")[1]
         if (bearer && bearer === SSE_AUTHORIZATION_TOKEN) {

@@ -1,10 +1,8 @@
 import { fail, redirect, type Actions } from "@sveltejs/kit";
 import type { PageServerLoad } from "./$types";
-import { BackendEndpoints } from "@/backend-endpoints";
-import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME } from "$env/static/private";
 import { EngineConnection } from "@/server/EngineConnection";
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_EXPIRES_IN } from "$env/static/private";
 import { AuthProviderType } from "@/types/enums";
-
 export const load: PageServerLoad = async ({ locals }) => {
     // request server authorized oauth providers and emails associated
     // check here for that
@@ -15,36 +13,18 @@ export const load: PageServerLoad = async ({ locals }) => {
     }
 
     // get providers 
-    // const serverProviders = await fetch(BackendEndpoints.PROVIDERS, {
-    //     headers: {
-    //         'Content-Type': 'application/json',
-    //     }
-    // }).then(res => res.json()).catch(() => {
-    //     return {
-    //         success: false,
-    //         message: messages.RESPONSE_ERROR
-    //     };
-    // });
 
-    // if (serverProviders.data) {
-    //     serverProviders.providers = serverProviders.data as {
-    //         providers: AuthProviderType[],
-    //         message: string
-    //     }
-    //     delete serverProviders.data;
-    // }
+    const contextData = await EngineConnection.getInstance().getProviders();
 
-    const engine = EngineConnection.getInstance()
-    const contextData = await engine.getProviders()
-
-    // console.log("From Server Login ", contextData);
+    // console.log("[DEBUG]: From Server Login ", contextData);
 
     return contextData;
 
 };
 
 export const actions: Actions = {
-    default: async ({ request, cookies }) => {
+    default: async ({ request, cookies, url }) => {
+
         const data = Object.fromEntries(await request.formData());
 
         // generate token from engine
@@ -63,11 +43,18 @@ export const actions: Actions = {
                 maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
             });
 
+            // goto
+            let redirect_url = url.searchParams.get("redirect");
+            if (!redirect_url) {
+                redirect_url = "dashboard"
+            }
+
+            return redirect(307, `/${redirect_url}`);
         } else {
             return fail(res.message);
         }
 
 
-        return res;
+        // return res;
     }
 };

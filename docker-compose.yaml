@@ -10,6 +10,13 @@ services:
     image: apache/kafka:3.7.1
     ports:
       - 9092:9092
+  # primary-nginx:
+  #   container_name: primary-nginx
+  #   image: nginx:latest
+  #   ports:
+  #     - 80:80
+  #   volumes:
+  #     - ./fc_data/primary/nginx/configs:/etc/nginx
 
   primary-mongo:
     container_name: primary-mongo
@@ -48,10 +55,3 @@ services:
       - '17017:27017'
     volumes:
       - ./fc_data/secondary/mongodb:/data/db
-    # volumes:
-    #   kafka_data:
-    #   zookeeper_data:
-    #   primary_mongo_data:
-    #   secondary_mysql_data:
-    #   secondary_postgres_data:
-    #   secondary_mongo_data:

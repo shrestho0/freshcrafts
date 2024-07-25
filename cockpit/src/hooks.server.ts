@@ -4,7 +4,7 @@ import { EngineConnection } from '@/server/EngineConnection';
 import type { SystemUser } from '@/types/entities';
 import type { AuthProviderType } from '@/types/enums';
 import type { CustomJwtPayload } from '@/types/internal';
-import { json, type Handle } from '@sveltejs/kit';
+import { error, json, type Handle } from '@sveltejs/kit';
 
 import jwt from "jsonwebtoken"
 
@@ -21,6 +21,18 @@ export const handle: Handle = async ({ event, resolve }) => {
 
     // Cokies and System wide data setup
     const authCookie = event.cookies.get(AUTH_COOKIE_NAME)
+
+    if (event.url.pathname?.startsWith("/sse") && event.request.method?.trim().toUpperCase() === 'PATCH') {
+        // console.log("check check")
+        try {
+            const authorizationToken = event.request.headers.get("authorization")?.trim()
+            if (authorizationToken != `Bearer ${SSE_AUTHORIZATION_TOKEN}`) {
+                throw new Error("Invalid token")
+            }
+        } catch (e: any) {
+            return error(401, { message: e?.message })
+        }
+    }
 
     let { unverifiedAccessToken, unverifiedRefreshToken } = { unverifiedAccessToken: undefined, unverifiedRefreshToken: undefined };
 

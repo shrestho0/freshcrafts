@@ -12,6 +12,7 @@ public class CommonResponseDto {
     private String message;
 
     // TODO: remove this one from everywhere
+    @Deprecated
     private Object data;
 
     private Object payload;

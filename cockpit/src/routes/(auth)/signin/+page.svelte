@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { AuthProviderType } from '@/types/enums';
 
 	import {
 		Row,
@@ -13,8 +12,9 @@
 	import { onMount } from 'svelte';
 	import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
 	import { applyAction, enhance } from '$app/forms';
-	import { invalidateAll } from '$app/navigation';
+	import { goto, invalidateAll } from '$app/navigation';
 	import type { ActionResult } from '@sveltejs/kit';
+	import { AuthProviderType } from '@/types/enums';
 
 	export let data;
 
@@ -45,6 +45,11 @@
 					break;
 				case 'failure':
 					error_message = result?.data?.message ?? 'Failed to login';
+					break;
+				case 'redirect':
+					window.location.href = result.location;
+					// invalidateAll();
+					// goto(result.location);
 					break;
 			}
 		};
