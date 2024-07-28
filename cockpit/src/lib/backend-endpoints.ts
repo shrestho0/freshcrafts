@@ -1,5 +1,7 @@
 import { ENGINE_BASE_URL } from "$env/static/private";
 
+
+// maybe map will be more efficient
 const _endpoints = {
     PROVIDERS: '/tokens/allowed-providers',
 
@@ -12,7 +14,7 @@ const _endpoints = {
 
     MYSQL_NEW: '/db-mysql',
     MYSQL_SEARCH: '/db-mysql/search/:query',
-    MYSQL_GET_BY_ID: '/db-mysql/:id',
+    MYSQL_BY_ID: '/db-mysql/:id',
     MYSQL_FIND_ALL: '/db-mysql',
 }
 

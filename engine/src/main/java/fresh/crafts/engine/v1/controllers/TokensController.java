@@ -19,7 +19,6 @@ public class TokensController {
     @Autowired
     private TokensService tokensService;
 
-
     @GetMapping("/allowed-providers")
     public CommonResponseDto allowedAuthProviders() {
         return tokensService.getAllowedAuthProviders();
@@ -60,7 +59,7 @@ public class TokensController {
     }
 
     @PostMapping("/change-password")
-    public  CommonResponseDto changePassword(@RequestBody ChangePasswordDto changePasswordDto ){
+    public CommonResponseDto changePassword(@RequestBody ChangePasswordDto changePasswordDto) {
         CommonResponseDto res = new CommonResponseDto();
         try {
             return tokensService.changePassword(res, changePasswordDto);
@@ -73,7 +72,7 @@ public class TokensController {
     }
 
     @PostMapping("/invalidate")
-    public CommonResponseDto invalidateToken(@RequestBody InvalidateTokenRequestDto token){
+    public CommonResponseDto invalidateToken(@RequestBody InvalidateTokenRequestDto token) {
 
         CommonResponseDto res = new CommonResponseDto();
         res.setSuccess(false);

@@ -85,7 +85,7 @@ public class TokensService {
             return res;
         }
 
-        // System.out.println("[DEBUG] TokensService - generateToken: " + tokenDto);
+        // System.err.println("[DEBUG] TokensService - generateToken: " + tokenDto);
 
         if (tokenDto == null) {
             res.setMessage("Invalid Data");
@@ -124,11 +124,11 @@ public class TokensService {
                 }
             }
             case OAUTH_GITHUB -> {
-                System.out.println("TOKEN DTO FOR OAUTH_GITHUB " + tokenDto);
+                System.err.println("TOKEN DTO FOR OAUTH_GITHUB " + tokenDto);
                 // we'll use this to check, email for Google and id for GitHub
                 if (tokenDto.getGithubId().equals(conf.getSystemUserOAuthGithubId())) {
                     // Valid
-                    System.out.println("Valid User");
+                    System.err.println("Valid User");
                     try {
                         Tokens tokens = jwtService.generate(payload);
                         res.setTokens(tokens);
@@ -142,17 +142,17 @@ public class TokensService {
                 } else {
                     // invalid user
                     res.setSuccess(false);
-                    System.out.println("Oauth ID Did not match");
+                    System.err.println("Oauth ID Did not match");
                     return res;
                 }
 
             }
             case OAUTH_GOOGLE -> {
-                System.out.println("TOKEN DTO FOR OAUTH_GOOGLE " + tokenDto);
+                System.err.println("TOKEN DTO FOR OAUTH_GOOGLE " + tokenDto);
                 // we'll use this to check, email for Google and id for GitHub
                 if (tokenDto.getGoogleEmail().equals(conf.getSystemUserOAuthGoogleEmail())) {
                     // Valid
-                    System.out.println("Valid User");
+                    System.err.println("Valid User");
                     try {
                         Tokens tokens = jwtService.generate(payload);
                         res.setTokens(tokens);
@@ -166,7 +166,7 @@ public class TokensService {
                 } else {
                     // invalid user
                     res.setSuccess(false);
-                    System.out.println("Oauth ID Did not match");
+                    System.err.println("Oauth ID Did not match");
                     return res;
                 }
             }
@@ -180,7 +180,7 @@ public class TokensService {
 
     public GenerateRefreshTokenResponseDto refreshToken(GenerateRefreshTokenRequestDto refreshToken) {
         GenerateRefreshTokenResponseDto res = new GenerateRefreshTokenResponseDto();
-        // System.out.println("[DEBUG] TokensService - refreshToken: " + refreshToken);
+        // System.err.println("[DEBUG] TokensService - refreshToken: " + refreshToken);
 
         SystemConfig conf = systemConfigService.getOnly().orElse(null);
 
@@ -249,18 +249,18 @@ public class TokensService {
 
     public CommonResponseDto changePassword(CommonResponseDto res, ChangePasswordDto passwordDto)
             throws SystemConfigurationsNotSetException {
-        // System.out.println("Password Change Request: " + passwordDto);
+        // System.err.println("Password Change Request: " + passwordDto);
         SystemConfig conf = systemConfigService.getOnly().orElse(null);
 
         // check with old pass
         assert conf != null;
-        // System.out.println("old"+ passwordDto.getOldPassword()+" new "+
+        // System.err.println("old"+ passwordDto.getOldPassword()+" new "+
         // passwordDto.getNewPassword()+ " conf"+conf.getSystemUserPasswordHash());
-        // System.out.println("bcrypt"+ BCrypt.checkpw(passwordDto.getOldPassword(),
+        // System.err.println("bcrypt"+ BCrypt.checkpw(passwordDto.getOldPassword(),
         // conf.getSystemUserPasswordHash()));
         //
         // if (BCrypt.checkpw("dev@shrestho.me", conf.getSystemUserPasswordHash())){
-        // System.out.println("milese");
+        // System.err.println("milese");
         // }
         //
         if (BCrypt.checkpw(passwordDto.getOldPassword(), conf.getSystemUserPasswordHash())) {

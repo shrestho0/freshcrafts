@@ -1,18 +1,19 @@
 package fresh.crafts.engine.v1.models;
 
-import java.util.Date;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.google.gson.Gson;
+
 import fresh.crafts.engine.v1.utils.UlidGenerator;
+import fresh.crafts.engine.v1.utils.enums.NotificationType;
 import lombok.Data;
 
+/**
+ * Notification [Model]
+ */
 @Data
-@Document(collation = "notifications")
+@Document(collection = "Notifications")
 public class Notification {
 
     @Id
@@ -20,25 +21,17 @@ public class Notification {
 
     private String message;
 
-    // if any, optional
-    private Object data;
-
-    // FIXME: created can be found from id(ulid), ensure no dependents and remove
-    // this..
-    @CreatedDate
-    private Date timestamp;
-
-    @LastModifiedDate
-    private Date updated;
-
-    public Notification(String message, Object data) {
-        this.id = UlidGenerator.generate();
-        this.message = message;
-        this.data = data;
-    }
+    private String actionHints;
+    private Boolean markedAsRead;
+    private NotificationType type;
 
     public Notification() {
         this.id = UlidGenerator.generate();
+        this.markedAsRead = false;
+    }
+
+    public String toJson() {
+        return new Gson().toJson(this);
     }
 
 }

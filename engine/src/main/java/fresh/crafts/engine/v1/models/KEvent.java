@@ -1,27 +1,25 @@
 package fresh.crafts.engine.v1.models;
 
-import java.util.LinkedHashMap;
+import java.util.Map;
 
-import org.apache.tomcat.util.json.JSONParser;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.google.gson.Gson;
+
 import fresh.crafts.engine.v1.entities.KEventPayloadInterface;
-import fresh.crafts.engine.v1.entities.WizardMySQLKEventPayload;
-import fresh.crafts.engine.v1.entities.WizardMySQLKEventPayloadFeedback;
 import fresh.crafts.engine.v1.utils.UlidGenerator;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 import lombok.Data;
 
-// OBSELETE
 @Data
-@Document(collation = "events")
+// it was collation instead of collection for a long time
+@Document(collection = "KEvents")
 public class KEvent {
 
     @Id
     String id;
 
-    // WizardMySQLEventType eventType;
     KEventProducers eventSource;
     KEventProducers eventDestination;
     KEventPayloadInterface payload;
@@ -30,130 +28,50 @@ public class KEvent {
         this.id = UlidGenerator.generate();
     }
 
-    // Custom toJson, we'll replace with something else better when internet comes
-    // :3
-
     public String toJson() {
-        String json = "{";
-
-        json += "\"id\":\"" + this.id + "\"" + ",";
-        json += "\"eventSource\":\"" + this.eventSource + "\"" + ",";
-        json += "\"eventDestination\":\"" + this.eventDestination + "\"" + ",";
-        json += "\"payload\":" + this.payload.toJson() + "";
-
-        json += "}";
-
-        return json;
+        return new Gson().toJson(this);
     }
 
-    public static KEvent fromJson(String json) {
-        KEvent kEvent = new KEvent();
-
-        kEvent.setId(null);
-        // System.out.println("\n============ KEvent Model / fromJson ============");
-
+    public static KEvent fromJson(String json, Class<?> payloadClass) {
+        // System.err.println("\n\n [DEBUG]: KEvent/fromJson Starts ");
+        KEvent tempE;
         try {
-            JSONParser jsonParser = new JSONParser(json);
-            LinkedHashMap<String, Object> objMap = jsonParser.object();
+            Gson gson = new Gson();
 
-            // System.out.println("Before parsing, hashmap:" + objMap.toString() +
-            // "eventDestination" + objMap.get("eventDestination"));
-            // Common
+            // map
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = gson.fromJson(json, Map.class);
+            // System.out.println("\n Using Json map: \n\t" + map + "\n\n");
+            if (map.getOrDefault("payload", null) == null) {
+                System.err.println("[DEBUG]: Error: KEvent/fromJson: Payload is null");
+                // return parseJson(json, KEvent.class);
+                tempE = gson.fromJson(json, KEvent.class);
+            } else {
+                // payload ase
+                String payloadJson = gson.toJson(map.get("payload"));
+                KEventPayloadInterface payload = (KEventPayloadInterface) gson.fromJson(payloadJson, payloadClass);
 
-            if (objMap.get("id") != null) {
-                kEvent.setId((String) objMap.get("id"));
-            }
-            if (objMap.get("eventSource") != null) {
-                kEvent.setEventSource(KEventProducers.valueOf((String) objMap.get("eventSource")));
-            }
+                // delete payload from map
+                map.remove("payload");
+                // parse KEvent
+                tempE = gson.fromJson(gson.toJson(map), KEvent.class);
+                tempE.setPayload(payload);
 
-            if (objMap.get("eventDestination") != null) {
-                kEvent.setEventDestination(KEventProducers.valueOf((String) objMap.get("eventDestination")));
-            }
-
-            if (objMap.get("payload") != null) {
-
-                // TODO: Check payload type to be LinkedHashMap, throw for other types
-
-                Object payloadObj = objMap.get("payload");
-
-                LinkedHashMap<String, Object> objPayloadMap = (LinkedHashMap<String, Object>) payloadObj;
-
-                // System.out.println("payload deserializing, payload obj class: " +
-                // payloadObj.getClass()
-                // + " objPayloadMap class: " + objPayloadMap.getClass() + " payload: " +
-                // payloadObj
-                // + " x objPayloadMap: " + objPayloadMap);
-
-                assert (kEvent.getEventDestination() == null);
-                // if (kEvent.getEventDestination() == null) {
-                // throw new Exception("eventDestination must be set to provide/use payload");
-                // }
-
-                if (kEvent.getEventSource().equals(KEventProducers.ENGINE)) {
-                    // System.out.println("Event with fromJson(),"
-                    // + "Source: "
-                    // + kEvent.getEventSource()
-                    // + "; Dest: "
-                    // + kEvent.getEventDestination()
-                    // + "");
-
-                    if (kEvent.getEventDestination().equals(KEventProducers.WIZARD_MYSQL)) {
-
-                        // parse payload as WizardMySQLEventPayload
-
-                        WizardMySQLKEventPayload payload = WizardMySQLKEventPayload
-                                .fromHashMap(objPayloadMap);
-                        kEvent.setPayload(payload);
-
-                    } else if (kEvent.getEventDestination().equals(KEventProducers.WIZARD_POSTGRES)) {
-                        // parse payload as WizardPostgresEventPayload
-                        // throw new UnsupportedOperationException();
-                    } else if (kEvent.getEventDestination().equals(KEventProducers.WIZARD_MONGO)) {
-                        // parse payload as WizardMongoEventPayload
-
-                    } else if (kEvent.getEventDestination().equals(KEventProducers.WIZARD_APP)) {
-                        // parse payload as WizardAppEventPayload
-
-                    } else if (kEvent.getEventDestination().equals(KEventProducers.WIZARD_NGINX)) {
-                        // parse payload as WizardNGINXEventPayload
-                    }
-
-                } else if (kEvent.getEventSource().equals(KEventProducers.WIZARD_MYSQL)) {
-                    // parse payload as WizardMySQLKEventPayloadFeedback
-                    WizardMySQLKEventPayloadFeedback payload = WizardMySQLKEventPayloadFeedback
-                            .fromHashMap(objPayloadMap);
-
-                    kEvent.setPayload(payload);
-
-                } else if (kEvent.getEventSource().equals(KEventProducers.WIZARD_POSTGRES)) {
-                    // parse payload as WizardPostgresEventFeedback
-                } else if (kEvent.getEventSource().equals(KEventProducers.WIZARD_MONGO)) {
-                    // parse payload as WizardMongoEventFeedback
-                } else if (kEvent.getEventSource().equals(KEventProducers.WIZARD_APP)) {
-                    // parse payload as WizardAppEventFeedback
-                } else if (kEvent.getEventSource().equals(KEventProducers.WIZARD_NGINX)) {
-                    // parse payload as WizardNGINXEventFeedback
-                }
-
-                // parse payload from appropiate class that implements KEventPayloadInterface
+                // System.out.println("\n Using Json payload: \n\t" + payloadJson + "\n\n");
+                // System.out.println(gson.fromJson(payloadJson, payloadClass) + " "
+                // + gson.fromJson(payloadJson, payloadClass).getClass());
             }
 
-            // Check payload type will depend on eventSource
-            // Map eventSource and payload types.
+            return tempE;
 
-            // System.err.println("[DEBUG]: parsed kEvent: " + kEvent + "\n");
         } catch (Exception e) {
-            System.out.println("=========  Failed to parse json from KEvent.fromJson() ========");
-            e.getStackTrace();
-            System.out.println(e.getMessage());
-            System.out.println("====== ./ ======");
-            return null;
+            System.err.println("[DEBUG]: Error: KEvent/fromJson: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        // System.out.println("============ KEvent Model / fromJson ============\n");
+        // System.err.println("\n\n [DEBUG]: KEvent/fromJson Ends");
 
-        return kEvent;
+        return null;
 
     }
 

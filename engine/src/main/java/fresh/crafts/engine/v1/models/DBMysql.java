@@ -1,17 +1,17 @@
 package fresh.crafts.engine.v1.models;
 
+import java.time.Instant;
+
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import fresh.crafts.engine.v1.utils.enums.DBMysqlCreationStatuses;
-import lombok.AllArgsConstructor;
+import fresh.crafts.engine.v1.utils.UlidGenerator;
+import fresh.crafts.engine.v1.utils.enums.DBMysqlStatus;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 @Document(collection = "DBMysql")
 public class DBMysql {
 
@@ -26,14 +26,22 @@ public class DBMysql {
 
     private String dbPassword;
 
-    private DBMysqlCreationStatuses status;
+    private DBMysqlStatus status;
     private String reasonFailed;
+    private String updateMessage;
 
-    // public DBMysql(String db_name, String db_user, String db_password) {
-    // this.id = UlidGenerator.generate();
-    // this.dbName = db_name;
-    // this.dbUser = db_user;
-    // this.dbPassword = db_password;
-    // }
+    @LastModifiedDate
+    private Instant lastModifiedDate;
+
+    public DBMysql() {
+        this.id = UlidGenerator.generate();
+    }
+
+    public DBMysql(String db_name, String db_user, String db_password) {
+        this.id = UlidGenerator.generate();
+        this.dbName = db_name;
+        this.dbUser = db_user;
+        this.dbPassword = db_password;
+    }
 
 }

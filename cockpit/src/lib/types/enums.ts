@@ -6,6 +6,16 @@ export enum AuthProviderType {
 }
 export enum SystemWideNoitficationTypes {
     SUCCESS = "SUCCESS",
-    FAILURE = "FAILURE",
-    INFO = "INFO"
+    INFO = "INFO",
+    WARNING = "WARNING",
+    ERROR = "ERROR"
+}
+
+export enum DBMysqlStatus {
+    REQUESTED = "REQUESTED",
+    UPDATE_REQUESTED = "UPDATE_REQUESTED",
+    OK = "OK",
+    FAILED = "FAILED",
+    UPDATE_FAILED = "UPDATE_FAILED",
+    PENDING_DELETE = "PENDING_DELETE",
 }

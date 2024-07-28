@@ -1,10 +1,15 @@
 import { BackendEndpoints } from "@/backend-endpoints";
 import type { CommonPagination, EngineCommonResponseDto, EngineMySQLGetOneError, EngineMySQLGetOnePayload, EnginePaginatedDto, EngineSystemConfigResponseDto } from "@/types/dtos";
 import type { DBMysql } from "@/types/entities";
-import { AuthProviderType } from "@/types/enums";
+import { AuthProviderType, DBMysqlStatus } from "@/types/enums";
 import messages from "@/utils/messages";
 
+/**
+ * EngineConnection
+ * @description functions per service should be moved to its own class [Not sure]
+ */
 export class EngineConnection {
+
     private static _instance: EngineConnection;
     static getInstance(): EngineConnection {
         if (!this._instance) {
@@ -146,25 +151,8 @@ export class EngineConnection {
         }
     }
 
-    public async getMysqlDB(db_id: string): Promise<EngineCommonResponseDto<EngineMySQLGetOnePayload, EngineMySQLGetOneError>> {
-        return await fetch(BackendEndpoints.MYSQL_GET_BY_ID.replace(":id", db_id), {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        })
-            .then((res) => res.json())
-            .catch((e: Error) => {
-                console.log(e)
-                return {
-                    success: false,
-                    message: e?.message ?? messages.RESPONSE_ERROR
-                }
-            })
+    ////////////////////////////////////////// DB MYSQL //////////////////////////////////////////
 
-    }
-
-    // temporary, no type
     public async getMysqlDBs({
         page = 1,
         pageSize = 10,
@@ -213,5 +201,97 @@ export class EngineConnection {
                 }
             })
     }
+
+    public async getMysqlDB(db_id: string): Promise<EngineCommonResponseDto<DBMysql, EngineMySQLGetOneError>> {
+        return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(":id", db_id), {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
+
+    }
+
+    public async deleteMysqlDB(db_id: string): Promise<EngineCommonResponseDto<null, EngineMySQLGetOneError>> {
+        return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(":id", db_id), {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
+    }
+
+    public async updateMysqlDB(dbModelId: string, newDBName: string, newDBUser: string, newUserPassword: string): Promise<EngineCommonResponseDto<Partial<DBMysql>, null>> {
+
+        console.warn("[DEBUG]: databases/mysql/[db_id] update", JSON.stringify({ dbModelId, newDBName, newDBUser, newUserPassword }, null, 2));
+
+        if (!newDBName && !newDBUser && !newUserPassword) {
+            return {
+                success: false,
+                message: "Atleast one field must be filled to update"
+            } as EngineCommonResponseDto<Partial<DBMysql>, null>
+        }
+
+        // validate invalid db names here
+        // validate invalid db users here
+        // validate invalid user passwords
+        const xObj: any = {}
+        if (newDBName) xObj["newDBName"] = newDBName
+        if (newDBUser) xObj["newDBUser"] = newDBUser
+        if (newUserPassword) xObj["newUserPassword"] = newUserPassword
+
+        return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(":id", dbModelId), {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(xObj)
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
+    }
+
+    public async revertChanges(dbModelId: string): Promise<EngineCommonResponseDto<DBMysql, null>> {
+        // joratali revert changes
+        return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(":id", dbModelId) + "/revert", {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: DBMysqlStatus.OK })
+        })
+            .then((res) => res.json())
+            .catch((e: Error) => {
+                console.log(e)
+                return {
+                    success: false,
+                    message: e?.message ?? messages.RESPONSE_ERROR
+                }
+            })
+
+    }
+
 
 }
