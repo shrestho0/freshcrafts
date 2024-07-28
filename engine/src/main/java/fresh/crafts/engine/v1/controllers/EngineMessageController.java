@@ -29,10 +29,9 @@ public class EngineMessageController {
         }
 
         if (kEvent.getEventSource() == KEventProducers.WIZARD_MYSQL) {
-            System.err.println("Request came from MySQL Service");
             engineMessageService.serveForWizardMySQL(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_POSTGRES) {
-            //
+            engineMessageService.serveForWizardPostgres(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_MONGO) {
             //
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_NGINX) {

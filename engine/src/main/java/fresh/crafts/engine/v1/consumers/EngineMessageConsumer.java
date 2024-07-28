@@ -8,6 +8,10 @@ import fresh.crafts.engine.v1.controllers.EngineMessageController;
 import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
 import fresh.crafts.engine.v1.models.KEvent;
 
+/**
+ * EngineMessageConsumer
+ * 
+ */
 @Component
 public class EngineMessageConsumer {
 
@@ -17,27 +21,28 @@ public class EngineMessageConsumer {
     @KafkaListener(topics = "ENGINE", groupId = "freshCrafts")
     public void listen(String message) {
 
-        System.err.println("[DEBUG] Received message from ENGINE topic: " + message);
-        System.err.println("[DEBUG] Controller autowired: " + controller);
+        System.out.println("-------------------- Received message on ENGINE --------------------");
+
         try {
 
-            // KEvent kEvent = KEvent.fromJson(message);
             KEvent kEventFeedback = KEvent.fromJson(message, KEventFeedbackPayload.class);
 
             System.err.println("[DEBUG] Parsed KEvent: " + kEventFeedback);
-            // Handle event if all okay
+
+            /* Handle event if all okay */
             try {
                 controller.handleStuff(kEventFeedback);
             } catch (Exception e) {
                 System.err.println("[DEBUG] Error: Exception in handling event: " + e.getMessage());
-
+                // e.printStackTrace();
             }
+
         } catch (Exception e) {
             System.err.println("[DEBUG] Error: Exception in parsing event: " + e.getMessage());
             // e.printStackTrace();
         }
 
-        // System.err.println("\tParsing Event: " + KEvent.fromJson(message));
+        System.out.println("-------------------- Received message on ENGINE Ends --------------------");
 
     }
 

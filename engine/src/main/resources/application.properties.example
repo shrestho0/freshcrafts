@@ -3,20 +3,25 @@ server.port=10000
 
 # Application Specific
 freshCrafts.JWT_ISSUER=freshCrafts
-freshCrafts.JWT_ACCESS_SECRET=SOME_ACCESS_SECRET
-freshCrafts.JWT_REFRESH_SECRET=SOME_REFRESH_SECRET
+freshCrafts.JWT_ACCESS_SECRET=YOUR-ACCESS-TOKEN-SECRET
+freshCrafts.JWT_REFRESH_SECRET=YOUR-REFRESH-TOKEN-SECRET
 # 30 seconds 30*60
 freshCrafts.JWT_ACCESS_EXPIRES_IN=10
 # 7 days 7*24*60*60
 freshCrafts.JWT_REFRESH_EXPIRES_IN=604800
 
 
+freshCrafts.COCKPIT_URL_LOCAL=http://localhost:5173
+freshCrafts.COCKPIT_AUTHORIZATION_TOKEN=BEARER-SECRET-TOKEN
+
+# do not change this
 freshCrafts.MONGO_CONFIG_SYSTEM_CONFIG_COLLECTION_ID=TheConfig
-freshCrafts.COCKPIT_SSE_AUTHORIZATION_TOKEN=SOME_TOKEN
+
 spring.data.mongodb.host=localhost
 spring.data.mongodb.port=27017
 spring.data.mongodb.database=crafts_starter
-# depricated
+
+# depricated, will be removed
 # freshCrafts.COCKPIT_SETUP_KEY=SOME_SETUP_KEY_XD
 
 # OpenAPI Doc Url
@@ -28,9 +33,9 @@ springdoc.default-consumes-media-type=application/json
 
 ## Kafka Stuff
 spring.kafka.bootstrap-servers=localhost:9092
-spring.kafka.consumer.group-id=engine
+spring.kafka.consumer.group-id=freshCrafts
 
-# springdoc.swagger-ui.operationsSorter=method
+
 
 
 

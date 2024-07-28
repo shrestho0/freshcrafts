@@ -1,10 +1,10 @@
-package fresh.crafts.engine.v1.config;
+package fresh.crafts.wiz_postgres.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import fresh.crafts.engine.v1.models.KEvent;
+import fresh.crafts.wiz_postgres.models.KEvent;
 
 @Component
 public class MessageProducer {

@@ -14,46 +14,49 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
-import fresh.crafts.engine.v1.entities.KEventWizardMySQLPayload;
-import fresh.crafts.engine.v1.models.DBMysql;
-import fresh.crafts.engine.v1.services.DBMysqlService;
-import fresh.crafts.engine.v1.utils.enums.DBMysqlSortField;
+import fresh.crafts.engine.v1.entities.KEventWizardPostgresPayload;
+import fresh.crafts.engine.v1.models.DBPostgres;
+import fresh.crafts.engine.v1.services.DBPostgresService;
+import fresh.crafts.engine.v1.utils.enums.DBPostgresSortField;
 
 @RestController
-@RequestMapping(value = "/api/v1/db-mysql", consumes = "application/json", produces = "application/json")
-public class DBMysqlController {
+@RequestMapping(value = "/api/v1/db-postgres", consumes = "application/json", produces = "application/json")
+public class DBPostgresController {
 
     @Autowired
-    DBMysqlService dbMysqlService;
+    DBPostgresService dbPostgresService;
 
     @PostMapping("")
-    public CommonResponseDto createDB(@RequestBody DBMysql dbMysql) {
+    public CommonResponseDto createDB(@RequestBody DBPostgres dbPostgres) {
         CommonResponseDto res = new CommonResponseDto();
-        res = dbMysqlService.createDatabaseAndUser(res, dbMysql);
+        res = dbPostgresService.createDatabaseAndUser(res, dbPostgres);
         return res;
     }
 
     @GetMapping("")
     // FIXME: pagination will be added
-    public Page<DBMysql> getDB(
+    public Page<DBPostgres> getDB(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "id") DBMysqlSortField orderBy,
+            @RequestParam(defaultValue = "id") DBPostgresSortField orderBy,
             @RequestParam(defaultValue = "DESC") Sort.Direction sort) {
+
         // to make the url make more sense
         // page = page - 1;
         // doesn't matter actually
 
-        Page<DBMysql> res = dbMysqlService.getDBs(page, pageSize, orderBy, sort);
-        // System.err.println("[DEBUG]: DBMysqlController getDBs res: " + res);
+        Page<DBPostgres> res = dbPostgresService.getDBs(page, pageSize, orderBy,
+                sort);
+
         return res;
     }
 
     @GetMapping("/search/{query}")
     public CommonResponseDto searchDBs(@PathVariable("query") String query) {
         CommonResponseDto res = new CommonResponseDto();
-        System.err.println("[DEBUG]: DBMysqlController searchDBs, query: " + query);
-        res = dbMysqlService.searchDBs(res, query);
+        // System.err.println("[DEBUG]: DBPostgresController searchDBs, query: " +
+        // query);
+        res = dbPostgresService.searchDBs(res, query);
         return res;
 
     }
@@ -61,25 +64,25 @@ public class DBMysqlController {
     @GetMapping("/{id}")
     public CommonResponseDto getDB(@PathVariable("id") String id) {
         CommonResponseDto res = new CommonResponseDto();
-        res = dbMysqlService.getDB(res, id);
-        // System.err.println("[DEBUG]: DBMysqlController getDB res: " + res);
+        res = dbPostgresService.getDB(res, id);
+        // System.err.println("[DEBUG]: DBPostgresController getDB res: " + res);
         return res;
     }
 
     @DeleteMapping("/{id}")
     public CommonResponseDto deleteDB(@PathVariable("id") String id) {
         CommonResponseDto res = new CommonResponseDto();
-        res = dbMysqlService.deleteDB(res, id);
+        res = dbPostgresService.deleteDB(res, id);
         return res;
     }
 
     @PatchMapping("/{id}")
     public CommonResponseDto updateDB(@PathVariable("id") String id,
-            @RequestBody KEventWizardMySQLPayload dbMysqlPayload) {
+            @RequestBody KEventWizardPostgresPayload dbPostgresPayload) {
         CommonResponseDto res = new CommonResponseDto();
         System.err.println("=====================================");
-        System.err.println("[DEBUG]: DBMysqlController updateDB, id: " + id + ", dbMysql: " + dbMysqlPayload);
-        res = dbMysqlService.updateDB(res, id, dbMysqlPayload);
+        System.err.println("[DEBUG]: DBPostgresController updateDB, id: " + id + ",dbPostgres: " + dbPostgresPayload);
+        res = dbPostgresService.updateDB(res, id, dbPostgresPayload);
         System.err.println("=====================================");
         return res;
     }
@@ -87,9 +90,9 @@ public class DBMysqlController {
     @PatchMapping("/{id}/revert")
     public CommonResponseDto revertDB(@PathVariable("id") String id) {
 
-        System.err.println("[DEBUG]: DBMysqlController revertDB, id: " + id);
+        System.err.println("[DEBUG]: DBPostgresController revertDB, id: " + id);
         CommonResponseDto res = new CommonResponseDto();
-        res = dbMysqlService.revertChanges(res, id);
+        res = dbPostgresService.revertChanges(res, id);
         return res;
     }
 

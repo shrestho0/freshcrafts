@@ -1,7 +1,7 @@
-spring.application.name=wiz_mysql
+spring.application.name=wiz_postgres
 
 ## DB Connection Stuff
-freshCrafts.SPRING_DATASOURCE_URL=jdbc:mysql://localhost:13306/
+freshCrafts.SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:15432/postgres
 freshCrafts.SPRING_DATASOURCE_USERNAME=root
 freshCrafts.SPRING_DATASOURCE_PASSWORD=password
 
