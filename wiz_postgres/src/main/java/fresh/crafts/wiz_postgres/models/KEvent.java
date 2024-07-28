@@ -1,12 +1,12 @@
-package fresh.crafts.wiz_mysql.models;
+package fresh.crafts.wiz_postgres.models;
 
 import java.util.Map;
 
 import com.google.gson.Gson;
 
-import fresh.crafts.wiz_mysql.entities.KEventPayloadInterface;
-import fresh.crafts.wiz_mysql.utils.UlidGenerator;
-import fresh.crafts.wiz_mysql.utils.enums.KEventProducers;
+import fresh.crafts.wiz_postgres.entities.KEventPayloadInterface;
+import fresh.crafts.wiz_postgres.utils.UlidGenerator;
+import fresh.crafts.wiz_postgres.utils.enums.KEventProducers;
 import lombok.Data;
 
 // OBSELETE
@@ -28,7 +28,6 @@ public class KEvent {
     }
 
     public static KEvent fromJson(String json, Class<?> payloadClass) {
-        // System.err.println("\n\n [DEBUG]: KEvent/fromJson Starts ");
         KEvent tempE;
         try {
             Gson gson = new Gson();
@@ -36,10 +35,8 @@ public class KEvent {
             // map
             @SuppressWarnings("unchecked")
             Map<String, Object> map = gson.fromJson(json, Map.class);
-            // System.out.println("\n Using Json map: \n\t" + map + "\n\n");
             if (map.getOrDefault("payload", null) == null) {
                 System.err.println("[DEBUG]: Error: KEvent/fromJson: Payload is null");
-                // return parseJson(json, KEvent.class);
                 tempE = gson.fromJson(json, KEvent.class);
             } else {
                 // payload ase
