@@ -1,62 +1,82 @@
 <script lang="ts">
-	import { goto, invalidateAll } from '$app/navigation';
 	import { slide } from 'svelte/transition';
-	import { page } from '$app/stores';
 	import {
 		Header,
 		HeaderUtilities,
 		HeaderGlobalAction,
-		SideNav,
-		SideNavItems,
-		SideNavMenu,
-		SideNavMenuItem,
-		SideNavLink,
-		SkipToContent,
-		Content,
-		Grid,
-		Row,
-		Column,
-		Button,
-		HeaderSearch,
-		ToastNotification,
-		NotificationActionButton,
-		Dropdown,
-		DropdownSkeleton
+		SkipToContent
 	} from 'carbon-components-svelte';
 	import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
-	import SettingsAdjust from 'carbon-icons-svelte/lib/SettingsAdjust.svelte';
-	import UserAvatarFilledAlt from 'carbon-icons-svelte/lib/UserAvatarFilledAlt.svelte';
-	import { onMount } from 'svelte';
-	import { toast } from 'svelte-sonner';
 	import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
 	import HeaderSearchThingy from './HeaderSearchThingy.svelte';
-	import { HtmlReference } from 'carbon-icons-svelte';
-	import ClientScreenSize from './dev/ClientScreenSize.svelte';
 	import { Notification as NotificationIcon, NotificationNew } from 'carbon-icons-svelte';
 	import { source } from 'sveltekit-sse';
 	import { browser } from '$app/environment';
 	import { Circle } from 'lucide-svelte';
 	import type { SystemwideNotification } from '@/types/entities';
+	import { page } from '$app/stores';
+	import { invalidate, invalidateAll } from '$app/navigation';
+	import { hintToWebUrlMap } from '@/utils/utils';
 
 	export let isSideNavOpen: boolean;
 
+	const pathname: string = $page.url.pathname;
+
 	const notificationStuff = {
 		hasNew: false,
-		open: false,
+		open: true,
 		notifications: []
 	} as { hasNew: boolean; open: boolean; notifications: SystemwideNotification[] };
 
 	const notiSSEUrl = `/sse/notification`;
 	let value = source(notiSSEUrl).select('message');
 	if (browser && value) {
-		value.subscribe((data) => {
+		value.subscribe((data: string) => {
 			console.log(data);
 			if (data) {
-				notificationStuff.notifications.push(JSON.parse(data));
-				notificationStuff.hasNew = true;
+				const notification: SystemwideNotification = JSON.parse(data);
+				if (!notification.markedAsRead) {
+					notificationStuff.notifications.push(notification);
+					notificationStuff.hasNew = true;
+					// invalidateAggregationPages(notification?.actionHints);
+
+					// handle thing, reload new data on notification
+					// try {
+					// 	const [action, locationHint, id] = notification?.actionHints?.split('_');
+					// 	const path = pathname.replace(/\/$/, '');
+
+					// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
+					// 		console.log('Invalidating', locationHint, path);
+					// 		invalidateAll();
+					// 		// window.location.reload();
+					// 	}
+					// } catch (e) {
+					// 	console.error(e);
+					// }
+				}
 			}
 		});
 	}
+
+	// function invalidateAggregationPages(actionHints: string) {
+	// 	const [action, locationHint, id] = actionHints?.split('_');
+	// 	// remove trailing slash
+
+	// 	let path = $page.url.pathname;
+	// 	path = path.replace(/\/$/, '');
+
+	// 	console.warn(
+	// 		'Invalidation func',
+	// 		hintToWebUrlMap.get(locationHint) == path,
+	// 		locationHint,
+	// 		path
+	// 	);
+	// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
+	// 		console.log('Invalidating');
+	// 		invalidateAll();
+	// 		// invalidateAll();
+	// 	}
+	// }
 
 	async function handleLogout() {
 		const bres = await fetch('/logout', {
@@ -85,7 +105,7 @@
 </script>
 
 <!-- <Header platformName="FreshCrafts" href="/" persistentHamburgerMenu bind:isSideNavOpen> -->
-<Header platformName="FreshCrafts" href="/" bind:isSideNavOpen>
+<Header platformName="FreshCrafts (v0.1)" href="/" bind:isSideNavOpen>
 	<svelte:fragment slot="skip-to-content">
 		<SkipToContent />
 	</svelte:fragment>
@@ -131,7 +151,7 @@
 		transition:slide
 		class="top-10 right-12 z-10 fixed bg-[#161616] p-3 m-2 w-[300px] text-gray-100"
 	>
-		{#if notificationStuff.notifications.length > 0}
+		{#if notificationStuff?.notifications?.length > 0}
 			{#each notificationStuff.notifications as noti}
 				<div class="flex items-center gap-2">
 					<Circle fill="white" class="h-3 w-3" />

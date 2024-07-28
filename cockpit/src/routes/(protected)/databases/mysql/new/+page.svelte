@@ -29,6 +29,7 @@
 		dbUser: '',
 		dbPassword: ''
 	};
+
 	let error_message = '';
 
 	async function handleFormSubmission() {
@@ -101,12 +102,12 @@
 	>
 		<TextInput
 			required
-			autocomplete="new-name"
 			type="text"
 			id="db_name"
 			name="db_name"
 			labelText="Database Name"
 			placeholder="db_name"
+			minlength={3}
 			bind:value={newDBData.dbName}
 			invalid={Boolean(errors.dbName)}
 			invalidText={errors.dbName}
@@ -114,20 +115,21 @@
 		/>
 		<TextInput
 			required
-			autocomplete="new-user"
 			type="text"
 			id="db_user"
 			name="db_user"
 			labelText="Database User"
 			placeholder="db_user"
+			minlength={3}
 			bind:value={newDBData.dbUser}
 			invalid={Boolean(errors.dbUser)}
 			invalidText={errors.dbUser}
 			disabled={loading}
 		/>
+		<!-- one-time-code prevents from password save prompt -->
 		<PasswordInput
 			required
-			autocomplete="new-password"
+			autocomplete="one-time-code"
 			id="db_pass"
 			name="db_pass"
 			labelText="Database Password"

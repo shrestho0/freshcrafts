@@ -1,4 +1,4 @@
-import type { AuthProviderType, SystemWideNoitficationTypes } from "./enums";
+import type { AuthProviderType, DBMysqlStatus, SystemWideNoitficationTypes } from "./enums";
 
 export type SystemUser = {
     name: string;
@@ -12,10 +12,11 @@ export interface SystemwideNotification {
     id: string,
     message: string;
     // actionUrlHints: 'GOTO_MYSQL__VIEW', // convert hints to url
-    actionUrlHints: string, // convert hints to url
+    actionHints: string, // convert hints to url
     markedAsRead: false,
     type: SystemWideNoitficationTypes
 }
+
 
 
 /**
@@ -26,8 +27,9 @@ export type DBMysql = {
     dbName: string;
     dbUser: string;
     dbPassword: string;
-    status: null;
-    reasonFailed: null;
+    status: DBMysqlStatus;
+    reasonFailed: string;
+    updateMessage: string;
 }
 
 

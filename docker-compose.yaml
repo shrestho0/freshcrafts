@@ -23,6 +23,9 @@ services:
     image: 'mongo:latest'
     ports:
       - '27017:27017'
+    # environment:
+    #   - MONGO_INITDB_ROOT_USERNAME: mongo
+    #   - MONGO_INITDB_ROOT_PASSWORD: p.mongo
     volumes:
       - ./fc_data/primary/mongodb:/data/db
 

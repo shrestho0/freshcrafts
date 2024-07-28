@@ -36,17 +36,18 @@ public class SystemConfigController {
     public CommonResponseDto setupConfig(@RequestBody SystemConfig systemConfig) {
         CommonResponseDto commonResponseDto = new CommonResponseDto();
 
-        System.out.println("[DEBUG] SystemConfigController - systemConfig: " + systemConfig);
+        System.err.println("[DEBUG] SystemConfigController - systemConfig: " + systemConfig);
 
         try {
 
-            System.out.println("[DEBUG] Requested config: " + systemConfig);
+            System.err.println("[DEBUG] Requested config: " + systemConfig);
 
             SystemConfig sc = systemConfigService.setupConfig(systemConfig);
             commonResponseDto.setSuccess(true);
             commonResponseDto.setMessage("System configuration updated successfully");
+            // FIXME: you know
             commonResponseDto.setData(sc);
-            System.out.println("[DEBUG] Set Up Config " + sc);
+            System.err.println("[DEBUG] Set Up Config " + sc);
             return commonResponseDto;
         } catch (Exception e) {
         }
@@ -60,7 +61,7 @@ public class SystemConfigController {
     public CommonResponseDto updateConfig(@RequestBody SystemConfig systemConfig) {
         CommonResponseDto commonResponseDto = new CommonResponseDto();
 
-        System.out.println("[DEBUG] SystemConfigController - systemConfig: " + systemConfig);
+        System.err.println("[DEBUG] SystemConfigController - systemConfig: " + systemConfig);
 
         try {
 
@@ -72,6 +73,7 @@ public class SystemConfigController {
             }
             commonResponseDto.setSuccess(true);
             commonResponseDto.setMessage("System configuration updated successfully");
+            // FIXME: you know
             commonResponseDto.setData(sc);
             return commonResponseDto;
         } catch (Exception e) {

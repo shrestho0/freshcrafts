@@ -1,14 +1,6 @@
 <script lang="ts">
 	import type { SetupPageAccountData } from '@/types/internal';
-	import {
-		Column,
-		Form,
-		FormItem,
-		FormLabel,
-		PasswordInput,
-		Row,
-		TextInput
-	} from 'carbon-components-svelte';
+	import { Column, PasswordInput, Row, TextInput } from 'carbon-components-svelte';
 
 	export let data: SetupPageAccountData;
 </script>

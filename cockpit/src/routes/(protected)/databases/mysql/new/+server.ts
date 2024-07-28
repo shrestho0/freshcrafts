@@ -16,7 +16,7 @@ export const POST = async ({ request }) => {
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ ...data, id: ulid() }),
+        body: JSON.stringify({ ...data }),
     }).then((res) => res.json());
 
     console.log(res);

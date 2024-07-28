@@ -10,39 +10,34 @@ import com.auth0.jwt.algorithms.Algorithm;
 
 import fresh.crafts.engine.v1.entities.JwtPayload;
 import fresh.crafts.engine.v1.entities.Tokens;
-import fresh.crafts.engine.v1.utils.JwtProperties;
+import fresh.crafts.engine.v1.utils.EnvProps;
 
 @Service
 public class JwtService {
 
     @Autowired
-    private JwtProperties jwtProperties;
+    private EnvProps envProps;
 
     public Tokens generate(JwtPayload payload) throws Exception {
         // Tokens tokens = new Tokens(_generateRefreshToken(payload),
         // _generateAccessToken(payload));
-        // System.out.println("JWT_ACCESS_SECRET: " + jwtProperties.getAccessSecret());
-        // System.out.println("JWT_ACCESS_EXPIRES_IN: " +
-        // jwtProperties.getAccessExpiresIn());
-        // System.out.println("JWT_REFRESH_SECRET: " +
-        // jwtProperties.getRefreshSecret());
-        // System.out.println("JWT_REFRESH_EXPIRES_IN: " +
-        // jwtProperties.getRefreshExpiresIn());
-        Tokens tokens = new Tokens(_generateRefreshToken(payload), _generateAccessToken(payload));
-        return tokens;
+        // return tokens;
+        return new Tokens(
+                _generateRefreshToken(payload),
+                _generateAccessToken(payload));
     }
 
     private String _generateAccessToken(JwtPayload payload) {
 
-        Algorithm algorithm = Algorithm.HMAC512(jwtProperties.getAccessSecret());
+        Algorithm algorithm = Algorithm.HMAC512(envProps.getAccessSecret());
 
         String token = JWT.create()
-                .withIssuer(jwtProperties.getIssuer())
+                .withIssuer(envProps.getIssuer())
                 .withClaim("systemUserName", payload.getSystemUserName())
                 .withClaim("systemUserEmail", payload.getSystemUserEmail())
                 .withClaim("provider", payload.getProvider().toString())
                 .withExpiresAt(new Date(System.currentTimeMillis() +
-                        Long.parseLong(jwtProperties.getAccessExpiresIn()) * 1000))
+                        Long.parseLong(envProps.getAccessExpiresIn()) * 1000))
                 .withSubject("ACCESS_TOKEN")
                 .sign(algorithm);
 
@@ -51,15 +46,15 @@ public class JwtService {
 
     private String _generateRefreshToken(JwtPayload payload) {
 
-        Algorithm algorithm = Algorithm.HMAC512(jwtProperties.getRefreshSecret());
+        Algorithm algorithm = Algorithm.HMAC512(envProps.getRefreshSecret());
 
         String token = JWT.create()
-                .withIssuer(jwtProperties.getIssuer())
+                .withIssuer(envProps.getIssuer())
                 .withClaim("systemUserName", payload.getSystemUserName())
                 .withClaim("systemUserEmail", payload.getSystemUserEmail())
                 .withClaim("provider", payload.getProvider().toString())
                 .withExpiresAt(new Date(System.currentTimeMillis() +
-                        Long.parseLong(jwtProperties.getRefreshExpiresIn()) * 1000))
+                        Long.parseLong(envProps.getRefreshExpiresIn()) * 1000))
                 .withSubject("REFRESH_TOKEN")
                 .sign(algorithm);
 

@@ -34,8 +34,8 @@ public class SystemConfigService {
 
     public SystemConfig createDefault() {
 
-        System.out.println("CONFIG_ID: " + CONFIG_ID);
-        // System.out.println("COCKPIT_SETUP_KEY: " + COCKPIT_SETUP_KEY);
+        System.err.println("CONFIG_ID: " + CONFIG_ID);
+        // System.err.println("COCKPIT_SETUP_KEY: " + COCKPIT_SETUP_KEY);
 
         SystemConfig systemConfig = new SystemConfig();
         systemConfig.setId(CONFIG_ID); // TODO: possibly redundant
@@ -81,10 +81,10 @@ public class SystemConfigService {
             existingConfig = createDefault();
         }
 
-        System.out.println("============================================");
-        System.out.println("New Config: " + systemConfig);
-        System.out.println("Old Config: " + existingConfig);
-        System.out.println("============================================");
+        System.err.println("============================================");
+        System.err.println("New Config: " + systemConfig);
+        System.err.println("Old Config: " + existingConfig);
+        System.err.println("============================================");
 
         // Update if not null
         if (systemConfig.getSystemUserSetupComplete() != null) {
@@ -150,11 +150,11 @@ public class SystemConfigService {
         //
         //
         // if(systemConfig.getOAuthGoogleEmail() != null){
-        // System.out.println("Setting oauth google email");
+        // System.err.println("Setting oauth google email");
         // existingConfig.setOAuthGoogleEmail(systemConfig.getOAuthGoogleEmail());
         // }
         // if(systemConfig.getOAuthGithubId() !=null){
-        // System.out.println("Setting oauth google email");
+        // System.err.println("Setting oauth google email");
         // existingConfig.setOAuthGithubId(systemConfig.getOAuthGithubId());
         // }
 

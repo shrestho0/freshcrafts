@@ -23,11 +23,11 @@ public class MessageProducer {
     public void sendEvent(KEvent event) {
 
         // DEBUG
-        // System.out.println("\n================== Event before sending: \n" + event +
+        // System.err.println("\n================== Event before sending: \n" + event +
         // "\n");
         // System.err.println("\n================== Event before sending json:\n" +
         // event.toJson() + " :type "+ event.toJson().getClass());
-        // System.out.println("\n");
+        // System.err.println("\n");
 
         System.err.println("[DEBUG]: sending Event from MessageProducer.sendEvent :: " + event);
 

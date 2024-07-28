@@ -1,9 +1,9 @@
-import type { EngineMySQLGetOnePayload } from "@/types/dtos";
+import type { DBMysql, SystemwideNotification } from "@/types/entities";
 import { json, type RequestHandler } from "@sveltejs/kit";
 import { writable } from "svelte/store";
 import { produce } from "sveltekit-sse";
 
-const MySQLStore = writable<EngineMySQLGetOnePayload | undefined>();
+const MySQLStore = writable<string>();
 
 
 export function POST() {
@@ -11,7 +11,7 @@ export function POST() {
     return produce(async function start({ emit }) {
         const unsubscribe = MySQLStore.subscribe(async (data) => {
             if (data) {
-                const { error } = emit('message', `${JSON.stringify(data)}`)
+                const { error } = emit('message', `${data}`)
 
                 if (error) {
                     return unsubscribe();
@@ -33,24 +33,27 @@ export const PUT: RequestHandler = async ({ request }) => {
 }
 
 export const PATCH: RequestHandler = async ({ request }) => {
-    const data = await request.json() as EngineMySQLGetOnePayload
-
-    // Validate Stuff    
-
     try {
-        MySQLStore.set(data)
-        // MySQLStore.getStore().set(JSON.parse(message))
-        return json({ success: true, })
-    } catch (err: any) {
+        const data = await request.json() as SystemwideNotification;
+
+        console.log("[DEBUG]: PATCH Request on databases/mysql/[id] SSE\nData: ", data, "\n");
+
+
+        return json({
+            success: true,
+            message: "Event sent"
+        })
+    } catch (e: any) {
+        console.warn("[ERROR]: PATCH Request on databases/mysql/[id] SSE");
         return json({
             success: false,
-            message: err?.message ?? "Some error occured"
-        })
+            message: e?.message ?? "An error occurred"
+        });
     }
 }
 
 export const DELETE: RequestHandler = async ({ request }) => {
-    MySQLStore.set(undefined)
+    MySQLStore.set("")
     return json({
         success: true,
     })

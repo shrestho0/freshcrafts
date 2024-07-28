@@ -65,7 +65,11 @@ export type EngineMySQLCreateError = {
     dbUser: string,
     dbPassword: string
 }
-
+export type EngineMySQLUpdateError = {
+    newDBName: string,
+    newDBUser: string,
+    newUserPassword: string
+}
 // To parse this data:
 //
 //   import { Convert, Pagable } from "./file";

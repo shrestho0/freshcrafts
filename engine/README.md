@@ -33,3 +33,4 @@ mvn clean install && java -jar target/engine-0.0.1-SNAPSHOT.jar
 
 
 https://hub.docker.com/r/apache/kafka
+http://google.github.io/gson/UserGuide.html#serializing-and-deserializing-generic-types
