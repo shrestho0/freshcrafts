@@ -45,9 +45,13 @@ public class WizardPostgresMessageService {
             postgreSQLService.createUser(requestPayload.getDbUser(),
                     requestPayload.getDbPassword());
 
+            // FIXME: Check if grantPrivileges is required with alterDatabaseOwner
             // grant privileges
             postgreSQLService.grantUserPrivileges(requestPayload.getDbName(),
                     requestPayload.getDbUser());
+
+            // alter db owner, required to avoid permission issues
+            postgreSQLService.alterDatabaseOwner(requestPayload.getDbName(), requestPayload.getDbUser());
 
             feedbackPayload.setSuccess(true);
             feedbackPayload.setMessage("DBMysql with dbName: " +

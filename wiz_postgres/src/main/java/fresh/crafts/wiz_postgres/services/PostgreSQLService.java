@@ -41,6 +41,12 @@ public class PostgreSQLService {
 
     }
 
+    public void alterDatabaseOwner(String dbName, String username) {
+        // ALTER DATABASE testdb OWNER TO testuser
+        String sql = "ALTER DATABASE " + dbName + " OWNER TO " + username;
+        jdbcTemplate.execute(sql);
+    }
+
     // Check User Exists or not
     public void checkUserExists(String username) {
     }
