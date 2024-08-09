@@ -1,85 +1,85 @@
 <script lang="ts">
-	import { goto } from '$app/navigation';
-	import { page } from '$app/stores';
-	import type {
-		EngineCommonResponseDto,
-		EngineMySQLCreateError,
-		EngineMySQLCreatePayload
-	} from '@/types/dtos';
-	import {
-		Button,
-		Form,
-		FormItem,
-		Loading,
-		PasswordInput,
-		TextInput,
-		InlineNotification
-	} from 'carbon-components-svelte';
+import { goto } from '$app/navigation';
+import { page } from '$app/stores';
+import type {
+	EngineCommonResponseDto,
+	EngineMySQLCreateError,
+	EngineMySQLCreatePayload
+} from '@/types/dtos';
+import {
+	Button,
+	Form,
+	FormItem,
+	Loading,
+	PasswordInput,
+	TextInput,
+	InlineNotification
+} from 'carbon-components-svelte';
 
-	const newDBData = {
-		dbName: '',
-		dbUser: '',
-		dbPassword: ''
-	};
+const newDBData = {
+	dbName: '',
+	dbUser: '',
+	dbPassword: ''
+};
 
-	let loading = false;
+let loading = false;
 
-	let errors: EngineMySQLCreateError = {
-		dbName: '',
-		dbUser: '',
-		dbPassword: ''
-	};
+let errors: EngineMySQLCreateError = {
+	dbName: '',
+	dbUser: '',
+	dbPassword: ''
+};
 
-	let error_message = '';
+let error_message = '';
 
-	async function handleFormSubmission() {
-		console.log(newDBData);
-		loading = true;
-		error_message = '';
-		const res = (await fetch('', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(newDBData)
-		}).then((res) => res.json())) as EngineCommonResponseDto<
-			EngineMySQLCreatePayload,
-			EngineMySQLCreateError
-		>;
-		// as {
-		// 	success: boolean;
-		// 	message?: string;
-		// 	payload: {
-		// 		id: '01J3FM5SKADJ81V6CYH1FFB694';
-		// 		dbName: 'test__3';
-		// 		dbUser: 'test__3';
-		// 		dbPassword: 'test__3';
-		// 		status: null;
-		// 		reasonFailed: null;
-		// 	};
-		// 	errors: {
-		// 		dbName: string;
-		// 		dbUser: string;
-		// 		dbPassword: string;
-		// 	};
-		// };
+async function handleFormSubmission() {
+	console.log(newDBData);
+	loading = true;
+	error_message = '';
+	const res = (await fetch('', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify(newDBData)
+	}).then((res) => res.json())) as EngineCommonResponseDto<
+		EngineMySQLCreatePayload,
+		EngineMySQLCreateError
+	>;
+	// as {
+	// 	success: boolean;
+	// 	message?: string;
+	// 	payload: {
+	// 		id: '01J3FM5SKADJ81V6CYH1FFB694';
+	// 		dbName: 'test__3';
+	// 		dbUser: 'test__3';
+	// 		dbPassword: 'test__3';
+	// 		status: null;
+	// 		reasonFailed: null;
+	// 	};
+	// 	errors: {
+	// 		dbName: string;
+	// 		dbUser: string;
+	// 		dbPassword: string;
+	// 	};
+	// };
 
-		if (res.success) {
-			// redirect to the new database page. /mysql/:id
-			let url = $page.url.href;
-			url = url.split('/').slice(0, -1).join('/');
-			url += `/${res.payload.id}`;
-			goto(url);
-		} else {
-			// show error message
-			if (res?.message) error_message = res.message;
-			if (res?.errors) errors = res.errors;
-		}
-
-		loading = false;
-		console.log(res);
-		JSON.parse('{}');
+	if (res.success) {
+		// redirect to the new database page. /mysql/:id
+		let url = $page.url.href;
+		url = url.split('/').slice(0, -1).join('/');
+		url += `/${res.payload.id}`;
+		goto(url);
+	} else {
+		// show error message
+		if (res?.message) error_message = res.message;
+		if (res?.errors) errors = res.errors;
 	}
+
+	loading = false;
+	console.log(res);
+	JSON.parse('{}');
+}
 </script>
 
 <h2 class="text-2xl pb-4">New MySQL Database</h2>

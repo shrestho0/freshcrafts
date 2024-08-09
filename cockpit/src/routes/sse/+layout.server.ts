@@ -1,23 +1,23 @@
-import { SSE_AUTHORIZATION_TOKEN } from "$env/static/private";
-import { error, fail } from "@sveltejs/kit";
-import type { LayoutServerLoad } from "./$types";
+import { SSE_AUTHORIZATION_TOKEN } from '$env/static/private';
+import { error, fail } from '@sveltejs/kit';
+import type { LayoutServerLoad } from './$types';
 
 export const load: LayoutServerLoad = async ({ request, locals }) => {
-    console.log("Entered SSE layout.server.ts", request.method)
-    if (locals.user) { return }
+	console.log('Entered SSE layout.server.ts', request.method);
+	if (locals.user) {
+		return;
+	}
 
-    // FIXME: This is redundent
-    try {
-        const bearer = request.headers.get("authorization")?.split(" ")[1]
-        if (bearer && bearer === SSE_AUTHORIZATION_TOKEN) {
-            return
-        }
-    } catch (_) { }
+	// FIXME: This is redundent
+	try {
+		const bearer = request.headers.get('authorization')?.split(' ')[1];
+		if (bearer && bearer === SSE_AUTHORIZATION_TOKEN) {
+			return;
+		}
+	} catch (_) {}
 
-
-    return error(401, "Unauthorized")
-
-}
+	return error(401, 'Unauthorized');
+};
 
 // check if /sse
 // if (event.url.pathname.startsWith("/sse")) {

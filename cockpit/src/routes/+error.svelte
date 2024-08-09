@@ -1,7 +1,7 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import { Grid, Row, Column, Button } from 'carbon-components-svelte';
-	import { ArrowRight, ArrowLeft } from 'carbon-icons-svelte';
+import { page } from '$app/stores';
+import { Grid, Row, Column, Button } from 'carbon-components-svelte';
+import { ArrowRight, ArrowLeft } from 'carbon-icons-svelte';
 </script>
 
 <div class="w-full h-screen flex items-center justify-center">

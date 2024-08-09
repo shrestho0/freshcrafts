@@ -20,6 +20,10 @@ freshCrafts.MONGO_CONFIG_SYSTEM_CONFIG_COLLECTION_ID=TheConfig
 spring.data.mongodb.host=localhost
 spring.data.mongodb.port=27017
 spring.data.mongodb.database=crafts_starter
+spring.data.mongodb.username=ROOT_USERNAME
+spring.data.mongodb.password=ROOT_PASSWORD
+# admin db name
+spring.data.mongodb.authentication-database=admin
 
 # depricated, will be removed
 # freshCrafts.COCKPIT_SETUP_KEY=SOME_SETUP_KEY_XD

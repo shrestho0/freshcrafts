@@ -1,8 +1,8 @@
 <script lang="ts">
-	import '@/ui/css/app.css';
-	import { Button, Select, SelectItem } from 'carbon-components-svelte';
-	import { onMount } from 'svelte';
-	import { Toaster, toast } from 'svelte-sonner';
+import '@/ui/css/app.css';
+import { Button, Select, SelectItem } from 'carbon-components-svelte';
+import { onMount } from 'svelte';
+import { Toaster, toast } from 'svelte-sonner';
 </script>
 
 <!-- <Select bind:selected={selectedTheme}>
@@ -29,8 +29,8 @@
 />
 
 <style>
-	html[theme='g100'] > .custom-toast {
-		background-color: var(----cds-interactive-01) !important;
-		font-size: 30px;
-	}
+html[theme='g100'] > .custom-toast {
+	background-color: var(----cds-interactive-01) !important;
+	font-size: 30px;
+}
 </style>

@@ -1,6 +1,6 @@
 <script>
-	import { Header, SkipToContent, HeaderNav, HeaderUtilities } from 'carbon-components-svelte';
-	import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
+import { Header, SkipToContent, HeaderNav, HeaderUtilities } from 'carbon-components-svelte';
+import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
 </script>
 
 <Header platformName="FreshCrafts" href="/">

@@ -1,59 +1,59 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
+import { browser } from '$app/environment';
 
-	import {
-		Row,
-		Column,
-		TextInput,
-		PasswordInput,
-		InlineNotification
-	} from 'carbon-components-svelte';
-	import { ArrowRight, LogoGithub } from 'carbon-icons-svelte';
-	import { onMount } from 'svelte';
-	import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
-	import { applyAction, enhance } from '$app/forms';
-	import { goto, invalidateAll } from '$app/navigation';
-	import type { ActionResult } from '@sveltejs/kit';
-	import { AuthProviderType } from '@/types/enums';
+import {
+	Row,
+	Column,
+	TextInput,
+	PasswordInput,
+	InlineNotification
+} from 'carbon-components-svelte';
+import { ArrowRight, LogoGithub } from 'carbon-icons-svelte';
+import { onMount } from 'svelte';
+import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
+import { applyAction, enhance } from '$app/forms';
+import { goto, invalidateAll } from '$app/navigation';
+import type { ActionResult } from '@sveltejs/kit';
+import { AuthProviderType } from '@/types/enums';
 
-	export let data;
+export let data;
 
-	const { githubLoginUrl, googleLoginUrl } = data;
+const { githubLoginUrl, googleLoginUrl } = data;
 
-	// let githubUrl = initializeAndReturnGithubUrl();
-	// let googleUrl = initializeAndReturnGoogleUrl();
+// let githubUrl = initializeAndReturnGithubUrl();
+// let googleUrl = initializeAndReturnGoogleUrl();
 
-	onMount(() => {
-		if (browser) {
-			document.cookie = 'fromPage=login; path=/; max-age=0'; //
-		}
-	});
-	// onDestroy(() => {
-	// 	if (browser) {
-	// 		document.cookie = 'fromPage=login; path=/; max-age=0 ';
-	// 	}
-	// });
-	let error_message = '';
-
-	function enhancedEmailPasswordLogin() {
-		return async ({ result }: { result: ActionResult }) => {
-			console.log(result);
-			switch (result.type) {
-				case 'success':
-					await applyAction(result);
-					invalidateAll();
-					break;
-				case 'failure':
-					error_message = result?.data?.message ?? 'Failed to login';
-					break;
-				case 'redirect':
-					window.location.href = result.location;
-					// invalidateAll();
-					// goto(result.location);
-					break;
-			}
-		};
+onMount(() => {
+	if (browser) {
+		document.cookie = 'fromPage=login; path=/; max-age=0'; //
 	}
+});
+// onDestroy(() => {
+// 	if (browser) {
+// 		document.cookie = 'fromPage=login; path=/; max-age=0 ';
+// 	}
+// });
+let error_message = '';
+
+function enhancedEmailPasswordLogin() {
+	return async ({ result }: { result: ActionResult }) => {
+		console.log(result);
+		switch (result.type) {
+			case 'success':
+				await applyAction(result);
+				invalidateAll();
+				break;
+			case 'failure':
+				error_message = result?.data?.message ?? 'Failed to login';
+				break;
+			case 'redirect':
+				window.location.href = result.location;
+				// invalidateAll();
+				// goto(result.location);
+				break;
+		}
+	};
+}
 </script>
 
 <div class="h-full">
@@ -194,65 +194,65 @@
 </div>
 
 <style>
-	.inner {
-		height: 100%;
-		background-position: left 480px;
-		background-repeat: no-repeat;
-		margin-left: auto;
-		margin-right: auto;
-		position: relative;
-		padding-bottom: 50px;
-		min-width: 320px;
-		min-height: 338px;
-		overflow: hidden;
-		max-width: 99rem;
-	}
-	.heading-container {
-		padding-bottom: 2rem;
-		margin-bottom: 1rem;
-		border-bottom: 1px solid #e0e0e0;
-	}
-	.oauth-container,
-	.regular-auth-container {
-		border-top: 1px solid #e0e0e0;
-		padding-top: 1rem;
-		margin-top: 1rem;
-	}
+.inner {
+	height: 100%;
+	background-position: left 480px;
+	background-repeat: no-repeat;
+	margin-left: auto;
+	margin-right: auto;
+	position: relative;
+	padding-bottom: 50px;
+	min-width: 320px;
+	min-height: 338px;
+	overflow: hidden;
+	max-width: 99rem;
+}
+.heading-container {
+	padding-bottom: 2rem;
+	margin-bottom: 1rem;
+	border-bottom: 1px solid #e0e0e0;
+}
+.oauth-container,
+.regular-auth-container {
+	border-top: 1px solid #e0e0e0;
+	padding-top: 1rem;
+	margin-top: 1rem;
+}
 
-	.login-container .right-pannel .canvas-container .login-canvas {
-		position: absolute;
-		left: 0;
-		width: 100%;
-		min-width: 1000px;
-		height: 100%;
-		background-repeat: no-repeat;
-		background-position-x: left;
-		background-position-y: bottom;
-	}
-	.login-form form .bx--btn {
-		width: 100%;
-		max-width: 100%;
-	}
-	@media (min-width: 42rem) {
-		.login-container {
-			margin: auto;
-		}
-	}
-	.inner,
+.login-container .right-pannel .canvas-container .login-canvas {
+	position: absolute;
+	left: 0;
+	width: 100%;
+	min-width: 1000px;
+	height: 100%;
+	background-repeat: no-repeat;
+	background-position-x: left;
+	background-position-y: bottom;
+}
+.login-form form .bx--btn {
+	width: 100%;
+	max-width: 100%;
+}
+@media (min-width: 42rem) {
 	.login-container {
-		height: 100%;
+		margin: auto;
 	}
+}
+.inner,
+.login-container {
+	height: 100%;
+}
+.login-container .form-area {
+	height: 100%;
+	margin-top: 48px;
+	margin-bottom: 144px;
+	padding-top: 2.5rem;
+	max-width: 448px;
+	min-height: 610px;
+}
+@media (min-width: 66rem) {
 	.login-container .form-area {
-		height: 100%;
-		margin-top: 48px;
-		margin-bottom: 144px;
-		padding-top: 2.5rem;
-		max-width: 448px;
-		min-height: 610px;
+		margin-bottom: 48px;
 	}
-	@media (min-width: 66rem) {
-		.login-container .form-area {
-			margin-bottom: 48px;
-		}
-	}
+}
 </style>

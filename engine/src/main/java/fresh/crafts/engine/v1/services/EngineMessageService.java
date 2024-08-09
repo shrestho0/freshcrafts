@@ -1,5 +1,7 @@
 package fresh.crafts.engine.v1.services;
 
+import java.time.Instant;
+
 import org.apache.hc.client5.http.classic.methods.HttpPatch;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
@@ -26,7 +28,7 @@ import fresh.crafts.engine.v1.utils.enums.NotificationType;
 
 /**
  * EngineMessageService
- * 
+ *
  * @implNote This class is responsible for handling feedback from the wizard
  *           services
  * @apiNote REFACTOR_REQUIRED, too messy
@@ -51,7 +53,7 @@ public class EngineMessageService {
 
     /**
      * serveForWizardMySQL
-     * 
+     *
      * @param feedbackKEvent
      * @implNote This method is responsible for handling feedback from the
      *           wizard_mysql service
@@ -131,6 +133,7 @@ public class EngineMessageService {
                         notification.setMessage("Failed to create Mysql database: " + requestedDbMysql.getDbName());
                     }
 
+                    requestedDbMysql.setLastModifiedDate(Instant.now());
                     DBMysql updatedDB = dbMysqlService.update(requestedDbMysql);
                     System.out.println("[DEBUG]: updatedDB " + updatedDB);
 
@@ -186,6 +189,8 @@ public class EngineMessageService {
 
                     }
 
+                    // now
+                    requestedDbMysql.setLastModifiedDate(Instant.now());
                     DBMysql updatedDB = dbMysqlService.update(requestedDbMysql);
                     System.out.println("[DEBUG]: updatedDB " + updatedDB);
 
@@ -247,7 +252,7 @@ public class EngineMessageService {
 
     /**
      * serveForWizardPostgres
-     * 
+     *
      * @param kEvent
      * @implNote This method is responsible for handling feedback from the
      *           wizard_postgres service
@@ -379,6 +384,7 @@ public class EngineMessageService {
 
                     }
 
+                    requestedDbPostgres.setLastModifiedDate(Instant.now());
                     DBPostgres updatedDB = dbPostgresService.update(requestedDbPostgres);
                     System.out.println("[DEBUG]: updatedDB " + updatedDB);
 
@@ -442,7 +448,7 @@ public class EngineMessageService {
 
     /**
      * requestNotificationSSE
-     * 
+     *
      * @param json
      * @implNote This method is responsible for sending notification to the frontend
      *           via SSE

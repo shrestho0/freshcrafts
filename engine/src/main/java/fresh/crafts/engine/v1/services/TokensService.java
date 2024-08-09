@@ -37,6 +37,10 @@ public class TokensService {
     public CommonResponseDto getAllowedAuthProviders() {
 
         CommonResponseDto response = new CommonResponseDto(false, "", null, null, null);
+
+        System.out.println("[DEBUG] TokensService - getAllowedAuthProviders + blacklistedTokenRepository"
+                + blacklistedTokenRepository);
+
         SystemConfig systemConfig = systemConfigService.getOnly().orElse(null);
 
         // System.err.println("[DEBUG] Get Provider Service:");

@@ -1,0 +1,13 @@
+spring.application.name=wiz_mongo
+
+spring.data.mongodb.host=localhost
+spring.data.mongodb.port=17017
+spring.data.mongodb.database=crafts_starter
+spring.data.mongodb.username=root
+spring.data.mongodb.password=password
+spring.data.mongodb.authentication-database=admin
+
+
+## Kafka Stuff
+spring.kafka.bootstrap-servers=localhost:9092
+spring.kafka.consumer.group-id=freshCrafts

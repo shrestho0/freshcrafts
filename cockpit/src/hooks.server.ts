@@ -1,4 +1,11 @@
-import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, JWT_ACCESS_SECRET, JWT_ISSUER, JWT_REFRESH_SECRET, SSE_AUTHORIZATION_TOKEN } from '$env/static/private';
+import {
+	AUTH_COOKIE_EXPIRES_IN,
+	AUTH_COOKIE_NAME,
+	JWT_ACCESS_SECRET,
+	JWT_ISSUER,
+	JWT_REFRESH_SECRET,
+	SSE_AUTHORIZATION_TOKEN
+} from '$env/static/private';
 import { BackendEndpoints } from '@/backend-endpoints';
 import { EngineConnection } from '@/server/EngineConnection';
 import type { SystemUser } from '@/types/entities';
@@ -6,113 +13,115 @@ import type { AuthProviderType } from '@/types/enums';
 import type { CustomJwtPayload } from '@/types/internal';
 import { error, json, type Handle } from '@sveltejs/kit';
 
-import jwt from "jsonwebtoken"
+import jwt from 'jsonwebtoken';
 
 type User = {
-    name: string;
-    email: string;
-}
+	name: string;
+	email: string;
+};
 
 export const handle: Handle = async ({ event, resolve }) => {
+	console.log('Entered hook.server.ts');
 
-    console.log("Entered hook.server.ts")
+	// Cokies and System wide data setup
+	const authCookie = event.cookies.get(AUTH_COOKIE_NAME);
 
+	if (
+		event.url.pathname?.startsWith('/sse') &&
+		event.request.method?.trim().toUpperCase() === 'PATCH'
+	) {
+		// console.log("check check")
+		try {
+			const authorizationToken = event.request.headers.get('authorization')?.trim();
+			if (authorizationToken != `Bearer ${SSE_AUTHORIZATION_TOKEN}`) {
+				throw new Error('Invalid token');
+			}
+		} catch (e: any) {
+			return error(401, { message: e?.message });
+		}
+	}
 
+	let { unverifiedAccessToken, unverifiedRefreshToken } = {
+		unverifiedAccessToken: undefined,
+		unverifiedRefreshToken: undefined
+	};
 
-    // Cokies and System wide data setup
-    const authCookie = event.cookies.get(AUTH_COOKIE_NAME)
+	if (authCookie) {
+		try {
+			const parsedCookie = JSON.parse(authCookie); // throws on error
+			const { access, refresh } = parsedCookie;
+			unverifiedAccessToken = access;
+			unverifiedRefreshToken = refresh;
 
-    if (event.url.pathname?.startsWith("/sse") && event.request.method?.trim().toUpperCase() === 'PATCH') {
-        // console.log("check check")
-        try {
-            const authorizationToken = event.request.headers.get("authorization")?.trim()
-            if (authorizationToken != `Bearer ${SSE_AUTHORIZATION_TOKEN}`) {
-                throw new Error("Invalid token")
-            }
-        } catch (e: any) {
-            return error(401, { message: e?.message })
-        }
-    }
+			if (!unverifiedAccessToken || !unverifiedRefreshToken) {
+				throw new Error('Invalid cookie data');
+			}
 
-    let { unverifiedAccessToken, unverifiedRefreshToken } = { unverifiedAccessToken: undefined, unverifiedRefreshToken: undefined };
+			try {
+				// Verify unverifiedAccessToken
+				// throws error if not verified and if time expired
+				const verifiedAccessToken = jwt.verify(access, JWT_ACCESS_SECRET, {
+					issuer: JWT_ISSUER,
+					subject: 'ACCESS_TOKEN'
+				}) as CustomJwtPayload;
 
-    if (authCookie) {
-        try {
-            const parsedCookie = JSON.parse(authCookie); // throws on error
-            const { access, refresh } = parsedCookie;
-            unverifiedAccessToken = access;
-            unverifiedRefreshToken = refresh;
+				// console.log("Verified access token payload", verifiedAccessToken)
+				console.log('Verified access token payload');
 
+				event.locals.user = {
+					name: verifiedAccessToken.systemUserName,
+					email: verifiedAccessToken.systemUserEmail,
+					provider: verifiedAccessToken.provider as AuthProviderType
+				} as SystemUser;
 
+				// console.log("Verified access cookie: ", verifiedAccessToken)
+			} catch (e: Error | any) {
+				if (e?.message?.includes('jwt expired')) {
+					console.log('Access token expired. trying to refresh token');
+					const verifiedRefreshToken = jwt.verify(refresh, JWT_REFRESH_SECRET, {
+						issuer: JWT_ISSUER,
+						subject: 'REFRESH_TOKEN'
+					}) as CustomJwtPayload;
 
-            if (!unverifiedAccessToken || !unverifiedRefreshToken) {
-                throw new Error("Invalid cookie data")
-            }
+					const res = await EngineConnection.getInstance().refreshToken(
+						unverifiedAccessToken,
+						verifiedRefreshToken.provider
+					);
 
-            try {
+					if (res.success == true) {
+						event.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), {
+							path: '/',
+							maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
+						});
+						// set user
+						event.locals.user = {
+							name: verifiedRefreshToken.systemUserName,
+							email: verifiedRefreshToken.systemUserEmail,
+							provider: verifiedRefreshToken.provider as AuthProviderType
+						} as SystemUser;
 
-                // Verify unverifiedAccessToken 
-                // throws error if not verified and if time expired
-                const verifiedAccessToken = jwt.verify(access, JWT_ACCESS_SECRET, {
-                    issuer: JWT_ISSUER,
-                    subject: "ACCESS_TOKEN"
-                }) as CustomJwtPayload;
+						// console.log("Refreshed token: ", res.tokens)
+						return await resolve(event); // we'll validate in the next request
+					}
 
-                // console.log("Verified access token payload", verifiedAccessToken)
-                console.log("Verified access token payload")
+					// console.log("verified refresh token: ", verifiedRefreshToken)
+				}
+				throw e;
 
-                event.locals.user = {
-                    name: verifiedAccessToken.systemUserName,
-                    email: verifiedAccessToken.systemUserEmail,
-                    provider: verifiedAccessToken.provider as AuthProviderType
-                } as SystemUser;
+				// console.log("Error verifying access token: ", e?.message || e,)
+				// console.log("The E: ", e,)
+			}
+		} catch (e: Error | any) {
+			console.log('Error: ', e?.message || e);
+			// delete cookie
+			event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+		}
 
+		// const user: User = JSON.parse(authCookie);
+		// event.locals.user = user;
+	}
 
-                // console.log("Verified access cookie: ", verifiedAccessToken)
-            } catch (e: Error | any) {
-                if (e?.message?.includes("jwt expired")) {
-                    console.log("Access token expired. trying to refresh token")
-                    const verifiedRefreshToken = jwt.verify(refresh, JWT_REFRESH_SECRET, {
-                        issuer: JWT_ISSUER,
-                        subject: "REFRESH_TOKEN"
-                    }) as CustomJwtPayload;
-
-                    const res = await EngineConnection.getInstance().refreshToken(unverifiedAccessToken, verifiedRefreshToken.provider)
-
-                    if (res.success == true) {
-                        event.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), { path: '/', maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN) });
-                        // set user
-                        event.locals.user = {
-                            name: verifiedRefreshToken.systemUserName,
-                            email: verifiedRefreshToken.systemUserEmail,
-                            provider: verifiedRefreshToken.provider as AuthProviderType
-                        } as SystemUser;
-
-                        // console.log("Refreshed token: ", res.tokens)
-                        return await resolve(event); // we'll validate in the next request
-                    }
-
-                    // console.log("verified refresh token: ", verifiedRefreshToken)
-
-                }
-                throw e;
-
-                // console.log("Error verifying access token: ", e?.message || e,)
-                // console.log("The E: ", e,)
-            }
-
-
-        } catch (e: Error | any) {
-            console.log("Error: ", e?.message || e)
-            // delete cookie
-            event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' })
-        }
-
-        // const user: User = JSON.parse(authCookie);
-        // event.locals.user = user;
-    }
-
-    const response = await resolve(event);
-    // set cookies
-    return response;
+	const response = await resolve(event);
+	// set cookies
+	return response;
 };

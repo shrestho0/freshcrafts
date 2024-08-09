@@ -1,0 +1,15 @@
+.DS_Store
+node_modules
+/build
+/.svelte-kit
+/package
+# temp
+# .env
+.env.*
+!.env.example
+
+prisma/migrations
+prisma/migrations/
+prisma/migrations/migration_lock.toml
+
+package-lock.json

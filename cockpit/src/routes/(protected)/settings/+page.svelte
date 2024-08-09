@@ -1,140 +1,140 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
-	import { enhance, applyAction } from '$app/forms';
-	import {
-		Column,
-		Row,
-		TextInput,
-		Tile,
-		Button,
-		Form,
-		FormGroup,
-		PasswordInput,
-		InlineLoading
-	} from 'carbon-components-svelte';
-	import { LogoGithub } from 'carbon-icons-svelte';
-	import { onMount, onDestroy } from 'svelte';
-	import type { SetupPageOauthData } from '@/types/internal.js';
-	import { toast } from 'svelte-sonner';
-	import type { ActionResult } from '@sveltejs/kit';
-	import { invalidateAll } from '$app/navigation';
-	import OAuth from '@/components/OAuth.svelte';
-	import { AuthProviderType } from '@/types/enums';
-	export let data;
-	const oauth = {
-		data: {
-			githubLoginUrl: data?.githubLoginUrl,
-			googleLoginUrl: data?.googleLoginUrl,
-			githubStatus: data.systemConfig.systemUserOauthGithubEnabled ? 'connected' : 'idle',
-			googleStatus: data.systemConfig.systemUserOauthGoogleEnabled ? 'connected' : 'idle',
-			githubOAuthJson: null,
-			googleOAuthJson: null,
-			oAuthGoogleEmail: '',
-			oAuthGithubId: ''
-		} as SetupPageOauthData
-	};
+import { browser } from '$app/environment';
+import { enhance, applyAction } from '$app/forms';
+import {
+	Column,
+	Row,
+	TextInput,
+	Tile,
+	Button,
+	Form,
+	FormGroup,
+	PasswordInput,
+	InlineLoading
+} from 'carbon-components-svelte';
+import { LogoGithub } from 'carbon-icons-svelte';
+import { onMount, onDestroy } from 'svelte';
+import type { SetupPageOauthData } from '@/types/internal.js';
+import { toast } from 'svelte-sonner';
+import type { ActionResult } from '@sveltejs/kit';
+import { invalidateAll } from '$app/navigation';
+import OAuth from '@/components/OAuth.svelte';
+import { AuthProviderType } from '@/types/enums';
+export let data;
+const oauth = {
+	data: {
+		githubLoginUrl: data?.githubLoginUrl,
+		googleLoginUrl: data?.googleLoginUrl,
+		githubStatus: data.systemConfig.systemUserOauthGithubEnabled ? 'connected' : 'idle',
+		googleStatus: data.systemConfig.systemUserOauthGoogleEnabled ? 'connected' : 'idle',
+		githubOAuthJson: null,
+		googleOAuthJson: null,
+		oAuthGoogleEmail: '',
+		oAuthGithubId: ''
+	} as SetupPageOauthData
+};
 
-	const { providers } = data?.providers ?? {};
-	let userWantsToChangeEmail: 'idle' | 'loading' | 'editing' = 'idle';
-	let userWantsToChangePassword: 'idle' | 'loading' | 'editing' = 'idle';
+const { providers } = data?.providers ?? {};
+let userWantsToChangeEmail: 'idle' | 'loading' | 'editing' = 'idle';
+let userWantsToChangePassword: 'idle' | 'loading' | 'editing' = 'idle';
 
-	async function connectionCallback({
+async function connectionCallback({
+	provider,
+	githubId,
+	googleEmail
+}: {
+	provider: AuthProviderType;
+	githubId?: string;
+	googleEmail?: string;
+}) {
+	console.log('connectedCallback', {
 		provider,
 		githubId,
 		googleEmail
-	}: {
-		provider: AuthProviderType;
-		githubId?: string;
-		googleEmail?: string;
-	}) {
-		console.log('connectedCallback', {
+	});
+
+	const res = await fetch('', {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			update_type: 'oauth_connect',
 			provider,
 			githubId,
 			googleEmail
-		});
+		})
+	}).then((res) => res.json());
 
-		const res = await fetch('', {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				update_type: 'oauth_connect',
-				provider,
-				githubId,
-				googleEmail
-			})
-		}).then((res) => res.json());
-
-		if (res?.success) {
-			toast.success(provider + 'Connected successfully');
-		} else {
-			toast.error('Failed to connect with oauth provider.');
-		}
-
-		console.log('response', res);
-	}
-	async function disconnectionCallback({ provider }: { provider: AuthProviderType }) {
-		console.log('disconnectionCallback', provider);
-
-		const res = await fetch('', {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				update_type: 'oauth_disconnect',
-				provider
-			})
-		}).then((res) => res.json());
-
-		console.log('response', res);
-
-		if (res.success) {
-			if (provider === AuthProviderType.OAUTH_GITHUB) {
-				oauth.data.githubStatus = 'idle';
-				oauth.data.githubOAuthJson = null;
-				oauth.data.oAuthGithubId = '';
-			} else if (provider === AuthProviderType.OAUTH_GOOGLE) {
-				oauth.data.googleStatus = 'idle';
-				oauth.data.googleOAuthJson = null;
-				oauth.data.oAuthGoogleEmail = '';
-			}
-			toast.success(provider + ' disconnected successfully');
-		} else {
-			toast.error('Failed to disconnect');
-		}
+	if (res?.success) {
+		toast.success(provider + 'Connected successfully');
+	} else {
+		toast.error('Failed to connect with oauth provider.');
 	}
 
-	function enhancedFormSubmission() {
-		return async ({ result }: { result: ActionResult }) => {
-			switch (result.type) {
-				case 'success':
-					toast.success(result?.data?.message);
-					applyAction(result);
-					if (userWantsToChangeEmail) userWantsToChangeEmail = 'idle';
-					if (userWantsToChangePassword) userWantsToChangePassword = 'idle';
-					invalidateAll();
-					break;
-				case 'failure':
-					toast.error(result?.data?.message);
-					break;
-				default:
-					break;
-			}
-		};
-	}
+	console.log('response', res);
+}
+async function disconnectionCallback({ provider }: { provider: AuthProviderType }) {
+	console.log('disconnectionCallback', provider);
 
-	onMount(() => {
-		if (browser) {
-			document.cookie = 'fromPage=link; path=/; max-age=600'; //
+	const res = await fetch('', {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			update_type: 'oauth_disconnect',
+			provider
+		})
+	}).then((res) => res.json());
+
+	console.log('response', res);
+
+	if (res.success) {
+		if (provider === AuthProviderType.OAUTH_GITHUB) {
+			oauth.data.githubStatus = 'idle';
+			oauth.data.githubOAuthJson = null;
+			oauth.data.oAuthGithubId = '';
+		} else if (provider === AuthProviderType.OAUTH_GOOGLE) {
+			oauth.data.googleStatus = 'idle';
+			oauth.data.googleOAuthJson = null;
+			oauth.data.oAuthGoogleEmail = '';
 		}
-	});
-	onDestroy(() => {
-		if (browser) {
-			document.cookie = 'fromPage=link; path=/; max-age=0 ';
+		toast.success(provider + ' disconnected successfully');
+	} else {
+		toast.error('Failed to disconnect');
+	}
+}
+
+function enhancedFormSubmission() {
+	return async ({ result }: { result: ActionResult }) => {
+		switch (result.type) {
+			case 'success':
+				toast.success(result?.data?.message);
+				applyAction(result);
+				if (userWantsToChangeEmail) userWantsToChangeEmail = 'idle';
+				if (userWantsToChangePassword) userWantsToChangePassword = 'idle';
+				invalidateAll();
+				break;
+			case 'failure':
+				toast.error(result?.data?.message);
+				break;
+			default:
+				break;
 		}
-	});
+	};
+}
+
+onMount(() => {
+	if (browser) {
+		document.cookie = 'fromPage=link; path=/; max-age=600'; //
+	}
+});
+onDestroy(() => {
+	if (browser) {
+		document.cookie = 'fromPage=link; path=/; max-age=0 ';
+	}
+});
 </script>
 
 <div>

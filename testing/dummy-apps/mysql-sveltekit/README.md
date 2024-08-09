@@ -5,8 +5,15 @@ and all the code has been taken from this link: https://www.prisma.io/blog/svelt
 
 ```
 
-
+```
+npm i 
+npx prisma migrate --name initx
+npx prisma db seed
+# bam!!
+npm run dev
+```
 
 <span style="color:crimson;"> Ignore from this line</span>
 
 Check this out: https://www.prisma.io/docs/orm/prisma-migrate/understanding-prisma-migrate/shadow-database#cloud-hosted-shadow-databases-must-be-created-manually
+

@@ -1,37 +1,33 @@
-import type { AuthProviderType, DBMysqlStatus, SystemWideNoitficationTypes } from "./enums";
+import type { AuthProviderType, DBMysqlStatus, SystemWideNoitficationTypes } from './enums';
 
 export type SystemUser = {
-    name: string;
-    email: string;
-    provider: AuthProviderType;
-}
-
-
+	name: string;
+	email: string;
+	provider: AuthProviderType;
+};
 
 export interface SystemwideNotification {
-    id: string,
-    message: string;
-    // actionUrlHints: 'GOTO_MYSQL__VIEW', // convert hints to url
-    actionHints: string, // convert hints to url
-    markedAsRead: false,
-    type: SystemWideNoitficationTypes
+	id: string;
+	message: string;
+	// actionUrlHints: 'GOTO_MYSQL__VIEW', // convert hints to url
+	actionHints: string; // convert hints to url
+	markedAsRead: false;
+	type: SystemWideNoitficationTypes;
 }
-
-
 
 /**
  * Entities and Models will come as it is in the Engine for simplicity
  */
 export type DBMysql = {
-    id: string;
-    dbName: string;
-    dbUser: string;
-    dbPassword: string;
-    status: DBMysqlStatus;
-    reasonFailed: string;
-    updateMessage: string;
-}
-
+	id: string;
+	dbName: string;
+	dbUser: string;
+	dbPassword: string;
+	status: DBMysqlStatus;
+	reasonFailed: string;
+	updateMessage: string;
+	lastModifiedDate: string;
+};
 
 // export class SystemWideNotification {
 //     public id: string = ''

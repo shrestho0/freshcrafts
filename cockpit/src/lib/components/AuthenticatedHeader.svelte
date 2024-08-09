@@ -1,107 +1,107 @@
 <script lang="ts">
-	import { slide } from 'svelte/transition';
-	import {
-		Header,
-		HeaderUtilities,
-		HeaderGlobalAction,
-		SkipToContent
-	} from 'carbon-components-svelte';
-	import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
-	import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
-	import HeaderSearchThingy from './HeaderSearchThingy.svelte';
-	import { Notification as NotificationIcon, NotificationNew } from 'carbon-icons-svelte';
-	import { source } from 'sveltekit-sse';
-	import { browser } from '$app/environment';
-	import { Circle } from 'lucide-svelte';
-	import type { SystemwideNotification } from '@/types/entities';
-	import { page } from '$app/stores';
-	import { invalidate, invalidateAll } from '$app/navigation';
-	import { hintToWebUrlMap } from '@/utils/utils';
+import { slide } from 'svelte/transition';
+import {
+	Header,
+	HeaderUtilities,
+	HeaderGlobalAction,
+	SkipToContent
+} from 'carbon-components-svelte';
+import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
+import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
+import HeaderSearchThingy from './HeaderSearchThingy.svelte';
+import { Notification as NotificationIcon, NotificationNew } from 'carbon-icons-svelte';
+import { source } from 'sveltekit-sse';
+import { browser } from '$app/environment';
+import { Circle } from 'lucide-svelte';
+import type { SystemwideNotification } from '@/types/entities';
+import { page } from '$app/stores';
+import { invalidate, invalidateAll } from '$app/navigation';
+import { hintToWebUrlMap } from '@/utils/utils';
 
-	export let isSideNavOpen: boolean;
+export let isSideNavOpen: boolean;
 
-	const pathname: string = $page.url.pathname;
+const pathname: string = $page.url.pathname;
 
-	const notificationStuff = {
-		hasNew: false,
-		open: true,
-		notifications: []
-	} as { hasNew: boolean; open: boolean; notifications: SystemwideNotification[] };
+const notificationStuff = {
+	hasNew: false,
+	open: true,
+	notifications: []
+} as { hasNew: boolean; open: boolean; notifications: SystemwideNotification[] };
 
-	const notiSSEUrl = `/sse/notification`;
-	let value = source(notiSSEUrl).select('message');
-	if (browser && value) {
-		value.subscribe((data: string) => {
-			console.log(data);
-			if (data) {
-				const notification: SystemwideNotification = JSON.parse(data);
-				if (!notification.markedAsRead) {
-					notificationStuff.notifications.push(notification);
-					notificationStuff.hasNew = true;
-					// invalidateAggregationPages(notification?.actionHints);
+const notiSSEUrl = `/sse/notification`;
+let value = source(notiSSEUrl).select('message');
+if (browser && value) {
+	value.subscribe((data: string) => {
+		console.log(data);
+		if (data) {
+			const notification: SystemwideNotification = JSON.parse(data);
+			if (!notification.markedAsRead) {
+				notificationStuff.notifications.push(notification);
+				notificationStuff.hasNew = true;
+				// invalidateAggregationPages(notification?.actionHints);
 
-					// handle thing, reload new data on notification
-					// try {
-					// 	const [action, locationHint, id] = notification?.actionHints?.split('_');
-					// 	const path = pathname.replace(/\/$/, '');
+				// handle thing, reload new data on notification
+				// try {
+				// 	const [action, locationHint, id] = notification?.actionHints?.split('_');
+				// 	const path = pathname.replace(/\/$/, '');
 
-					// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
-					// 		console.log('Invalidating', locationHint, path);
-					// 		invalidateAll();
-					// 		// window.location.reload();
-					// 	}
-					// } catch (e) {
-					// 	console.error(e);
-					// }
-				}
+				// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
+				// 		console.log('Invalidating', locationHint, path);
+				// 		invalidateAll();
+				// 		// window.location.reload();
+				// 	}
+				// } catch (e) {
+				// 	console.error(e);
+				// }
 			}
-		});
-	}
+		}
+	});
+}
 
-	// function invalidateAggregationPages(actionHints: string) {
-	// 	const [action, locationHint, id] = actionHints?.split('_');
-	// 	// remove trailing slash
+// function invalidateAggregationPages(actionHints: string) {
+// 	const [action, locationHint, id] = actionHints?.split('_');
+// 	// remove trailing slash
 
-	// 	let path = $page.url.pathname;
-	// 	path = path.replace(/\/$/, '');
+// 	let path = $page.url.pathname;
+// 	path = path.replace(/\/$/, '');
 
-	// 	console.warn(
-	// 		'Invalidation func',
-	// 		hintToWebUrlMap.get(locationHint) == path,
-	// 		locationHint,
-	// 		path
-	// 	);
-	// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
-	// 		console.log('Invalidating');
-	// 		invalidateAll();
-	// 		// invalidateAll();
-	// 	}
+// 	console.warn(
+// 		'Invalidation func',
+// 		hintToWebUrlMap.get(locationHint) == path,
+// 		locationHint,
+// 		path
+// 	);
+// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
+// 		console.log('Invalidating');
+// 		invalidateAll();
+// 		// invalidateAll();
+// 	}
+// }
+
+async function handleLogout() {
+	const bres = await fetch('/logout', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+	}).then((res) => res.json());
+
+	// if (bres?.success) {
+	// toast.success('Logout Successful', { duration: 3000 });
 	// }
 
-	async function handleLogout() {
-		const bres = await fetch('/logout', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		}).then((res) => res.json());
+	invalidateAll();
 
-		// if (bres?.success) {
-		// toast.success('Logout Successful', { duration: 3000 });
-		// }
+	console.log('Backend Response', bres);
+}
 
-		invalidateAll();
-
-		console.log('Backend Response', bres);
-	}
-
-	/**
-	 * TODO: Filter notifications for notifications with same id.
-	 * Thus we can send same notification in different state, latest one to be shown.
-	 * But, then, sort against time sent/updated
-	 * So, we need to keep track of datetime of updated, created will be found from ulid
-	 * TODO: There shouldn't be any markedAsRead=true message
-	 */
+/**
+ * TODO: Filter notifications for notifications with same id.
+ * Thus we can send same notification in different state, latest one to be shown.
+ * But, then, sort against time sent/updated
+ * So, we need to keep track of datetime of updated, created will be found from ulid
+ * TODO: There shouldn't be any markedAsRead=true message
+ */
 </script>
 
 <!-- <Header platformName="FreshCrafts" href="/" persistentHamburgerMenu bind:isSideNavOpen> -->

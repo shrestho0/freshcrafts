@@ -5,6 +5,6 @@
 ```
 /signin  - user sign in
 /_/setup - Initial user setup
-/_/oauth-callback - Oauth Callback 
+/_/oauth-callback - Oauth Callback
 
 ```

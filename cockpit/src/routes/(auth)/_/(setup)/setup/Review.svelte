@@ -1,22 +1,22 @@
 <script lang="ts">
-	import type { SetupPageAccountData, SetupPageOauthData } from '@/types/internal';
-	import {
-		PasswordInput,
-		Table,
-		TableCell,
-		TableHead,
-		TableHeader,
-		TableRow,
-		TextInput
-	} from 'carbon-components-svelte';
-	import { TaskComplete } from 'carbon-icons-svelte';
-	import { CircleCheckBig, CircleX } from 'lucide-svelte';
+import type { SetupPageAccountData, SetupPageOauthData } from '@/types/internal';
+import {
+	PasswordInput,
+	Table,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+	TextInput
+} from 'carbon-components-svelte';
+import { TaskComplete } from 'carbon-icons-svelte';
+import { CircleCheckBig, CircleX } from 'lucide-svelte';
 
-	export let account;
-	export let oauth;
+export let account;
+export let oauth;
 
-	let accountData = account.data as SetupPageAccountData;
-	let oauthData = oauth.data as SetupPageOauthData;
+let accountData = account.data as SetupPageAccountData;
+let oauthData = oauth.data as SetupPageOauthData;
 </script>
 
 <!-- {JSON.stringify(account)} -->

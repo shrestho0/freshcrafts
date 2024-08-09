@@ -1,0 +1,315 @@
+#!/usr/bin/python3
+
+import os
+import sys
+import time
+import logging
+import subprocess
+from rich.console import Console
+from rich.progress import Progress
+from rich.prompt import Prompt
+
+
+NGINX_DIRECTORY = "/etc/nginx"
+DATA_FILE_LOCATION="../.installation-data.json"
+LOG_FILE_LOCATION = "../../fc_logs/"
+LOG_FILE_NAME = "installer-log"
+REQUIRED_OPEN_PORTS=[80,443, 9092,9093, 27017, 17017, 15432, 13306, 10000, 10001,]
+FC_SERVICES_ENV_LOCATIONS = {
+    "engine": {       
+        "env": "../engine/src/main/resources/application.properties",
+    },
+    "cockpit": {
+        "env": "../cockpit/.env",
+    },
+    "wiz_mysql": {
+        "env": "../wiz_mysql/src/main/resources/application.properties",
+    },
+    "wiz_postgres": {
+        "env": "../wiz_postgres/src/main/resources/application.properties",
+    },
+    "wiz_mongo": {
+        "env": "../wiz_mongo/src/main/resources/application.properties",
+    },
+
+
+}
+
+
+logger = logging.getLogger(__name__)
+if not os.path.exists(LOG_FILE_LOCATION):
+    os.makedirs(LOG_FILE_LOCATION)
+try:
+    with open(LOG_FILE_LOCATION+LOG_FILE_NAME, "r") as f:
+        pass
+except FileNotFoundError:
+    with open(LOG_FILE_LOCATION+LOG_FILE_NAME, "w") as f:
+        pass
+except Exception as e:
+    print(f"Error while creating log file: {e}")
+    sys.exit(1)
+
+
+logging.basicConfig(filename=LOG_FILE_LOCATION+LOG_FILE_NAME, level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S', format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+class Installer:
+
+    def __init__(self):
+
+        self.console = Console()
+        self.datafile = self.get_data_file()
+        self.progress = Progress(transient=True,)
+        self.print_queue = []
+        self.clear_console()
+        self.check_root_permission()
+    
+    def get_data_file(self):
+        try:
+            with open(DATA_FILE_LOCATION, "r") as f:
+                return f.read()
+        except FileNotFoundError:
+            # create data file
+            with open(DATA_FILE_LOCATION, "w") as f:
+                f.write("{}")
+                return "{}"
+            # sys.exit(1)
+        except Exception as e:
+            self.console.print(f"Error while reading data file: {e}", style="red")
+            sys.exit(1)
+
+    def clear_console(self):
+        self.console.clear()
+        self.console.print("========== FreshCrafts (v0.1) Installer ==========\n", style="bold cyan")
+
+    def install(self):
+        from time import sleep
+        self.__take_consent()
+        final_x = 1
+
+        proc_list = [
+            {
+                "func": self.__check_dependencies_installed,
+                "success_message": "💀 Dependencies are installed.",
+                "error_message": "👹 Dependencies are not installed.",
+            },
+            {
+                "func": self.__check_fc_ports_available,
+                "success_message": "💀 Required Ports are available.",
+                "error_message": "👹 Required ports are not available.",
+            },
+            {
+                "func": self.__check_fc_services_environment,
+                "success_message": "💀 FreshCrafts services environment is okay.",
+                "error_message": "👹 FreshCrafts services environment is not okay.",
+            }
+        ]
+
+        for proc in proc_list:
+            final_x *= proc["func"]()
+            sleep(.5)
+            self.clear_console()
+
+            self.print_queue.append({"message": proc["success_message"] if final_x ==1 else proc["error_message"], "style":"blue" if final_x == 1 else "red" })
+
+            self.do_print_queue()
+
+        if final_x == 0:
+            self.console.print("\n`Please ensure requirements are filled.`", style="bold red")
+            sys.exit(1)
+ 
+
+        xx = f"""
++------------------------------------------+
+| 🎉 Installation completed successfully.  |
+| 🚀 You can now start using FreshCrafts.  |
++------------------------------------------+
+"""
+ 
+        self.console.print(xx, style="blue_violet")
+        
+        sys.exit(0)
+
+    def do_print_queue(self):
+        for item in self.print_queue:
+            self.console.print(item["message"], style=item["style"])
+
+    
+
+    def __take_consent(self):
+        prompt = Prompt.ask("Do you want to install FreshCrafts ?", choices=["y", "n"], default="y")
+        if prompt == "n":
+            self.console.print("Installation cancelled by user.", style="red")
+            sys.exit(69)
+        return 1
+
+    def __check_dependencies_installed(self):
+        """
+        Checks if all the dependencies are installed
+        Exits on error if graceful=False
+        """
+        x = 1
+        x *= self.__check_dependency("docker -v", name="docker",  )
+        x *= self.__check_dependency("docker-compose -v",name="docker-compose",  )
+        x *= self.__check_dependency("nginx -v", name="nginx", )
+        x *= self.__check_dependency("java --version", name="java", )
+        x *= self.__check_dependency("javac --version", name="javac",)
+        x *= self.__check_dependency("mvn -v", name="mvn", )
+        # x *= self.__check_dependency("mvnxx -v", name="mvnxx", )
+
+        if x == 0:
+            self.console.print("\n`Install the dependencies first.`", style="bold red")
+            ##TODO: Uncomment next line
+            # sys.exit(1)
+
+        return x
+        
+        
+    def __check_dependency(self, command="", name="", graceful=True):
+        try:
+            if command == "":
+                raise Exception("Command not provided")
+            
+            # code = os.system(command)
+            # code, output = commands.getstatusoutput("cat /etc/services")
+            sp = subprocess.Popen(command+" 1> /dev/null ; echo $?", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = sp.communicate()
+
+            err_code = int(out.decode("utf-8").split("\n")[0])
+            
+            if err_code != 0:
+                self.console.print(f"{name} is not installed. Please install {name} first.", style="red")
+                logger.error(f"☠ Dependency {name} is not installed.")
+                if(not graceful):
+                    logger.info(f"☠ Terminating installation process.")
+                    sys.exit(1)
+            
+            else:
+                self.console.print(f"✔ {name} is installed.", style="green", )
+                return 1
+        except Exception as e:
+            self.console.print(f"Error while checking {command}: {e}", style="red")
+            if(not graceful):
+                logger.error(f"Error while checking {name}: {e}")
+                # sys.exit(1)
+
+        return 0
+    
+    def __check_fc_ports_available(self):
+        x = 1
+        for port in REQUIRED_OPEN_PORTS:
+            if self.__check_port(port):
+                self.console.print(f"Port {port} is available.", style="green")
+                x *= 1
+            else:
+                self.console.print(f"Port {port} is not available. Please available port {port}.", style="red")
+                x *= 0
+                            # sys.exit(1)
+        # if x == 0:
+        #     self.console.print("\n`Please make sure all the required ports are available.`", style="red")
+            # sys.exit(1)
+        return x
+    
+    def __check_port(self, port): 
+
+        cmd = f"netstat -tuln | grep :{port}"
+        result = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        # If the output is empty, the port is available
+        if result.stdout:
+            return False
+        else:
+            return True
+        
+    def __check_fc_services_environment(self):
+        x = 1
+
+        # check if .env file or resources/application.properties file exists
+        # for services 
+        for service, env in FC_SERVICES_ENV_LOCATIONS.items():
+            if os.path.exists(env["env"]):
+                self.console.print(f"✔ {service} environment is okay.", style="green")
+                x *= 1
+            else:
+                self.console.print(f"👹 {service} environment is not okay. Please check {env['env']}.", style="red")
+                x *= 0
+        time.sleep(5)
+        return x
+    
+    def check_root_permission(self):
+        """
+        https://stackoverflow.com/questions/2806897/what-is-the-best-way-for-checking-if-the-user-of-a-script-has-root-like-privileg
+        """
+        if os.geteuid() != 0:
+            self.console.print("You need to have root privileges to run this script.", style="bold red")
+            sys.exit(1)
+
+#     def install(self):
+#         # Check Permission
+#         self.checkRootPermission()
+#         # Init screen
+#         self.screen = curses.initscr()
+#         self.screen.clear()
+#         self.screen.refresh()
+#         # self.screen.refresh()
+#         self.takeConsent()
+
+#         self.start_installation()
+
+#     def start_installation(self):
+#         self.print("Starting installation...", [])
+#         self.print("Installing dependencies...", [])
+#         self.ensure_dependencies_installed()
+#         self.print("Dependencies installed successfully", [])
+#         self.print("Installing freshcrafts...", [])
+#         self.install_freshcrafts()
+#         self.print("freshcrafts installed successfully", [])
+#         self.print("Installation completed successfully", [])
+#         self.screen.refresh()
+#         self.screen.getch()
+#         curses.endwin()
+#         sys.exit(0)
+    
+#     def ensure_dependencies_installed(self):
+#         # check if docker installed
+#         # check if 
+    
+#         pass
+         
+
+
+#     def takeConsent(self):
+#         # take consent using curses
+#         self.print("Do you want to install `freshcrafts`? [y/n]: ", curses.COLOR_GREEN)
+#         ukey = self.screen.getkey()
+
+#         if ukey.lower() != "y":
+#             self.screen.addstr("Installation canceled")
+#             self.screen.refresh()
+#             sys.exit(69)
+        
+#         self.screen.clear()
+#         self.screen.refresh()
+         
+
+
+
+
+
+#     def print(self, thing, fgColor=None, inline=False):
+#         if fgColor:
+#             curses.init_pair(1, fgColor)
+#             self.screen.addstr(0,0,thing, curses.color_pair(1))
+#             return
+        
+#         self.screen.addstr(thing)
+
+
+
+if __name__ == "__main__":
+    logger.info("Initializing installer")
+    installer = Installer()
+    logger.info("Starting installation process")
+    installer.install()
+
+
+

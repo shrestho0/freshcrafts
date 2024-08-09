@@ -1,15 +1,15 @@
 <script lang="ts">
-	import AuthenticatedHeader from '@/components/AuthenticatedHeader.svelte';
-	import AuthenticatedSidenav from '@/components/AuthenticatedSidenav.svelte';
-	import { Content, Grid, Row, Column, Loading } from 'carbon-components-svelte';
-	import { onMount } from 'svelte';
-	export let data;
+import AuthenticatedHeader from '@/components/AuthenticatedHeader.svelte';
+import AuthenticatedSidenav from '@/components/AuthenticatedSidenav.svelte';
+import { Content, Grid, Row, Column, Loading } from 'carbon-components-svelte';
+import { onMount } from 'svelte';
+export let data;
 
-	let loading = true;
-	let isSideNavOpen = false;
-	onMount(() => {
-		loading = false;
-	});
+let loading = true;
+let isSideNavOpen = false;
+onMount(() => {
+	loading = false;
+});
 </script>
 
 <!-- <HeaderAuthenticated bind:isSideNavOpen /> -->

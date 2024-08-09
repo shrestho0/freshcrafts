@@ -1,8 +1,8 @@
 <script lang="ts">
-	export let data: {};
-	export let title: string = '';
-	data = structuredClone(data);
-	export let classes: string = '';
+export let data: {};
+export let title: string = '';
+data = structuredClone(data);
+export let classes: string = '';
 </script>
 
 <!-- PreDebugging -->

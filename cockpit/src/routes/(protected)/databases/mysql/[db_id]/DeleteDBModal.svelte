@@ -1,41 +1,41 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
-	import { goto, invalidateAll } from '$app/navigation';
-	import PreDebug from '@/components/dev/PreDebug.svelte';
-	import type { DBMysql } from '@/types/entities';
-	import { DBMysqlStatus } from '@/types/enums';
-	import type { ActionResult } from '@sveltejs/kit';
-	import {
-		Button,
-		ComposedModal,
-		ModalBody,
-		ModalFooter,
-		ModalHeader
-	} from 'carbon-components-svelte';
+import { enhance } from '$app/forms';
+import { goto, invalidateAll } from '$app/navigation';
+import PreDebug from '@/components/dev/PreDebug.svelte';
+import type { DBMysql } from '@/types/entities';
+import { DBMysqlStatus } from '@/types/enums';
+import type { ActionResult } from '@sveltejs/kit';
+import {
+	Button,
+	ComposedModal,
+	ModalBody,
+	ModalFooter,
+	ModalHeader
+} from 'carbon-components-svelte';
 
-	export let db: DBMysql;
-	export let open: boolean;
+export let db: DBMysql;
+export let open: boolean;
 
-	function enhancedFormSubmission() {
-		// FIXME: Errors not handled
-		return async ({ result }: { result: ActionResult }) => {
-			console.log('[DEBUG]: enhancedFormSubmission:', result);
-			switch (result.type) {
-				case 'success':
-					db.status = DBMysqlStatus.PENDING_DELETE;
+function enhancedFormSubmission() {
+	// FIXME: Errors not handled
+	return async ({ result }: { result: ActionResult }) => {
+		console.log('[DEBUG]: enhancedFormSubmission:', result);
+		switch (result.type) {
+			case 'success':
+				db.status = DBMysqlStatus.PENDING_DELETE;
 
-					const timeout = setTimeout(() => {
-						// window.location.href = '/databases/mysql';
-						goto('/databases/mysql');
-						clearTimeout(timeout);
-					}, 1000);
+				const timeout = setTimeout(() => {
+					// window.location.href = '/databases/mysql';
+					goto('/databases/mysql');
+					clearTimeout(timeout);
+				}, 1000);
 
-					break;
-				default:
-					break;
-			}
-		};
-	}
+				break;
+			default:
+				break;
+		}
+	};
+}
 </script>
 
 <ComposedModal bind:open class="select-none" preventCloseOnClickOutside>

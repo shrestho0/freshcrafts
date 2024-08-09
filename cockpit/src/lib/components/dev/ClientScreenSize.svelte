@@ -1,15 +1,15 @@
 <!-- screen size in px -->
 
 <script lang="ts">
-	import CustomCodeSnippet from '../CustomCodeSnippet.svelte';
-	import { onMount } from 'svelte';
+import CustomCodeSnippet from '../CustomCodeSnippet.svelte';
+import { onMount } from 'svelte';
 
-	let innerWidth: any;
-	let innerHeight: any;
-	let loading = true;
-	onMount(() => {
-		loading = false;
-	});
+let innerWidth: any;
+let innerHeight: any;
+let loading = true;
+onMount(() => {
+	loading = false;
+});
 </script>
 
 <svelte:window bind:innerWidth bind:innerHeight />

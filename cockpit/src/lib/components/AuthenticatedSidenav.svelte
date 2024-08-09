@@ -1,80 +1,80 @@
 <script lang="ts">
-	import { page } from '$app/stores';
-	import {
-		SideNav,
-		SideNavItems,
-		SideNavMenu,
-		SideNavMenuItem,
-		SideNavLink
-	} from 'carbon-components-svelte';
-	import { onMount } from 'svelte';
+import { page } from '$app/stores';
+import {
+	SideNav,
+	SideNavItems,
+	SideNavMenu,
+	SideNavMenuItem,
+	SideNavLink
+} from 'carbon-components-svelte';
+import { onMount } from 'svelte';
 
-	export let isSideNavOpen: boolean;
+export let isSideNavOpen: boolean;
 
-	type MenuItemType = {
-		title: string;
-		href: string;
-	};
-	type MenuWithSubmenuType = MenuItemType & {
-		serviceType: string;
-		children?: MenuItemType[];
-	};
+type MenuItemType = {
+	title: string;
+	href: string;
+};
+type MenuWithSubmenuType = MenuItemType & {
+	serviceType: string;
+	children?: MenuItemType[];
+};
 
-	const navBarLink: MenuWithSubmenuType[] = [
-		{
-			serviceType: 'dashboard',
-			title: 'Dashboard',
-			href: '/dashboard',
-			children: undefined
-		},
-		{
-			serviceType: 'deployments',
-			title: 'Deployments',
-			href: '/deployments',
-			children: [
-				{ title: 'All Deployments', href: '/deployments/all' },
-				{ title: 'New Deployments', href: '/deployments/new' }
+const navBarLink: MenuWithSubmenuType[] = [
+	{
+		serviceType: 'dashboard',
+		title: 'Dashboard',
+		href: '/dashboard',
+		children: undefined
+	},
+	{
+		serviceType: 'deployments',
+		title: 'Deployments',
+		href: '/deployments',
+		children: [
+			{ title: 'All Deployments', href: '/deployments/all' },
+			{ title: 'New Deployments', href: '/deployments/new' }
 
-				// TODO: these are children of each deployment
-				// { title: 'Metrics', href: '/deployments/metrics' }, // data from watchdog
-				// { title: 'Logs', href: '/deployments/logs' },
-				// { title: 'Settings', href: '/deployments/env' }
-			]
-		},
-		{
-			serviceType: 'databases',
-			title: 'Databases',
-			href: '/databases',
-			children: [
-				{
-					title: 'MySQL',
-					href: '/databases/mysql'
-				},
-				{
-					title: 'PostgreSQL',
-					href: '/databases/postgresql'
-				},
-				{
-					title: 'MongoDB',
-					href: '/databases/mongodb'
-				}
-			]
-		},
-		{
-			serviceType: 'settings',
-			title: 'Settings',
-			href: '/settings',
-			children: undefined
-		}
-	];
+			// TODO: these are children of each deployment
+			// { title: 'Metrics', href: '/deployments/metrics' }, // data from watchdog
+			// { title: 'Logs', href: '/deployments/logs' },
+			// { title: 'Settings', href: '/deployments/env' }
+		]
+	},
+	{
+		serviceType: 'databases',
+		title: 'Databases',
+		href: '/databases',
+		children: [
+			{
+				title: 'MySQL',
+				href: '/databases/mysql'
+			},
+			{
+				title: 'PostgreSQL',
+				href: '/databases/postgresql'
+			},
+			{
+				title: 'MongoDB',
+				href: '/databases/mongodb'
+			}
+		]
+	},
+	{
+		serviceType: 'settings',
+		title: 'Settings',
+		href: '/settings',
+		children: undefined
+	}
+];
 
-	// We have make it reactive
-	$: relativeUrl = '/' + $page.url.pathname.split('/').slice(1).join('/');
-	$: serviceType = relativeUrl.split('/')[1] ?? '';
-	onMount(() => {
-		console.log('relativeUrl', relativeUrl);
-		console.log('serviceType', serviceType);
-	});
+// We have make it reactive
+$: relativeUrl = '/' + $page.url.pathname.split('/').slice(1).join('/');
+$: serviceType = relativeUrl.split('/')[1] ?? '';
+onMount(() => {
+	console.log('relativeUrl', relativeUrl);
+	console.log('serviceType', serviceType);
+});
 </script>
 
 <SideNav

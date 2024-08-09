@@ -1,154 +1,154 @@
 <script lang="ts">
-	// TODO: we'll fix types later, it is working
-	//@ts-nocheck
+// TODO: we'll fix types later, it is working
+//@ts-nocheck
 
-	/**
-	 * @event {null} expand
-	 * @event {null} collapse
-	 * @event {null} copy
-	 */
+/**
+ * @event {null} expand
+ * @event {null} collapse
+ * @event {null} copy
+ */
 
-	/**
-	 * Set the type of code snippet
-	 * @type {"single" | "inline" | "multi"}
-	 */
-	export let type: 'single' | 'inline' | 'multi' | undefined = 'single';
+/**
+ * Set the type of code snippet
+ * @type {"single" | "inline" | "multi"}
+ */
+export let type: 'single' | 'inline' | 'multi' | undefined = 'single';
 
-	/**
-	 * Set the code snippet text.
-	 * Alternatively, use the default slot (e.g., `<CodeSnippet>{code}</CodeSnippet>`).
-	 *
-	 * NOTE: you *must* use the `code` prop for the copy-to-clipboard functionality.
-	 * @type {string}
-	 */
-	export let code: string | undefined = undefined;
+/**
+ * Set the code snippet text.
+ * Alternatively, use the default slot (e.g., `<CodeSnippet>{code}</CodeSnippet>`).
+ *
+ * NOTE: you *must* use the `code` prop for the copy-to-clipboard functionality.
+ * @type {string}
+ */
+export let code: string | undefined = undefined;
 
-	/**
-	 * By default, this component uses `navigator.clipboard.writeText` API to copy text to the user's clipboard.
-	 *
-	 * Provide a custom function to override this behavior.
-	 * @type {(code: string) => void}
-	 */
-	export let copy: (code: string) => void = async (code): Promise<void> => {
-		try {
-			await navigator.clipboard.writeText(code);
-		} catch (e) {
-			console.log(e);
-		}
-	};
-
-	/** Set to `true` to expand a multi-line code snippet (type="multi") */
-	export let expanded = false;
-
-	/** Set to `true` to hide the copy button */
-	export let hideCopyButton = false;
-
-	export let classes: string = '';
-
-	/**
-	 * Set to `true` for the disabled variant.
-	 * Only applies to the "single", "multi" types
-	 */
-	export let disabled = false;
-
-	/**
-	 * Set to `true` to wrap the text.
-	 *
-	 * NOTE: this prop only works with the `type="multi"` variant
-	 */
-	export let wrapText = false;
-
-	/** Set to `true` to enable the light variant */
-	export let light = false;
-
-	/** Set to `true` to display the skeleton state */
-	export let skeleton = false;
-
-	/**
-	 * Specify the ARIA label for the copy button icon
-	 * @type {string}
-	 */
-	export let copyButtonDescription: string | undefined = undefined;
-
-	/**
-	 * Specify the ARIA label of the copy button
-	 * @type {string}
-	 */
-	export let copyLabel: string | undefined = undefined;
-
-	/** Specify the feedback text displayed when clicking the snippet */
-	export let feedback = 'Copied!';
-
-	/** Set the timeout duration (ms) to display feedback text */
-	export let feedbackTimeout = 2000;
-
-	/**
-	 * Specify the show less text.
-	 *
-	 * NOTE: this prop only works with the `type="multi"` variant
-	 */
-	export let showLessText = 'Show less';
-
-	/**
-	 * Specify the show more text
-	 *
-	 * NOTE: this prop only works with the `type="multi"` variant
-	 */
-	export let showMoreText = 'Show more';
-
-	/**
-	 * Set to `false` to hide the show more/less button
-	 *
-	 * NOTE: this prop only works with the `type="multi"` variant
-	 */
-	export let showMoreLess = true;
-
-	/** Set an id for the code element */
-	export let id = 'ccs-' + Math.random().toString(36);
-
-	/** Obtain a reference to the pre HTML element */
-	export let ref: any = null;
-
-	import { createEventDispatcher, tick, onMount } from 'svelte';
-	// import ChevronDown from '../icons/ChevronDown.svelte';
-	import { ChevronDown } from 'carbon-icons-svelte';
-	import { Button, CodeSnippetSkeleton, CopyButton } from 'carbon-components-svelte';
-
-	// import Button from '../Button/Button.svelte';
-	// import CopyButton from '../CopyButton/CopyButton.svelte';
-	// import CodeSnippetSkeleton from './CodeSnippetSkeleton.svelte';
-
-	const dispatch = createEventDispatcher();
-
-	/** @type {"fade-in" | "fade-out"} */
-	let animation: 'fade-in' | 'fade-out' | undefined = undefined;
-	let timeout: string | number | NodeJS.Timeout | undefined = undefined;
-
-	function setShowMoreLess() {
-		const { height } = ref?.getBoundingClientRect();
-		if (height > 0) showMoreLess = ref.getBoundingClientRect().height > 255;
+/**
+ * By default, this component uses `navigator.clipboard.writeText` API to copy text to the user's clipboard.
+ *
+ * Provide a custom function to override this behavior.
+ * @type {(code: string) => void}
+ */
+export let copy: (code: string) => void = async (code): Promise<void> => {
+	try {
+		await navigator.clipboard.writeText(code);
+	} catch (e) {
+		console.log(e);
 	}
+};
 
-	$: expandText = expanded ? showLessText : showMoreText;
-	$: minHeight = expanded ? 16 * 15 : 48;
-	$: maxHeight = expanded ? 'none' : 16 * 15 + 'px';
+/** Set to `true` to expand a multi-line code snippet (type="multi") */
+export let expanded = false;
 
-	// Show more/less only applies to multi-line code snippets
-	$: if (type !== 'multi') showMoreLess = false;
+/** Set to `true` to hide the copy button */
+export let hideCopyButton = false;
 
-	$: if (type === 'multi' && ref) {
-		if (showMoreLess) {
-			// Only compute the show more/less button if the consumer has not opted out
-			if (code === undefined) setShowMoreLess();
-			if (code) tick().then(setShowMoreLess);
-		}
+export let classes: string = '';
+
+/**
+ * Set to `true` for the disabled variant.
+ * Only applies to the "single", "multi" types
+ */
+export let disabled = false;
+
+/**
+ * Set to `true` to wrap the text.
+ *
+ * NOTE: this prop only works with the `type="multi"` variant
+ */
+export let wrapText = false;
+
+/** Set to `true` to enable the light variant */
+export let light = false;
+
+/** Set to `true` to display the skeleton state */
+export let skeleton = false;
+
+/**
+ * Specify the ARIA label for the copy button icon
+ * @type {string}
+ */
+export let copyButtonDescription: string | undefined = undefined;
+
+/**
+ * Specify the ARIA label of the copy button
+ * @type {string}
+ */
+export let copyLabel: string | undefined = undefined;
+
+/** Specify the feedback text displayed when clicking the snippet */
+export let feedback = 'Copied!';
+
+/** Set the timeout duration (ms) to display feedback text */
+export let feedbackTimeout = 2000;
+
+/**
+ * Specify the show less text.
+ *
+ * NOTE: this prop only works with the `type="multi"` variant
+ */
+export let showLessText = 'Show less';
+
+/**
+ * Specify the show more text
+ *
+ * NOTE: this prop only works with the `type="multi"` variant
+ */
+export let showMoreText = 'Show more';
+
+/**
+ * Set to `false` to hide the show more/less button
+ *
+ * NOTE: this prop only works with the `type="multi"` variant
+ */
+export let showMoreLess = true;
+
+/** Set an id for the code element */
+export let id = 'ccs-' + Math.random().toString(36);
+
+/** Obtain a reference to the pre HTML element */
+export let ref: any = null;
+
+import { createEventDispatcher, tick, onMount } from 'svelte';
+// import ChevronDown from '../icons/ChevronDown.svelte';
+import { ChevronDown } from 'carbon-icons-svelte';
+import { Button, CodeSnippetSkeleton, CopyButton } from 'carbon-components-svelte';
+
+// import Button from '../Button/Button.svelte';
+// import CopyButton from '../CopyButton/CopyButton.svelte';
+// import CodeSnippetSkeleton from './CodeSnippetSkeleton.svelte';
+
+const dispatch = createEventDispatcher();
+
+/** @type {"fade-in" | "fade-out"} */
+let animation: 'fade-in' | 'fade-out' | undefined = undefined;
+let timeout: string | number | NodeJS.Timeout | undefined = undefined;
+
+function setShowMoreLess() {
+	const { height } = ref?.getBoundingClientRect();
+	if (height > 0) showMoreLess = ref.getBoundingClientRect().height > 255;
+}
+
+$: expandText = expanded ? showLessText : showMoreText;
+$: minHeight = expanded ? 16 * 15 : 48;
+$: maxHeight = expanded ? 'none' : 16 * 15 + 'px';
+
+// Show more/less only applies to multi-line code snippets
+$: if (type !== 'multi') showMoreLess = false;
+
+$: if (type === 'multi' && ref) {
+	if (showMoreLess) {
+		// Only compute the show more/less button if the consumer has not opted out
+		if (code === undefined) setShowMoreLess();
+		if (code) tick().then(setShowMoreLess);
 	}
+}
 
-	$: if (type === 'multi') dispatch(expanded ? 'expand' : 'collapse');
+$: if (type === 'multi') dispatch(expanded ? 'expand' : 'collapse');
 
-	onMount(() => {
-		return () => clearTimeout(timeout);
-	});
+onMount(() => {
+	return () => clearTimeout(timeout);
+});
 </script>
 
 <!-- svelte-ignore a11y-mouse-events-have-key-events -->

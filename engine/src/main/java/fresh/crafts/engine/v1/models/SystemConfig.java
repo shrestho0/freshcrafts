@@ -11,23 +11,17 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
-
-
 @Data
-@Document(collection="SystemConfig")
+@Document(collection = "SystemConfig")
 public class SystemConfig {
-    
-
 
     @Id
     @Indexed(unique = true)
     private String id;
 
-
     // We don't need that
     private String setupKey;
 
-    
     private Boolean systemUserSetupComplete;
 
     // These will be used as token payload
@@ -35,8 +29,7 @@ public class SystemConfig {
     private String systemUserEmail;
     private String systemUserPasswordHash;
 
-
-    // OAuth 
+    // OAuth
     private Boolean systemUserOauthGoogleEnabled;
     private Boolean systemUserOauthGithubEnabled;
 
@@ -47,15 +40,14 @@ public class SystemConfig {
     private String systemUserOAuthGoogleEmail;
 
     // Parsing json will give us the result
-    // TODO: this will be OauthProvider consiting oauth_email, oauth_id (if possible), oauth_refresh_token
-    private Map<String,Object> systemUserOauthGoogleData;
-    private Map<String,Object> systemUserOauthGithubData;
-
-
+    // TODO: this will be OauthProvider consiting oauth_email, oauth_id (if
+    // possible), oauth_refresh_token
+    private Map<String, Object> systemUserOauthGoogleData;
+    private Map<String, Object> systemUserOauthGithubData;
 
     @CreatedDate
     private Date created;
     @LastModifiedDate
     private Date updated;
-     
+
 }

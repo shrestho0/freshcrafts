@@ -1,15 +1,12 @@
 package fresh.crafts.engine.v1.models;
 
-import java.time.Instant;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
-
 import fresh.crafts.engine.v1.utils.UlidGenerator;
 import fresh.crafts.engine.v1.utils.enums.DBMysqlStatus;
+import java.time.Instant;
 import lombok.Data;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 @Data
 @Document(collection = "DBMysql")
@@ -30,7 +27,6 @@ public class DBMysql {
     private String reasonFailed;
     private String updateMessage;
 
-    @LastModifiedDate
     private Instant lastModifiedDate;
 
     public DBMysql() {
@@ -43,5 +39,4 @@ public class DBMysql {
         this.dbUser = db_user;
         this.dbPassword = db_password;
     }
-
 }

@@ -27,7 +27,7 @@ public class EngineMessageConsumer {
 
             KEvent kEventFeedback = KEvent.fromJson(message, KEventFeedbackPayload.class);
 
-            System.err.println("[DEBUG] Parsed KEvent: " + kEventFeedback);
+            // System.err.println("[DEBUG] Parsed KEvent: " + kEventFeedback);
 
             /* Handle event if all okay */
             try {

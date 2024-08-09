@@ -1,6 +1,6 @@
 <script lang="ts">
-	import { Button } from 'carbon-components-svelte';
-	import { toast } from 'svelte-sonner';
+import { Button } from 'carbon-components-svelte';
+import { toast } from 'svelte-sonner';
 </script>
 
 <h1>Protected /</h1>

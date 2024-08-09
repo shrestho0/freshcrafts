@@ -34,13 +34,6 @@ public class TokensController {
         } catch (Exception e) {
             res.setMessage(e.getMessage());
         }
-        // try {
-        // return tokensService.generateToken(tokensDto);
-        // } catch (Exception e) {
-        // GenerateTokenResponseDto res = new GenerateTokenResponseDto();
-        // res.setMessage(e.getMessage());
-        // return res;
-        // }
         return res;
     }
 

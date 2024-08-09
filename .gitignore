@@ -1,1 +1,7 @@
 fc_data/
+fc_logs/
+
+__pycache__/
+
+.installation-data.json
+

@@ -1,29 +1,29 @@
 <script lang="ts">
-	import WhatDeviceIsThat from '@/components/dev/WhatDeviceIsThat.svelte';
-	import {
-		ClickableTile,
-		RadioTile,
-		SelectableTile,
-		Tile,
-		TileGroup
-	} from 'carbon-components-svelte';
-	import { Upload, LogoGithub } from 'carbon-icons-svelte';
-	import FromDevice from './FromDevice.svelte';
-	import FromGithub from './FromGithub.svelte';
+import WhatDeviceIsThat from '@/components/dev/WhatDeviceIsThat.svelte';
+import {
+	ClickableTile,
+	RadioTile,
+	SelectableTile,
+	Tile,
+	TileGroup
+} from 'carbon-components-svelte';
+import { Upload, LogoGithub } from 'carbon-icons-svelte';
+import FromDevice from './FromDevice.svelte';
+import FromGithub from './FromGithub.svelte';
 
-	let items = [
-		{
-			title: 'From Github',
-			description: 'Choose a project from github',
-			value: 'fromGithub'
-		},
-		{
-			title: 'From Device',
-			description: 'Upload a file from your device',
-			value: 'fromDevice'
-		}
-	];
-	let selected: number | null = 1;
+let items = [
+	{
+		title: 'From Github',
+		description: 'Choose a project from github',
+		value: 'fromGithub'
+	},
+	{
+		title: 'From Device',
+		description: 'Upload a file from your device',
+		value: 'fromDevice'
+	}
+];
+let selected: number | null = 1;
 </script>
 
 <h1 class="text-2xl">New Deployment</h1>

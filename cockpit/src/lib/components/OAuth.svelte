@@ -5,132 +5,132 @@ Refactor Required
 -->
 
 <script lang="ts">
-	import { LogoGithub, Unlink } from 'carbon-icons-svelte';
-	import { Button, InlineLoading, Loading } from 'carbon-components-svelte';
-	import { CircleCheckBig, CircleX, UnlinkIcon } from 'lucide-svelte';
-	import type { SetupPageOauthData } from '@/types/internal';
-	import { AuthProviderType } from '@/types/enums';
-	import GoogleIcon from '@/ui/css/icons/GoogleIcon.svelte';
-	export let data: SetupPageOauthData;
+import { LogoGithub, Unlink } from 'carbon-icons-svelte';
+import { Button, InlineLoading, Loading } from 'carbon-components-svelte';
+import { CircleCheckBig, CircleX, UnlinkIcon } from 'lucide-svelte';
+import type { SetupPageOauthData } from '@/types/internal';
+import { AuthProviderType } from '@/types/enums';
+import GoogleIcon from '@/ui/css/icons/GoogleIcon.svelte';
+export let data: SetupPageOauthData;
 
-	export let connectionCallback: ({
-		provider,
-		githubId,
-		googleEmail
-	}: {
-		provider: AuthProviderType;
-		githubId?: string;
-		googleEmail?: string;
-	}) => void = () => {
-		console.log('connectionCallback not set');
-	};
-	export let disconnectionCallback: ({ provider }: { provider: AuthProviderType }) => void = ({
-		provider
-	}: {
-		provider: AuthProviderType;
-	}) => {
-		console.log('default disconnectionCallback called', provider);
+export let connectionCallback: ({
+	provider,
+	githubId,
+	googleEmail
+}: {
+	provider: AuthProviderType;
+	githubId?: string;
+	googleEmail?: string;
+}) => void = () => {
+	console.log('connectionCallback not set');
+};
+export let disconnectionCallback: ({ provider }: { provider: AuthProviderType }) => void = ({
+	provider
+}: {
+	provider: AuthProviderType;
+}) => {
+	console.log('default disconnectionCallback called', provider);
 
-		if (provider === AuthProviderType.OAUTH_GITHUB) {
-			data.githubStatus = 'idle';
-			data.githubOAuthJson = null;
-			data.oAuthGithubId = '';
-		} else if (provider === AuthProviderType.OAUTH_GOOGLE) {
-			data.googleStatus = 'idle';
-			data.googleOAuthJson = null;
-			data.oAuthGoogleEmail = '';
-		}
-	};
+	if (provider === AuthProviderType.OAUTH_GITHUB) {
+		data.githubStatus = 'idle';
+		data.githubOAuthJson = null;
+		data.oAuthGithubId = '';
+	} else if (provider === AuthProviderType.OAUTH_GOOGLE) {
+		data.googleStatus = 'idle';
+		data.googleOAuthJson = null;
+		data.oAuthGoogleEmail = '';
+	}
+};
 
-	// let githubUrl = initializeAndReturnGithubUrl();
-	// let googleUrl = initializeAndReturnGoogleUrl();
+// let githubUrl = initializeAndReturnGithubUrl();
+// let googleUrl = initializeAndReturnGoogleUrl();
 
-	function openOAuthPopup(oauthUrl: string) {
-		const popup = window.open(oauthUrl, 'Github OAuth', 'width=800,height=600, popup=1');
-		return popup;
+function openOAuthPopup(oauthUrl: string) {
+	const popup = window.open(oauthUrl, 'Github OAuth', 'width=800,height=600, popup=1');
+	return popup;
+}
+
+function monitorPopup(popup: Window | null, oauthType: 'github' | 'google') {
+	if (!popup) {
+		console.error('no popup');
+		return;
 	}
 
-	function monitorPopup(popup: Window | null, oauthType: 'github' | 'google') {
-		if (!popup) {
-			console.error('no popup');
-			return;
-		}
+	let currentOk = false;
+	popup.addEventListener('close', (e) => {
+		console.log('close event');
+	});
+	popup.addEventListener('message', (e) => {
+		console.log('message from external window', e);
+	});
 
-		let currentOk = false;
-		popup.addEventListener('close', (e) => {
-			console.log('close event');
-		});
-		popup.addEventListener('message', (e) => {
-			console.log('message from external window', e);
-		});
-
-		const pollTimer = window.setInterval(() => {
-			if (popup.closed) {
-				window.clearInterval(pollTimer);
-				// check if oc_data is set in localStorage
-				const oauthData = localStorage.getItem('oc_data');
-				// localStorage.removeItem('oc_data');
-				if (oauthData) {
-					console.log('OAuth data:', oauthData);
-					try {
-						const parsedData = JSON.parse(oauthData);
-						if (parsedData.success) {
-							if (oauthType == 'google') {
-								data.googleStatus = 'connected';
-								data.googleOAuthJson = parsedData.data;
-								data.oAuthGoogleEmail = parsedData.data.oAuthGoogleEmail;
-								connectionCallback({
-									provider: AuthProviderType.OAUTH_GOOGLE,
-									googleEmail: parsedData.data.oAuthGoogleEmail
-								});
-							} else if (oauthType == 'github') {
-								data.githubStatus = 'connected';
-								data.githubOAuthJson = parsedData.data;
-								data.oAuthGithubId = parsedData.data.oAuthGithubId;
-								connectionCallback({
-									provider: AuthProviderType.OAUTH_GITHUB,
-									githubId: parsedData.data.oAuthGithubId
-								});
-							}
-							currentOk = true;
-						} else {
-							// if (oauthType == 'google') data.googleStatus == 'error';
-							// else if (oauthType == 'github') data.githubStatus = 'error';
+	const pollTimer = window.setInterval(() => {
+		if (popup.closed) {
+			window.clearInterval(pollTimer);
+			// check if oc_data is set in localStorage
+			const oauthData = localStorage.getItem('oc_data');
+			// localStorage.removeItem('oc_data');
+			if (oauthData) {
+				console.log('OAuth data:', oauthData);
+				try {
+					const parsedData = JSON.parse(oauthData);
+					if (parsedData.success) {
+						if (oauthType == 'google') {
+							data.googleStatus = 'connected';
+							data.googleOAuthJson = parsedData.data;
+							data.oAuthGoogleEmail = parsedData.data.oAuthGoogleEmail;
+							connectionCallback({
+								provider: AuthProviderType.OAUTH_GOOGLE,
+								googleEmail: parsedData.data.oAuthGoogleEmail
+							});
+						} else if (oauthType == 'github') {
+							data.githubStatus = 'connected';
+							data.githubOAuthJson = parsedData.data;
+							data.oAuthGithubId = parsedData.data.oAuthGithubId;
+							connectionCallback({
+								provider: AuthProviderType.OAUTH_GITHUB,
+								githubId: parsedData.data.oAuthGithubId
+							});
 						}
-					} catch (e) {
+						currentOk = true;
+					} else {
 						// if (oauthType == 'google') data.googleStatus == 'error';
 						// else if (oauthType == 'github') data.githubStatus = 'error';
 					}
-				} else {
+				} catch (e) {
 					// if (oauthType == 'google') data.googleStatus == 'error';
-					// if (oauthType == 'google') data.googleStatus == 'error';
+					// else if (oauthType == 'github') data.githubStatus = 'error';
 				}
-				console.log('Popup closed');
+			} else {
+				// if (oauthType == 'google') data.googleStatus == 'error';
+				// if (oauthType == 'google') data.googleStatus == 'error';
 			}
-		}, 500);
-
-		if (!currentOk) {
-			if (oauthType == 'google') data.googleStatus == 'error';
-			if (oauthType == 'github') data.githubStatus == 'error';
+			console.log('Popup closed');
 		}
+	}, 500);
+
+	if (!currentOk) {
+		if (oauthType == 'google') data.googleStatus == 'error';
+		if (oauthType == 'github') data.githubStatus == 'error';
 	}
+}
 
-	function handleOauthLogin(oauthType: 'github' | 'google') {
-		console.log('Github login');
+function handleOauthLogin(oauthType: 'github' | 'google') {
+	console.log('Github login');
 
-		let popup: Window | null;
+	let popup: Window | null;
 
-		if (oauthType == 'github') {
-			// open as oauth popup
-			data.githubStatus = 'loading';
-			popup = openOAuthPopup(data.githubLoginUrl);
-			monitorPopup(popup, oauthType);
-		} else if (oauthType == 'google') {
-			data.googleStatus = 'loading';
-			popup = openOAuthPopup(data.googleLoginUrl);
-			monitorPopup(popup, oauthType);
-		}
+	if (oauthType == 'github') {
+		// open as oauth popup
+		data.githubStatus = 'loading';
+		popup = openOAuthPopup(data.githubLoginUrl);
+		monitorPopup(popup, oauthType);
+	} else if (oauthType == 'google') {
+		data.googleStatus = 'loading';
+		popup = openOAuthPopup(data.googleLoginUrl);
+		monitorPopup(popup, oauthType);
 	}
+}
 </script>
 
 <div class="oauth-container oauth-container">

@@ -1,4 +1,3 @@
-
 /**
  * Unnecessary file, for testing purposes
  */
@@ -6,12 +5,10 @@
 // import { writable } from "svelte/store"
 // import { produce } from "sveltekit-sse"
 
-
 // const DBSSEStore = writable({
 //     message: "Hello from the server",
 //     time: new Date().getTime(),
 // })
-
 
 // export function POST() {
 //     return produce(async function start({ emit }) {
