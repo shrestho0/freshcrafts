@@ -1,11 +1,13 @@
 package fresh.crafts.wiz_mysql.services;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fresh.crafts.wiz_mysql.config.MessageProducer;
+import fresh.crafts.wiz_mysql.entities.CommandServiceResult;
 import fresh.crafts.wiz_mysql.entities.KEventFeedbackPayload;
 import fresh.crafts.wiz_mysql.entities.KEventWizardMySQLPayload;
 import fresh.crafts.wiz_mysql.models.KEvent;
@@ -26,6 +28,9 @@ public class WizardMySQLMessageService {
 
     @Autowired
     private MysqlService mysqlService;
+
+    @Autowired
+    private CommandService commandService;
 
     public void createUserAndDB(KEvent kEvent, KEvent feedbackKEvent) {
 
@@ -156,13 +161,67 @@ public class WizardMySQLMessageService {
 
             // update dbName if newDBName is present
             if (requestPayload.getNewDBName() != null) {
-                throw new Exception("Not implemented yet. Please try others");
-                // System.out.println("[[[[[[[ trying to update db with" +
-                // requestPayload.getNewDBName());
-                // mysqlService.updateDatabaseName(requestPayload.getDbName(),
-                // requestPayload.getNewDBName());
-                // message += "dbName, ";
-                // data.put("updatedDBName", requestPayload.getNewDBName());
+
+                // run commands to create new db and user
+                // String command_to_create_new_db_and_user = "mysqldump -u ?1 -p\"?2\" -P 13306
+                // test00_new2 < test00.sql";
+
+                // 1. check if new db exists
+                Boolean newDBExists = mysqlService.checkDatabaseExists(requestPayload.getNewDBName());
+
+                if (newDBExists)
+                    throw new Exception("Database with newDBName already exists");
+
+                // 2. create new database and assign existing users
+                mysqlService.createDatabase(requestPayload.getNewDBName());
+                mysqlService.grantUserPrivileges(requestPayload.getNewDBName(), requestPayload.getDbUser());
+
+                // 3. copy data from old db to new db
+
+                // String cmd = "mysqldump -u " + requestPayload.getDbUser() + " -p" +
+                // requestPayload.getDbPassword()
+                // + " -P 13306 " + requestPayload.getDbName() + " > " +
+                // requestPayload.getNewDBName() + ".sql";
+
+                // data source details
+                // System.out.println("dataSource: " + mysqlService.getDataSource());
+                // commandService.getDBCreds();
+
+                String today = LocalDate.now().toString();
+                // old db dump file
+                String dumpFileName = requestPayload.getDbName() + "_" + today + ".sql";
+                CommandServiceResult dumpped = commandService.dumpDB(requestPayload.getDbName(), dumpFileName);
+
+                if (dumpped.getExitCode() != 0)
+                    throw new Exception("Error dumping data from old db");
+
+                // System.out.println("\ndummpedFileName: " + dummpedFileName + "\n");
+
+                // 4. import data to new db
+                CommandServiceResult restored = commandService.restoreDB(requestPayload.getNewDBName(), dumpFileName);
+
+                if (restored.getExitCode() != 0)
+                    throw new Exception("Error restoring data to new db");
+
+                System.out.println("\nrestored: " + restored + "\n");
+
+                // 5. delete old db
+                mysqlService.deleteDatabase(requestPayload.getDbName());
+
+                // 6. delete dumpped file
+                CommandServiceResult deleted = commandService.deleteDumppedFile(dumpFileName);
+                if (deleted.getExitCode() != 0)
+                    throw new Exception("Error deleting dumpped file");
+                else
+                    System.out.println("\nDeleted: " + deleted + "\n");
+
+                message += "dbName, ";
+                data.put("updatedDBName", requestPayload.getNewDBName());
+
+                // for next updates
+                requestPayload.setDbName(requestPayload.getNewDBName());
+
+                // throw new Exception("Not implemented yet. Please try others");
             }
 
             // update dbUser if newDBUser is present

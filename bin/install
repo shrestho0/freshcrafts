@@ -154,6 +154,10 @@ class Installer:
         x *= self.__check_dependency("java --version", name="java", )
         x *= self.__check_dependency("javac --version", name="javac",)
         x *= self.__check_dependency("mvn -v", name="mvn", )
+        x *= self.__check_dependency("psql -v", name="postgres client", )
+        x *= self.__check_dependency("mysql -v", name="mysql client", )
+        x *= self.__check_dependency("mongo --version", name="mongodb shell", )
+
         # x *= self.__check_dependency("mvnxx -v", name="mvnxx", )
 
         if x == 0:

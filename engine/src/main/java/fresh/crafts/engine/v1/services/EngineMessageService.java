@@ -15,15 +15,19 @@ import org.springframework.stereotype.Service;
 import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
 import fresh.crafts.engine.v1.entities.KEventWizardMySQLPayload;
 import fresh.crafts.engine.v1.entities.KEventWizardPostgresPayload;
+import fresh.crafts.engine.v1.entities.KEventWizardMongoPayload;
 import fresh.crafts.engine.v1.models.DBMysql;
 import fresh.crafts.engine.v1.models.DBPostgres;
+import fresh.crafts.engine.v1.models.DBMongo;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.models.Notification;
 import fresh.crafts.engine.v1.utils.EnvProps;
 import fresh.crafts.engine.v1.utils.enums.DBMysqlStatus;
 import fresh.crafts.engine.v1.utils.enums.DBPostgresStatus;
+import fresh.crafts.engine.v1.utils.enums.DBMongoStatus;
 import fresh.crafts.engine.v1.utils.enums.KEventCommandsWizardMySQL;
 import fresh.crafts.engine.v1.utils.enums.KEventCommandsWizardPostgres;
+import fresh.crafts.engine.v1.utils.enums.KEventCommandsWizardMongo;
 import fresh.crafts.engine.v1.utils.enums.NotificationType;
 
 /**
@@ -44,6 +48,9 @@ public class EngineMessageService {
 
     @Autowired
     private DBPostgresService dbPostgresService;
+
+    @Autowired
+    private DBMongoService dbMongoService;
 
     @Autowired
     private NotificationService notificationService;
@@ -330,7 +337,9 @@ public class EngineMessageService {
                                 .setMessage("Failed to create Postgres database: " + requestedDbPostgres.getDbName());
                     }
 
+                    requestedDbPostgres.setLastModifiedDate(Instant.now());
                     DBPostgres updatedDB = dbPostgresService.update(requestedDbPostgres);
+
                     System.out.println("[DEBUG]: updatedDB " + updatedDB);
 
                 } else if (requestedCommand.equals(KEventCommandsWizardPostgres.UPDATE_USER_AND_DB)) {
@@ -443,6 +452,177 @@ public class EngineMessageService {
         }
 
         System.err.println("---------- serveForWizardPostgres Ends ----------");
+
+    }
+
+    public void serveForWizardMongo(KEvent feedbackKEvent) {
+        System.err.println("---------- serveForWizardMongo ----------");
+        try {
+            // Check feedback payload
+            KEventFeedbackPayload feedbackPayload = (KEventFeedbackPayload) feedbackKEvent.getPayload();
+
+            if (feedbackPayload == null) {
+                throw new Exception("Feedback payload is null");
+            }
+
+            // Create notification
+            Notification notification = new Notification();
+
+            try {
+                // // requested KEvent
+                KEvent requestedKEvent = kEventService.getById(feedbackPayload.getRequestEventId());
+
+                if (requestedKEvent == null) {
+                    throw new Exception(" Requested KEvent not found");
+                }
+
+                // requested payload
+                KEventWizardMongoPayload requestedPayload = (KEventWizardMongoPayload) requestedKEvent.getPayload();
+                if (requestedPayload == null) {
+                    throw new Exception(" Requested KEvent payload not found");
+                }
+
+                // db
+                DBMongo requestedDbMongo = dbMongoService.getById(requestedPayload.getDbModelId());
+
+                if (requestedDbMongo == null) {
+                    throw new Exception(" DBMongo not found");
+                }
+
+                KEventCommandsWizardMongo requestedCommand = requestedPayload.getCommand();
+
+                if (requestedCommand.equals(KEventCommandsWizardMongo.CREATE_USER_AND_DB)) {
+                    System.err.println("[DEBUG]: CREATE_USER_AND_DB feedback from wizard mongo");
+
+                    notification.setActionHints("GOTO_DBMONGO_" + requestedDbMongo.getId());
+
+                    if (feedbackPayload.getSuccess()) {
+                        // db creation success
+                        requestedDbMongo.setStatus(DBMongoStatus.OK);
+
+                        // set notification
+                        notification.setType(NotificationType.SUCCESS);
+                        notification.setMessage(feedbackPayload.getMessage());
+                    } else {
+                        // db creation failed
+                        requestedDbMongo.setStatus(DBMongoStatus.FAILED);
+                        requestedDbMongo.setReasonFailed(feedbackPayload.getMessage());
+
+                        // set notification
+                        notification.setType(NotificationType.ERROR);
+                        notification.setMessage("Failed to create Mongo database: " + requestedDbMongo.getDbName());
+                    }
+
+                    // update db
+                    requestedDbMongo.setLastModifiedDate(Instant.now());
+                    DBMongo updatedDB = dbMongoService.update(requestedDbMongo);
+
+                    System.out.println("[DEBUG]: updatedDB " + updatedDB);
+
+                } else if (requestedCommand.equals(KEventCommandsWizardMongo.UPDATE_USER_AND_DB)) {
+                    System.out.println("---------- UPDATE_USER_AND_DB Feedback ----------");
+
+                    // remove update message
+                    requestedDbMongo.setUpdateMessage(null);
+                    // notify user about the action
+                    notification.setActionHints("GOTO_DBMONGO_" + requestedDbMongo.getId());
+
+                    if (feedbackPayload.getSuccess()) {
+                        if (feedbackPayload.getData() == null) {
+                            throw new Exception("Feedback data is null");
+                        }
+
+                        // Checking if update succeeded
+                        // errors can occur after each step,
+                        // so, update the updated to the db
+                        if (feedbackPayload.getData().get("updatedDBName") != null) {
+                            // FIXME: We won't do that in this version
+                            requestedDbMongo.setDbName(feedbackPayload.getData().get("updatedDBName").toString());
+                        }
+                        if (feedbackPayload.getData().get("updatedDBUser") != null) {
+                            requestedDbMongo.setDbUser(feedbackPayload.getData().get("updatedDBUser").toString());
+                        }
+                        if (feedbackPayload.getData().get("updatedUserPassword") != null) {
+                            requestedDbMongo
+                                    .setDbPassword(feedbackPayload.getData().get("updatedUserPassword").toString());
+                        }
+
+                        // Update db status
+                        requestedDbMongo.setStatus(DBMongoStatus.OK);
+
+                        // notification
+                        notification.setType(NotificationType.SUCCESS);
+                        notification.setMessage(feedbackPayload.getMessage());
+
+                    } else {
+                        /* Operation failed */
+
+                        // Update db status
+                        requestedDbMongo.setStatus(DBMongoStatus.UPDATE_FAILED);
+                        requestedDbMongo.setReasonFailed(feedbackPayload.getMessage());
+
+                        // set notification
+                        notification.setType(NotificationType.ERROR);
+                        notification.setMessage(feedbackPayload.getMessage());
+                    }
+
+                    requestedDbMongo.setLastModifiedDate(Instant.now());
+                    DBMongo updatedDB = dbMongoService.update(requestedDbMongo);
+                    System.out.println("[DEBUG]: updatedDB " + updatedDB);
+
+                    System.out.println("---------- UPDATE_USER_AND_DB Feedback Ends ----------");
+
+                } else if (requestedCommand.equals(KEventCommandsWizardMongo.DELETE_USER_AND_DB)) {
+                    //
+                    System.err.println("[DEBUG]: DELETE_USER_AND_DB feedback from wizard mongo");
+                    // delete db
+                    // to make frontend invalidate data
+                    // SSE TO an invalid endpoint to make frontend invalidate data
+                    notification.setActionHints("GOTO_DBMONGO_" + requestedDbMongo.getId());
+
+                    System.err.println("[DEBUG]: requestedDbMongo: " + requestedDbMongo);
+
+                    if (feedbackPayload.getSuccess()) {
+                        // delete db model
+                        dbMongoService.delete(requestedDbMongo);
+                        System.out.println("[DEBUG]: requestedDbMongo deleted");
+                        notification.setType(NotificationType.SUCCESS);
+                        notification.setMessage(feedbackPayload.getMessage());
+                    } else {
+                        // not success,
+                        notification.setType(NotificationType.ERROR);
+                        notification.setMessage("Failed to delete Mongo database: " + requestedDbMongo.getDbName());
+                    }
+                }
+
+            } catch (Exception e) {
+
+                System.err.println("[DEBUG]: serveForWizardMongo (Inner) Error: " + e.getMessage());
+
+                notification.setType(NotificationType.ERROR);
+                notification.setMessage(e.getMessage());
+            }
+
+            // common work
+            System.out.println("Feedback payload: " + feedbackPayload);
+
+            String payloadString = notification.toJson();
+
+            // Save feedback event to db
+            kEventService.createOrUpdate(feedbackKEvent);
+
+            // Save notification to db for future usage
+            notificationService.createOrUpdate(notification);
+
+            // Send Notification at the end
+            requestNotificationSSE(payloadString);
+        } catch (Exception e) {
+            System.err.println("[DEBUG]: serveForWizardMongo Error: " + e.getMessage());
+            e.printStackTrace();
+
+        }
+
+        System.err.println("---------- serveForWizardMongo Ends ----------");
 
     }
 

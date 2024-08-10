@@ -33,7 +33,7 @@ public class EngineMessageController {
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_POSTGRES) {
             engineMessageService.serveForWizardPostgres(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_MONGO) {
-            //
+            engineMessageService.serveForWizardMongo(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_NGINX) {
             //
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_APP) {

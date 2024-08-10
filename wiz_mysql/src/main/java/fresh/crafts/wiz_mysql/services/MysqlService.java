@@ -27,7 +27,12 @@ public class MysqlService {
     public void createDatabase(String dbName) {
         String sql = "CREATE DATABASE " + dbName;
         jdbcTemplate.execute(sql);
+    }
 
+    // check if db exists
+    public Boolean checkDatabaseExists(String dbName) {
+        String sql = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '" + dbName + "'";
+        return jdbcTemplate.query(sql, (rs, rowNum) -> rs.getString("SCHEMA_NAME")).size() > 0;
     }
 
     public void createUser(String username, String password) {

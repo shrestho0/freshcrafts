@@ -156,49 +156,79 @@ public class WizardMongoMessageService {
         try {
             String message = "DBMongo updated. Changed fields: ";
 
-            if (requestPayload.getNewDBName() != null && requestPayload.getDbUser() != null) {
-                //
-                mongoService.updateDatabaseName(requestPayload.getDbUser(), requestPayload.getNewDBName());
-                Document doc = mongoService.updateDatabaseName(
-                        requestPayload.getDbName(),
-                        requestPayload.getNewDBUser());
-                // some more feedback
-                // to minimize risk of accidental partial change
-                message += "dbName, ";
-                data.put("updatedDBName", requestPayload.getNewDBName());
+            // if (requestPayload.getNewDBName() != null && requestPayload.getDbUser() !=
+            // null) {
+            // //
+            // mongoService.updateDatabaseName(requestPayload.getDbUser(),
+            // requestPayload.getNewDBName());
+            // Document doc = mongoService.updateDatabaseName(
+            // requestPayload.getDbName(),
+            // requestPayload.getNewDBUser());
+            // // some more feedback
+            // // to minimize risk of accidental partial change
+            // message += "dbName, ";
+            // data.put("updatedDBName", requestPayload.getNewDBName());
 
-                // mutate the thing, niche latest db name lagbe
-                requestPayload.setDbName(
-                        requestPayload.getNewDBName());
-            }
+            // // mutate the thing, niche latest db name lagbe
+            // requestPayload.setDbName(
+            // requestPayload.getNewDBName());
+            // }
 
             // update user
-            if (requestPayload.getNewUserPassword() != null || requestPayload.getNewDBUser() != null) {
+            // if (requestPayload.getNewUserPassword() != null ||
+            // requestPayload.getNewDBUser() != null) {
 
-                // drop the current user no matter what
-                mongoService.dropUser(requestPayload.getDbName(), requestPayload.getDbUser());
+            // // drop the current user no matter what
+            // mongoService.dropUser(requestPayload.getDbName(),
+            // requestPayload.getDbUser());
 
-                // new user name thakle valo nahle same user ee new user
-                String newDbUserName = requestPayload.getNewDBUser() != null ? requestPayload.getNewDBUser()
-                        : requestPayload.getDbUser();
+            // // new user name thakle valo nahle same user ee new user
+            // String newDbUserName = requestPayload.getNewDBUser() != null ?
+            // requestPayload.getNewDBUser()
+            // : requestPayload.getDbUser();
 
-                String newDbUserPassword = requestPayload.getNewUserPassword() != null
-                        ? requestPayload.getNewUserPassword()
-                        : requestPayload.getDbPassword();
+            // String newDbUserPassword = requestPayload.getNewUserPassword() != null
+            // ? requestPayload.getNewUserPassword()
+            // : requestPayload.getDbPassword();
 
-                mongoService.createAndAssignDBOwner(requestPayload.getDbName(), newDbUserName, newDbUserPassword);
+            // mongoService.createAndAssignDBOwner(requestPayload.getDbName(),
+            // newDbUserName, newDbUserPassword);
 
-                if (requestPayload.getNewDBUser() != null) {
-                    message += "dbUser, ";
-                    data.put("updatedDBUser", newDbUserName);
-                }
+            // if (requestPayload.getNewDBUser() != null) {
+            // message += "dbUser, ";
+            // data.put("updatedDBUser", newDbUserName);
+            // }
 
-                if (requestPayload.getNewUserPassword() != null) {
-                    message += "dbPassword, ";
-                    data.put("updatedUserPassword", newDbUserPassword);
-                }
+            // if (requestPayload.getNewUserPassword() != null) {
+            // message += "dbPassword, ";
+            // data.put("updatedUserPassword", newDbUserPassword);
+            // }
 
-            }
+            // }
+
+            // 1. Delete Old User
+            mongoService.deleteDatabaseAndUser(
+                    requestPayload.getDbName(),
+                    requestPayload.getDbUser());
+
+            // 2. set new user details
+
+            String newUserName = requestPayload.getNewDBUser() != null ? requestPayload.getNewDBUser()
+                    : requestPayload.getDbUser();
+            System.out.println("\nnewUserName: " + newUserName + "\n");
+            String newUserPassword = requestPayload.getNewUserPassword() != null ? requestPayload.getNewUserPassword()
+                    : requestPayload.getDbPassword();
+            System.out.println("\nnewUserPassword: " + newUserPassword + "\n");
+            // 3. Create new user
+            mongoService.createAndAssignDBOwner(
+                    requestPayload.getDbName(),
+                    newUserName,
+                    newUserPassword);
+
+            // 4. Update the request payload
+
+            data.put("updatedDBUser", newUserName);
+            data.put("updatedUserPassword", newUserPassword);
 
             message = message.substring(0, message.length() - 2);
             data.put("dbModelId", requestPayload.getDbModelId());

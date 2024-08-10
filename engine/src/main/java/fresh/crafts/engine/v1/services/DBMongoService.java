@@ -354,6 +354,8 @@ public class DBMongoService {
             payload.setDbName(db.getDbName());
             payload.setDbUser(db.getDbUser());
             // we don't need password to update it
+            // we actually need, as, it killed my 2hrs to find this thing
+            payload.setDbPassword(db.getDbPassword());
 
             // create event
             KEvent kevent = new KEvent();
