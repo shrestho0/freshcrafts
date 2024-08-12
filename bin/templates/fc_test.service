@@ -1,0 +1,17 @@
+
+[Unit]
+Description = FreshCrafts Test
+
+[Service]
+Type           = simple
+User           = root
+Group          = root
+LimitNOFILE    = 4096
+Restart        = always
+RestartSec     = 5s
+StandardOutput = append:/mnt/github/tjf/freshcrafts/bin/fc_logs/out.log
+StandardError  = append:/mnt/github/tjf/freshcrafts/bin/fc_logs/err.log
+ExecStart      = /usr/bin/python3 /mnt/github/tjf/freshcrafts/bin/fc_test_dummy.py
+
+[Install]
+WantedBy = multi-user.target

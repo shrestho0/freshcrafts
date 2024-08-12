@@ -21,7 +21,11 @@ type User = {
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
-	console.log('Entered hook.server.ts');
+	console.log('[DEBUG]: hook.server.ts');
+	console.log({
+		method: event.request.method,
+		url: event.url,
+	});
 
 	// Cokies and System wide data setup
 	const authCookie = event.cookies.get(AUTH_COOKIE_NAME);
@@ -84,13 +88,16 @@ export const handle: Handle = async ({ event, resolve }) => {
 					}) as CustomJwtPayload;
 
 					const res = await EngineConnection.getInstance().refreshToken(
-						unverifiedAccessToken,
+						// unverifiedAccessToken,
+						unverifiedRefreshToken,
 						verifiedRefreshToken.provider
 					);
+					console.log('Refresh token response: ', res);
 
 					if (res.success == true) {
 						event.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), {
 							path: '/',
+							secure: false,
 							maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
 						});
 						// set user
@@ -100,11 +107,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 							provider: verifiedRefreshToken.provider as AuthProviderType
 						} as SystemUser;
 
-						// console.log("Refreshed token: ", res.tokens)
+						console.log("Refreshed token: ")
 						return await resolve(event); // we'll validate in the next request
 					}
-
 					// console.log("verified refresh token: ", verifiedRefreshToken)
+					throw new Error('Failed to refresh token');
 				}
 				throw e;
 
@@ -114,12 +121,14 @@ export const handle: Handle = async ({ event, resolve }) => {
 		} catch (e: Error | any) {
 			console.log('Error: ', e?.message || e);
 			// delete cookie
-			event.cookies.delete(AUTH_COOKIE_NAME, { path: '/' });
+			event.cookies.delete(AUTH_COOKIE_NAME, { path: '/', secure: false });
 		}
 
 		// const user: User = JSON.parse(authCookie);
 		// event.locals.user = user;
 	}
+
+	// test cookie
 
 	const response = await resolve(event);
 	// set cookies

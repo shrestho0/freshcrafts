@@ -5,7 +5,7 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 	let path = url.pathname?.split('/')?.slice(1).join('/');
 
 	// remove fromPage cookie
-	cookies.set('fromPage', '', { path: '/', maxAge: 0 });
+	cookies.set('fromPage', '', { path: '/', maxAge: 0, secure: false });
 
 	console.log('path', path);
 	if (!path) {

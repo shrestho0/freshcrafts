@@ -16,7 +16,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 
 	if (!oAuthState) {
 		oAuthState = ulid();
-		cookies.set(OAUTH_STATE_COOKIE_NAME, oAuthState, { path: '/', maxAge: 60 * 60 * 24 * 3 });
+		cookies.set(OAUTH_STATE_COOKIE_NAME, oAuthState, { path: '/', maxAge: 60 * 60 * 24 * 3, secure: false });
 	}
 
 	return {
@@ -51,7 +51,8 @@ export const actions: Actions = {
 				console.log('refresh successfully');
 				cookies.set(AUTH_COOKIE_NAME, JSON.stringify(t.tokens), {
 					path: '/',
-					maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
+					maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN),
+					secure: false,
 				});
 			}
 		}

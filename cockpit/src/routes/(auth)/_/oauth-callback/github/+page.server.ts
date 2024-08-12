@@ -151,6 +151,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params }) => 
 			// cookies.set('_freshCraftsTokens', JSON.stringify(res.data));
 			cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), {
 				path: '/',
+				secure: false,
 				maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
 			});
 

@@ -95,7 +95,7 @@ function handleFormSubmission() {
 		<ModalHeader title="Create Database" closeClass="hidden" />
 		<ModalBody class=" overflow-y-hidden">
 			<div class="max-w-xl w-auto">
-				<TextInput
+				<!-- <TextInput
 					autocomplete="one-time-code"
 					type="text"
 					id="newDBUser"
@@ -108,7 +108,7 @@ function handleFormSubmission() {
 					invalidText={errors.newDBUser}
 					disabled={loading}
 				/>
-				<!-- one-time-code prevents from password save prompt -->
+
 				<PasswordInput
 					autocomplete="one-time-code"
 					id="newUserPassword"
@@ -119,6 +119,18 @@ function handleFormSubmission() {
 					invalid={Boolean(errors.newUserPassword)}
 					invalidText={errors.newUserPassword}
 					bind:value={newDBData.newUserPassword}
+					disabled={loading}
+				/> -->
+				<TextInput
+					type="text"
+					id="newDBName"
+					name="newDBName"
+					labelText="Database Name"
+					placeholder="newDBName"
+					minlength={3}
+					bind:value={newDBData.newDBName}
+					invalid={Boolean(errors.newDBName)}
+					invalidText={errors.newDBName}
 					disabled={loading}
 				/>
 

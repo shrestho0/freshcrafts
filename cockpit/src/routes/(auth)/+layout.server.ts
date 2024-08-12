@@ -8,7 +8,7 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 
 	if (!oAuthState) {
 		oAuthState = ulid();
-		cookies.set(OAUTH_STATE_COOKIE_NAME, oAuthState, { path: '/', maxAge: 60 * 60 * 24 * 3 });
+		cookies.set(OAUTH_STATE_COOKIE_NAME, oAuthState, { path: '/', maxAge: 60 * 60 * 24 * 3, secure: false });
 	}
 
 	return {

@@ -46,6 +46,7 @@ public class TokensController {
 
             res = tokensService.refreshToken(tokensDto);
         } catch (Exception e) {
+            res.setSuccess(false);
             res.setMessage(e.getMessage());
         }
         return res;

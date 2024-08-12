@@ -18,6 +18,7 @@ import { ApiKey, Edit, Delete } from 'carbon-icons-svelte';
 import { OctagonAlert, OctagonX } from 'lucide-svelte';
 import { source } from 'sveltekit-sse';
 import UpdateDbModal from './UpdateDBAccessModal.svelte';
+import UpdateDbName from './UpdateDBName.svelte';
 import DeleteDbModal from './DeleteDBModal.svelte';
 import { enhance } from '$app/forms';
 
@@ -49,6 +50,7 @@ if (browser && data?.payload?.status != DBMysqlStatus.OK) {
 }
 
 let updateDBAccessModalOpen = false;
+let updateDBNameModalOpen = false;
 let deleteModalOpen = false;
 
 const connectionOptions = {
@@ -168,7 +170,8 @@ const connectionOptions = {
 						icon={Edit}
 						kind="secondary"
 						on:click={() => {
-							updateDBAccessModalOpen = true;
+							// updateDBAccessModalOpen = true;
+							updateDBNameModalOpen = true;
 						}}>Update Database Name</Button
 					>
 
@@ -272,4 +275,5 @@ const connectionOptions = {
 {#if data?.payload}
 	<UpdateDbModal bind:open={updateDBAccessModalOpen} bind:db={data.payload} />
 	<DeleteDbModal bind:open={deleteModalOpen} bind:db={data.payload} />
+	<UpdateDbName bind:open={updateDBNameModalOpen} bind:db={data.payload} />
 {/if}

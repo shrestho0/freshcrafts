@@ -14,7 +14,10 @@ const _endpoints = {
 	MYSQL_NEW: '/db-mysql',
 	MYSQL_SEARCH: '/db-mysql/search/:query',
 	MYSQL_BY_ID: '/db-mysql/:id',
-	MYSQL_FIND_ALL: '/db-mysql'
+	MYSQL_FIND_ALL: '/db-mysql',
+
+	NOTIFICATIONS: '/notifications',
+
 };
 
 type BackendEndpointsType = typeof _endpoints;

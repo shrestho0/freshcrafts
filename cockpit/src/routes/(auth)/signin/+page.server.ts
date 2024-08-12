@@ -37,7 +37,8 @@ export const actions: Actions = {
 			// set tokens in cookie
 			cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), {
 				path: '/',
-				maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
+				maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN),
+				secure: false,
 			});
 
 			// goto

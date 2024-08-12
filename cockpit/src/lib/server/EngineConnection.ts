@@ -334,4 +334,35 @@ export class EngineConnection {
 				};
 			});
 	}
+
+
+	public async getPaginatedNotifications({
+		page = 1,
+		pageSize = 10,
+		orderBy = 'id',
+		sort = 'DESC'
+	}: CommonPagination): Promise<EnginePaginatedDto<DBMysql>> {
+		console.log(page, pageSize, orderBy, sort);
+
+		const url = new URL(BackendEndpoints.MYSQL_FIND_ALL);
+		url.searchParams.append('page', page.toString());
+		url.searchParams.append('pageSize', pageSize.toString());
+		url.searchParams.append('orderBy', orderBy);
+		url.searchParams.append('sort', sort);
+
+		return await fetch(url.toString(), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
 }

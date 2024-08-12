@@ -18,12 +18,12 @@ export const POST: RequestHandler = async ({ locals, cookies }) => {
 				body: JSON.stringify({ token: refresh })
 			})
 				.then((res) => res.json())
-				.catch(() => {});
+				.catch(() => { });
 			console.log('Invalidating token', res);
 		}
 
 		// For all cases, we'll remove the cookie
-		cookies.set(AUTH_COOKIE_NAME, '', { path: '/', maxAge: 0 });
+		cookies.set(AUTH_COOKIE_NAME, '', { path: '/', maxAge: 0, secure: false });
 		return json({ success: true });
 	} catch (e) {
 		console.error(e);
