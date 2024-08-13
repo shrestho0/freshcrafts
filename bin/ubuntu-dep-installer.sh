@@ -10,6 +10,7 @@ python3 -m pip install rich
 python3 -m pip install python-dotenv
 
 
+
 # Docker
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
 
@@ -59,3 +60,6 @@ sudo apt install nginx -y
 nginx -v
 echo "NGINX installed successfully"
 
+sudo apt install certbot python3-certbot-nginx -y
+
+echo 
