@@ -13,11 +13,11 @@ console = Console()
 progress = Progress(transient=True,)
  
 
-class Installer:    
+class BarelyWorkingInstaller:    
     def __init__(self):
         check_root_permission(console)
         self.systemD = SystemDServices()
-        self.__take_consent()
+        # self.__take_consent()
 
     def pre_install_stuff(self):
         # stop if things are running
@@ -103,6 +103,12 @@ class Installer:
             else:
                 console.log(f"👹 {service} environment is not okay. Please check {data['ENV_FILE']}.", style="red")
                 x *= 0
+        if x == 0:
+            console.print("Please ensure env files are present.", style="red")
+            sys.exit(1)
+        else:
+            console.print("All env files are present.", style = "green")
+
         return x
     
     def build_services(self):
@@ -274,12 +280,12 @@ class Installer:
             console.log("Nginx restarted", style="blue")
             console.log("Nginx setup complete", style="green")
 
-
-        
-
+ 
 if __name__ == "__main__":
-    installer = Installer()
-    installer.install()
-    # installer.setup_cockpit_nginx()
-    # installer.check_dependencies_installed()
+    BarelyWorkingInstaller = BarelyWorkingInstaller()
+    # we'll setup .env files from here too, but, not now
+    BarelyWorkingInstaller.install()
+    console.print(f"visit http://{SYSTEM_DOMAIN}/_/setup", style="green")
+    # BarelyWorkingInstaller.setup_cockpit_nginx()
+    # BarelyWorkingInstaller.check_dependencies_installed()
 

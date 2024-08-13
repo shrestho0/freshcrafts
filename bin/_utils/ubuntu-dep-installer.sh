@@ -1,8 +1,12 @@
 #!/usr/bin/bash
 
-set -e
+# set -e
 
 echo "Installing dependencies..."
+
+echo "Installing python3, python3-pip"
+sudo apt install python3 python3-pip
+python3 -m pip install rich
 
 # Docker
 for pkg in docker.io docker-doc docker-compose docker-compose-v2 podman-docker containerd runc; do sudo apt-get remove $pkg; done
