@@ -1,1 +1,15 @@
 
+server {
+    listen 80;
+    server_name {NGINX_SERVER_NAME} ;
+
+    location / {
+
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
+        proxy_set_header x-forwarded-proto $scheme;
+
+        proxy_pass http://localhost:10001;
+    }
+}
