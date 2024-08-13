@@ -1,0 +1,78 @@
+# version: '3.8'
+
+# Group: freshcrafts
+
+services:
+
+  # kafka
+  primary-kafka:
+    container_name: primary-kafka
+    image: apache/kafka:3.7.1
+    ports:
+      - 9092:9092
+    # environment:
+    #   KAFKA_NODE_ID: 1
+    #   KAFKA_PROCESS_ROLES: broker,controller
+    #   KAFKA_LISTENERS: PLAINTEXT://localhost:9092,CONTROLLER://localhost:9093
+    #   KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+    #   KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+    #   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+    #   KAFKA_CONTROLLER_QUORUM_VOTERS: 1@localhost:9093
+    #   KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    #   KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    #   KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+    #   KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    #   KAFKA_NUM_PARTITIONS: 3
+    # primary-nginx:
+    #   container_name: primary-nginx
+    #   image: nginx:latest
+    #   ports:
+    #     - 80:80
+    #   volumes:
+    #     - ./fc_data/primary/nginx/configs:/etc/nginx
+
+    # we won't expose this port to public, block using ufw firewall
+  primary-mongo:
+    container_name: primary-mongo
+    image: 'mongo:latest'
+    ports:
+      - 27017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'password'
+    volumes:
+      - ./fc_data/primary/mongodb:/data/db
+
+  # secondary are for end usages
+  secondary-mysql:
+    container_name: secondary-mysql
+    image: 'mysql:latest'
+    ports:
+      - 13306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: 'password'
+    volumes:
+      - ./fc_data/secondary/mysql/:/var/lib/mysql
+
+  secondary-postgres:
+    container_name: secondary-postgres
+    image: 'postgres:latest'
+    ports:
+      - 15432:5432
+    environment:
+      POSTGRES_USER: 'root'
+      POSTGRES_PASSWORD: 'password'
+
+    volumes:
+      - ./fc_data/secondary/postgresql/data:/var/lib/postgresql/data
+
+  secondary-mongo:
+    container_name: secondary-mongo
+    image: 'mongo:latest'
+    ports:
+      - 17017:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: 'root'
+      MONGO_INITDB_ROOT_PASSWORD: 'password'
+    volumes:
+      - ./fc_data/secondary/mongodb:/data/db
