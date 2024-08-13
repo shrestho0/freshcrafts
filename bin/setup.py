@@ -6,8 +6,8 @@ import subprocess
 from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Prompt
-from __env import SYSTEM_DOMAIN, DOCKER_COMPOSE_COMMAND, DOCKER_COMPOSE_FILE, REQUIRED_OPEN_PORTS, JAVA_17_AVAILABLE,JAVA_17_DIR,SYSTEM_DEPS
-from _utils.utils import check_root_permission
+from __env import DOCKER_COMPOSE_COMMAND, DOCKER_COMPOSE_FILE, REQUIRED_OPEN_PORTS, JAVA_17_AVAILABLE,JAVA_17_DIR,SYSTEM_DEPS
+from _utils.utils import check_root_permission, parse_domain_from_env_file
 from systemd_services import SystemDServices
 console = Console()
 progress = Progress(transient=True,)
@@ -254,10 +254,17 @@ class BarelyWorkingInstaller:
     def setup_cockpit_nginx(self):
         # get the nginx config template file
 
-        nginx_server_name = f"{SYSTEM_DOMAIN} www.{SYSTEM_DOMAIN}"
+
+
 
         nginx_template_file = self.systemD.service_data.get("cockpit").get("NGINX_CONFIG_TEMPLATE_FILE")
         service_name = self.systemD.service_data.get("cockpit").get("SYSTEMD_SERVICE_NAME")
+        service_env_file = self.systemD.service_data.get("cockpit").get("ENV_FILE")
+
+        SYSTEM_DOMAIN = parse_domain_from_env_file(service_env_file)
+        
+
+        nginx_server_name = f"{SYSTEM_DOMAIN} www.{SYSTEM_DOMAIN}"
 
         with open(nginx_template_file, "r") as f:
             nginx_template = f.read()

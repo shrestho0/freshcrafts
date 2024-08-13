@@ -29,6 +29,7 @@ jobs:
             echo "bam!"
 
             cd freshcrafts
+            mv 
             git pull 
             cd bin/
             python3 setup.py 

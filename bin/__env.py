@@ -1,8 +1,5 @@
 from _utils.utils import find_java17
 
-# Note: domain part must be same as in the `../cockpit/.env` file
-SYSTEM_DOMAIN = "freshcrafts.local"
-
 # Note: Ports must be same as in the environment vars / properties files
 REQUIRED_OPEN_PORTS=[80,443, 9092,9093, 27017, 17017, 15432, 13306, 10000, 10001,]
 

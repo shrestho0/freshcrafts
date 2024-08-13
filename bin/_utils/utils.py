@@ -1,6 +1,8 @@
 import os
 import subprocess
 import sys 
+from dotenv import load_dotenv
+
 def check_root_permission(console):
     """
     https://stackoverflow.com/questions/2806897/what-is-the-best-way-for-checking-if-the-user-of-a-script-has-root-like-privileg
@@ -39,3 +41,12 @@ def find_java17():
     return False, ""
 
 
+def parse_domain_from_env_file(file_path:str)->str:
+    load_dotenv(dotenv_path=file_path)
+    origin = os.getenv("ORIGIN")
+    
+    if not origin:
+        raise ValueError("ORIGIN not found in .env file")
+    
+    domain = origin.split("//")[-1]
+    return domain
