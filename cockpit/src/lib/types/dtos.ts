@@ -1,3 +1,5 @@
+import type { DBMysql, DBPostgres } from "./entities";
+
 /**
  * Response Object DTOs
  */
@@ -53,21 +55,33 @@ export type EngineMySQLGetOnePayload = {
 	status: null;
 	reasonFailed: null;
 };
-
-export type EngineMySQLGetOneError = {};
-
-// Create MySQL Database Payload
-export type EngineMySQLCreatePayload = EngineMySQLGetOnePayload;
-export type EngineMySQLCreateError = {
+export type EnginePostgresGetOnePayload = {
+	id: string;
 	dbName: string;
 	dbUser: string;
 	dbPassword: string;
+	status: null;
+	reasonFailed: null;
 };
-export type EngineMySQLUpdateError = {
-	newDBName: string;
-	newDBUser: string;
-	newUserPassword: string;
-};
+export type EngineMySQLGetOneError = {};
+export type EnginePostgreSQLGetOneError = {};
+export type EngineMongoDBGetOneError = {};
+
+
+// Create MySQL Database Payload
+export type EngineMySQLCreatePayload = DBMysql;
+export type EnginePostgreSQLCreatePayload = DBPostgres;
+export type EngineMongoDBCreatePayload = DBPostgres;
+
+export type EngineMySQLCreateError = { dbName: string; dbUser: string; dbPassword: string; };
+export type EnginePostgreSQLCreateError = { dbName: string; dbUser: string; dbPassword: string; };
+export type EngineMongoDBCreateError = { dbName: string; dbUser: string; dbPassword: string; };
+
+
+export type EngineMySQLUpdateError = { newDBName: string; newDBUser: string; newUserPassword: string; };
+export type EnginePostgreSQLUpdateError = { newDBName: string; newDBUser: string; newUserPassword: string; };
+export type EngineMongoDBUpdateError = { newDBName: string; newDBUser: string; newUserPassword: string; };
+
 // To parse this data:
 //
 //   import { Convert, Pagable } from "./file";

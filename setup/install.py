@@ -3,25 +3,39 @@
 import os
 import sys 
 import subprocess
+from dotenv import dotenv_values
 from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Prompt
+from rich.status import Status
 from __env import DOCKER_COMPOSE_COMMAND, DOCKER_COMPOSE_FILE, REQUIRED_OPEN_PORTS, JAVA_17_AVAILABLE,JAVA_17_DIR,SYSTEM_DEPS
-from _utils.utils import check_root_permission, parse_domain_from_env_file
-from systemd_services import SystemDServices
+from _utils.utils import parse_domain_from_env_file
+from systemd_util import SystemDUtil
+
 console = Console()
 progress = Progress(transient=True,)
  
 
 class BarelyWorkingInstaller:    
+    
     def __init__(self):
-        check_root_permission(console)
-        self.systemD = SystemDServices()
+        # check_root_permission(console)
+        if not self.can_use_sudo():
+            console.print("User must have permission to use `sudo` or be a root user", style="red")
+            sys.exit(1)
+        self.sysd_util = SystemDUtil()
         # self.__take_consent()
 
+    def can_use_sudo(self):
+        try:
+            subprocess.run("sudo ls", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            return True
+        except Exception as e:
+            return False
+        
     def pre_install_stuff(self):
         # stop if things are running
-        self.systemD.stop_and_disable_services()
+        self.sysd_util.stop_and_disable_services()
         # docker compose down
         self.docker_compose_down()
 
@@ -29,6 +43,8 @@ class BarelyWorkingInstaller:
         self.check_dependencies_installed()
         # check if required ports are open (80,443 are handled by nginx, so, ignore them)
         self.check_ports_available()
+        # make env files
+        # self.make_env_files_from_root_env()
         # check env files are present
         self.check_env_files()
 
@@ -39,13 +55,12 @@ class BarelyWorkingInstaller:
         # run docker-compose up -d or docker compose up -d if (docker-compose fails)
         self.docker_compose_up()
 
-
     
     def install_system_services(self):
         # install system services
-        self.systemD.install_services()
+        self.sysd_util.install_services()
         # reload service files
-        self.systemD.reload_services()
+        self.sysd_util.reload_services()
         console.log("Services reloaded", style="bold green")
 
     def install(self):
@@ -96,7 +111,7 @@ class BarelyWorkingInstaller:
         x = 1
         # check if .env file or resources/application.properties file exists
         # for services 
-        for service, data in self.systemD.service_data.items():
+        for service, data in self.sysd_util.service_data.items():
             envFile = data.get("ENV_FILE")
             if os.path.exists(envFile):
                 console.log(f"✔ {service} environment is okay.", style="green"); x *= 1
@@ -115,7 +130,7 @@ class BarelyWorkingInstaller:
         # goto to directory
         # check if build dir exists
         x = 1
-        for k,v in self.systemD.service_data.items():
+        for k,v in self.sysd_util.service_data.items():
             src_dir = v.get("SRC_DIR")
             isCockpit = v.get("COCKPIT")
             if os.path.exists(src_dir):
@@ -174,7 +189,7 @@ class BarelyWorkingInstaller:
 
     def docker_compose_up(self):
         # find the appropriate docker-compose file
-        file = self.systemD.get_absolute_path(DOCKER_COMPOSE_FILE)
+        file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
         console.log("docker-compose file locaton",file)
         os.chdir(os.path.dirname(file))
         console.log("Current working directory", os.getcwd())
@@ -194,7 +209,7 @@ class BarelyWorkingInstaller:
             sys.exit(1)
     def docker_compose_down(self):
         # find the appropriate docker-compose file
-        file = self.systemD.get_absolute_path(DOCKER_COMPOSE_FILE)
+        file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
         console.log("docker-compose file locaton",file)
         os.chdir(os.path.dirname(file))
         console.log("Current working directory", os.getcwd())
@@ -257,9 +272,9 @@ class BarelyWorkingInstaller:
 
 
 
-        nginx_template_file = self.systemD.service_data.get("cockpit").get("NGINX_CONFIG_TEMPLATE_FILE")
-        service_name = self.systemD.service_data.get("cockpit").get("SYSTEMD_SERVICE_NAME")
-        service_env_file = self.systemD.service_data.get("cockpit").get("ENV_FILE")
+        nginx_template_file = self.sysd_util.service_data.get("cockpit").get("NGINX_CONFIG_TEMPLATE_FILE")
+        service_name = self.sysd_util.service_data.get("cockpit").get("SYSTEMD_SERVICE_NAME")
+        service_env_file = self.sysd_util.service_data.get("cockpit").get("ENV_FILE")
 
         SYSTEM_DOMAIN = parse_domain_from_env_file(service_env_file)
         
@@ -274,9 +289,19 @@ class BarelyWorkingInstaller:
             
             # write the nginx config file
             nginx_config_file = f"/etc/nginx/sites-available/{service_name}.conf"
-            with open(nginx_config_file, "w") as f:
+            # with open(nginx_config_file, "w") as f:
+            #     f.write(nginx_template)
+            #     console.log("Nginx config file written", style="blue")
+            with open(f"./fc_temp/{service_name}.conf", "w") as f:
                 f.write(nginx_template)
-                console.log("Nginx config file written", style="blue")
+                console.log("Temp Nginx config file written", style="blue")
+            
+
+            # keep a backup of the old file
+            os.system(f"sudo cp /etc/nginx/sites-available/{service_name}.conf /etc/nginx/sites-available/{service_name}.conf.fcbak")
+            # copy the file to /etc/nginx/sites-available
+            os.system(f"sudo mv  ./fc_temp/{service_name}.conf /etc/nginx/sites-available/")
+
             # create a symlink
             # delete the old symlink if exists
             os.system(f"sudo rm -f /etc/nginx/sites-enabled/{service_name}.conf ")
@@ -287,12 +312,23 @@ class BarelyWorkingInstaller:
             console.log("Nginx restarted", style="blue")
             console.log("Nginx setup complete", style="green")
 
+
+        # import json
+        # console.print_json(json.dumps(env_map))
+            
+
  
 if __name__ == "__main__":
-    BarelyWorkingInstaller = BarelyWorkingInstaller()
+    installer = BarelyWorkingInstaller()
     # we'll setup .env files from here too, but, not now
-    BarelyWorkingInstaller.install()
-    console.print(f"visit http://{SYSTEM_DOMAIN}/_/setup", style="green")
+    # save current dir
+    previous_dir = os.getcwd()
+    # cd to this directory
+    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    installer.install()
+    # installer.setup_cockpit_nginx()
+    os.chdir(previous_dir)
+    # console.print(f"visit http://{SYSTEM_DOMAIN}/_/setup", style="green")
     # BarelyWorkingInstaller.setup_cockpit_nginx()
     # BarelyWorkingInstaller.check_dependencies_installed()
 

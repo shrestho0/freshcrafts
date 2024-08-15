@@ -9,8 +9,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
 	// TODO: validate before sending
 
-	const res = await EngineConnection.getInstance().getMysqlDB(db_id);
-	console.log('[DEBUG]: databases/mysql/[db_id] res', res);
+	const res = await EngineConnection.getInstance().getMongoDB(db_id);
+	console.log('[DEBUG]: databases/mongodb/[db_id] res', res);
 
 	return res;
 };
@@ -18,8 +18,8 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 export const actions: Actions = {
 	delete: async ({ params }) => {
 		const { db_id } = params;
-		const res = await EngineConnection.getInstance().deleteMysqlDB(db_id);
-		console.warn('[DEBUG]: databases/mysql/[db_id] delete res', res);
+		const res = await EngineConnection.getInstance().deleteMongoDB(db_id);
+		console.warn('[DEBUG]: databases/mongodb/[db_id] delete res', res);
 		return res?.success ? res : fail(506, { res });
 	},
 
@@ -35,11 +35,11 @@ export const actions: Actions = {
 		};
 
 		console.warn(
-			'[DEBUG]: databases/mysql/[db_id] update',
+			'[DEBUG]: databases/mongodb/[db_id] update',
 			JSON.stringify({ db_id, newDBName, newDBUser, newUserPassword }, null, 2)
 		);
 
-		const res = await EngineConnection.getInstance().updateMysqlDB(
+		const res = await EngineConnection.getInstance().updateMongoDB(
 			db_id,
 			newDBName?.trim(),
 			newDBUser?.trim(),
@@ -49,10 +49,10 @@ export const actions: Actions = {
 	},
 
 	revert: async ({ params }) => {
-		console.warn('[DEBUG]: databases/mysql/[db_id] revert', params);
+		console.warn('[DEBUG]: databases/mongodb/[db_id] revert', params);
 		const { db_id } = params;
-		const res = await EngineConnection.getInstance().revertChangesMysql(db_id);
-		console.warn('[DEBUG]: databases/mysql/[db_id] revert res', res);
+		const res = await EngineConnection.getInstance().revertChangesMongo(db_id);
+		console.warn('[DEBUG]: databases/mongodb/[db_id] revert res', res);
 		return res?.success ? res : fail(506, { res });
 	}
 };

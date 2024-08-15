@@ -29,7 +29,9 @@ const notificationStuff = {
 } as { hasNew: boolean; open: boolean; notifications: SystemwideNotification[] };
 
 const notiSSEUrl = `/sse/notification`;
+
 let value = source(notiSSEUrl).select('message');
+
 if (browser && value) {
 	value.subscribe((data: string) => {
 		console.log(data);

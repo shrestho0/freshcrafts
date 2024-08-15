@@ -5,6 +5,13 @@ and all the code has been taken from this link: https://www.prisma.io/blog/svelt
 
 ```
 
+Run:
+```
+npm i
+npx prisma migrate dev --name initxxx
+
+```
+
 
 
 <span style="color:crimson;"> Ignore from this line</span>

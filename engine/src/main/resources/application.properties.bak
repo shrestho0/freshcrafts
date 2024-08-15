@@ -1,0 +1,33 @@
+# Do not change
+spring.application.name=engine
+server.port=10000
+spring.kafka.consumer.group-id=freshCrafts
+freshCrafts.MONGO_CONFIG_SYSTEM_CONFIG_COLLECTION_ID=TheConfig
+
+# Application Specific
+## JWT Specific
+JWT_ISSUER=freshCrafts
+JWT_ACCESS_SECRET=SOME_ACCESS_SECRET
+JWT_REFRESH_SECRET=SOME_REFRESH_SECRET
+JWT_ACCESS_EXPIRES_IN=10
+JWT_REFRESH_EXPIRES_IN=604800
+## Cockpit Connection
+COCKPIT_URL_LOCAL=http://127.0.0.1:10001
+COCKPIT_SSE_TOKEN=VERY_SECRET_TOKEN
+## Kafka Stuff
+spring.kafka.bootstrap-servers=localhost:9092
+## Primary Mongo
+spring.data.mongodb.host=localhost
+spring.data.mongodb.port=27017
+spring.data.mongodb.database=crafts_starter
+spring.data.mongodb.username=root
+spring.data.mongodb.password=password
+spring.data.mongodb.authentication-database=admin
+## OpenAPI Doc Url
+springdoc.api-docs.path=/api/v1/api-docs
+springdoc.swagger-ui.path=/api/v1/swagger
+springdoc.default-produces-media-type=application/json
+springdoc.default-consumes-media-type=application/json
+
+
+

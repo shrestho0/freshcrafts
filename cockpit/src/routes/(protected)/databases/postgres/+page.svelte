@@ -27,11 +27,11 @@ import {
 	ulidToDate
 } from '@/utils/utils';
 import type { EnginePaginatedDto } from '@/types/dtos';
-import type { DBMongo } from '@/types/entities';
+import type { DBPostgres } from '@/types/entities';
 import { goto } from '$app/navigation';
-import { DBMongoStatus } from '@/types/enums';
+import { DBPostgresStatus } from '@/types/enums';
 
-export let data: EnginePaginatedDto<DBMongo>;
+export let data: EnginePaginatedDto<DBPostgres>;
 const headers = [
 	{ key: 'dbName', value: 'DB Name' },
 	{ key: 'dbUser', value: 'DB User' },
@@ -49,11 +49,11 @@ onMount(() => {
 	console.log(data);
 });
 
-const editDBUrl = `/databases/mongodb/:id`;
+const editDBUrl = `/databases/postgres/:id`;
 
 // let selectedItemIdx: number | undefined = undefined;
 let selectedItemIdx: number | undefined = undefined;
-let selectedItem: DBMongo | undefined = undefined;
+let selectedItem: DBPostgres | undefined = undefined;
 
 let dataStuff = {
 	status: 'LOADING',
@@ -89,9 +89,9 @@ let dataStuff = {
 } as unknown as {
 	status: 'DATA' | 'LOADING' | 'SEARCHING' | 'SEARCH_RESULT';
 	query: string;
-	regularData: EnginePaginatedDto<DBMongo>;
-	searchList: DBMongo[];
-	content: DBMongo[];
+	regularData: EnginePaginatedDto<DBPostgres>;
+	searchList: DBPostgres[];
+	content: DBPostgres[];
 };
 
 async function fetchRegularData() {
@@ -103,7 +103,7 @@ async function fetchRegularData() {
 		},
 		'POST',
 		null
-	)) as unknown as EnginePaginatedDto<DBMongo>;
+	)) as unknown as EnginePaginatedDto<DBPostgres>;
 	console.log('regularData', res);
 
 	// delay for 500ms
@@ -169,7 +169,7 @@ onMount(async () => {
 {#if loading}
 	<DataTableSkeleton />
 {:else}
-	<DataTable title={'Mongo Databases'} description="Manage databases">
+	<DataTable title={'Postgres Databases'} description="Manage databases">
 		<Toolbar>
 			<ToolbarContent>
 				<!-- on:input={handleSearchInput} -->
@@ -202,10 +202,10 @@ onMount(async () => {
 							>
 								<TableCell style=""
 									>{row['dbName']}
-									{#if row['status'] === DBMongoStatus.OK}
+									{#if row['status'] === DBPostgresStatus.OK}
 										<!-- nothing -->
 										<!-- <Tag type="teal">OK</Tag> -->
-									{:else if row['status'] === DBMongoStatus.FAILED}
+									{:else if row['status'] === DBPostgresStatus.FAILED}
 										<Tag type="magenta">Failed</Tag>
 									{:else}
 										<Tag type="high-contrast">{row['status']}</Tag>

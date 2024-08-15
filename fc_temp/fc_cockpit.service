@@ -1,0 +1,17 @@
+
+[Unit]
+Description = fc_cockpit
+
+[Service]
+Type           = simple
+User           = root
+Group          = root
+LimitNOFILE    = 4096
+Restart        = always
+RestartSec     = 10s
+StandardOutput = append:/mnt/github/tjf/fc_logs/fc_cockpit_access.log
+StandardError  = append:/mnt/github/tjf/fc_logs/fc_cockpit_error.log
+ExecStart      = /usr/bin/node --env-file="/mnt/github/tjf/freshcrafts/cockpit/.env" "/mnt/github/tjf/freshcrafts/cockpit/build"
+
+[Install]
+WantedBy = multi-user.target

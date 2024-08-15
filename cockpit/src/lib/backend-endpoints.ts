@@ -16,6 +16,16 @@ const _endpoints = {
 	MYSQL_BY_ID: '/db-mysql/:id',
 	MYSQL_FIND_ALL: '/db-mysql',
 
+	POSTGRES_NEW: '/db-postgres',
+	POSTGRES_SEARCH: '/db-postgres/search/:query',
+	POSTGRES_BY_ID: '/db-postgres/:id',
+	POSTGRES_FIND_ALL: '/db-postgres',
+
+	MONGO_NEW: '/db-mongo',
+	MONGO_SEARCH: '/db-mongo/search/:query',
+	MONGO_BY_ID: '/db-mongo/:id',
+	MONGO_FIND_ALL: '/db-mongo',
+
 	NOTIFICATIONS: '/notifications',
 
 };

@@ -10,7 +10,7 @@ import { Button, InlineLoading, Loading } from 'carbon-components-svelte';
 import { CircleCheckBig, CircleX, UnlinkIcon } from 'lucide-svelte';
 import type { SetupPageOauthData } from '@/types/internal';
 import { AuthProviderType } from '@/types/enums';
-import GoogleIcon from '@/ui/css/icons/GoogleIcon.svelte';
+import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
 export let data: SetupPageOauthData;
 
 export let connectionCallback: ({

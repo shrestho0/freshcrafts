@@ -1,4 +1,4 @@
-import { SSE_AUTHORIZATION_TOKEN } from '$env/static/private';
+import { COCKPIT_SSE_TOKEN } from '$env/static/private';
 import { error, fail } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
@@ -11,10 +11,10 @@ export const load: LayoutServerLoad = async ({ request, locals }) => {
 	// FIXME: This is redundent
 	try {
 		const bearer = request.headers.get('authorization')?.split(' ')[1];
-		if (bearer && bearer === SSE_AUTHORIZATION_TOKEN) {
+		if (bearer && bearer === COCKPIT_SSE_TOKEN) {
 			return;
 		}
-	} catch (_) {}
+	} catch (_) { }
 
 	return error(401, 'Unauthorized');
 };
@@ -27,7 +27,7 @@ export const load: LayoutServerLoad = async ({ request, locals }) => {
 //     try {
 
 //         const bearerToken = event.request.headers.get("authorization")?.split(" ")[1]
-//         if (bearerToken && bearerToken === SSE_AUTHORIZATION_TOKEN) {
+//         if (bearerToken && bearerToken === COCKPIT_SSE_TOKEN) {
 //             return await resolve(event);
 //         } else {
 //             throw new Error("Unauthorized")

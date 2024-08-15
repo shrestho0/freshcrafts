@@ -1,7 +1,14 @@
 from _utils.utils import find_java17
 
+"""
+System Setup Related Env Vars
+"""
+
 # Note: Ports must be same as in the environment vars / properties files
 REQUIRED_OPEN_PORTS=[80,443, 9092,9093, 27017, 17017, 15432, 13306, 10000, 10001,]
+
+ROOT_ENV_FILE = "./.env"
+
 
 SYSTEMD_SERVICE_DIRECTORY = "/lib/systemd/system/" # for ubuntu based systems
 

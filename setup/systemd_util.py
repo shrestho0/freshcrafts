@@ -9,7 +9,7 @@ from rich.console import Console
 
 console = Console()
 
-class SystemDServices:
+class SystemDUtil:
     def __init__(self) -> None:
         self.service_data = self.with_abs_path(FC_SERVICES_INFO)
         # console.log(self.service_data)
@@ -17,12 +17,17 @@ class SystemDServices:
         self.temp_dir = self.ensure_directory(TEMP_DIR)
         self.systemd_dir = SYSTEMD_SERVICE_DIRECTORY
         self.temp_service_files = []
+        
     def with_abs_path(self, FC_SERVICES_INFO):
         # all path of properties with _FILE or _DIR should be absolute for each service
+        pwd = os.getcwd()
+        os.chdir(os.path.dirname(os.path.abspath(__file__)))
+
         for k,v in FC_SERVICES_INFO.items():
             for key, value in v.items():
                 if key.endswith("_FILE") or key.endswith("_DIR"):
                     FC_SERVICES_INFO[k][key] = os.path.abspath(value) 
+        os.chdir(pwd)
         return FC_SERVICES_INFO
 
     def pre_install_stuff(self):

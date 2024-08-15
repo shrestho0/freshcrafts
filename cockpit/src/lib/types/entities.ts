@@ -1,4 +1,4 @@
-import type { AuthProviderType, DBMysqlStatus, SystemWideNoitficationTypes } from './enums';
+import type { AuthProviderType, DBMongoStatus, DBMysqlStatus, DBPostgresStatus, SystemWideNoitficationTypes } from './enums';
 
 export type SystemUser = {
 	name: string;
@@ -28,6 +28,28 @@ export type DBMysql = {
 	updateMessage: string;
 	lastModifiedDate: string;
 };
+export type DBPostgres = {
+	id: string;
+	dbName: string;
+	dbUser: string;
+	dbPassword: string;
+	status: DBPostgresStatus;
+	reasonFailed: string;
+	updateMessage: string;
+	lastModifiedDate: string;
+};
+
+export type DBMongo = {
+	id: string;
+	dbName: string;
+	dbUser: string;
+	dbPassword: string;
+	status: DBMongoStatus;
+	reasonFailed: string;
+	updateMessage: string;
+	lastModifiedDate: string;
+};
+
 
 // export class SystemWideNotification {
 //     public id: string = ''

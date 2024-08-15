@@ -10,21 +10,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class EnvProps {
 
-    @Value("${freshCrafts.JWT_ACCESS_SECRET}")
+    @Value("${JWT_ACCESS_SECRET}")
     private String accessSecret;
-    @Value("${freshCrafts.JWT_ISSUER}")
+    @Value("${JWT_ISSUER}")
     private String issuer;
-    @Value("${freshCrafts.JWT_ACCESS_EXPIRES_IN}")
+    @Value("${JWT_ACCESS_EXPIRES_IN}")
     private String accessExpiresIn;
-    @Value("${freshCrafts.JWT_REFRESH_SECRET}")
+    @Value("${JWT_REFRESH_SECRET}")
     private String refreshSecret;
-    @Value("${freshCrafts.JWT_REFRESH_EXPIRES_IN}")
+    @Value("${JWT_REFRESH_EXPIRES_IN}")
     private String refreshExpiresIn;
 
-    @Value("${freshCrafts.COCKPIT_URL_LOCAL}")
+    @Value("${COCKPIT_URL_LOCAL}")
     private String cockpitLocalUrl;
 
-    @Value("${freshCrafts.COCKPIT_AUTHORIZATION_TOKEN}")
+    @Value("${COCKPIT_SSE_TOKEN}")
     private String cockpitAuthorizationToken;
 
     public String getAccessSecret() {

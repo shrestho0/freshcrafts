@@ -1,7 +1,7 @@
 import os
 import subprocess
 import sys 
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 def check_root_permission(console):
     """
@@ -33,7 +33,7 @@ def find_java17():
             try:
                 version = subprocess.check_output([java_bin, "-version"], stderr=subprocess.STDOUT).decode()
                 if '17' in version:
-                    print(f"Java 17 found at: {path}")
+                    # print(f"Java 17 found at: {path}")
                     return True, path
             except subprocess.CalledProcessError:
                 continue
@@ -42,9 +42,16 @@ def find_java17():
 
 
 def parse_domain_from_env_file(file_path:str)->str:
-    load_dotenv(dotenv_path=file_path)
-    origin = os.getenv("ORIGIN")
-    
+    """
+    @depricated
+    Depricate it,
+    Get values from .env file while splitting env data to service specific files
+    """
+    # x = load_dotenv(dotenv_path=file_path)
+    env_path = os.path.abspath(file_path)
+    env_vals = dotenv_values(env_path)
+    # origin = os.getenv("ORIGIN")
+    origin = env_vals.get("ORIGIN")
     if not origin:
         raise ValueError("ORIGIN not found in .env file")
     

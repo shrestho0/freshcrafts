@@ -1,5 +1,8 @@
 <script lang="ts">
 import { page } from '$app/stores';
+import MongoDbIcon from '@/ui/icons/MongoDBIcon.svelte';
+import MySqlIcon from '@/ui/icons/MySQLIcon.svelte';
+import PostgresIcon from '@/ui/icons/PostgresIcon.svelte';
 import {
 	SideNav,
 	SideNavItems,
@@ -14,6 +17,7 @@ export let isSideNavOpen: boolean;
 type MenuItemType = {
 	title: string;
 	href: string;
+	icon?: any;
 };
 type MenuWithSubmenuType = MenuItemType & {
 	serviceType: string;
@@ -48,15 +52,18 @@ const navBarLink: MenuWithSubmenuType[] = [
 		children: [
 			{
 				title: 'MySQL',
-				href: '/databases/mysql'
+				href: '/databases/mysql',
+				icon: MySqlIcon
 			},
 			{
 				title: 'PostgreSQL',
-				href: '/databases/postgresql'
+				href: '/databases/postgres',
+				icon: PostgresIcon
 			},
 			{
 				title: 'MongoDB',
-				href: '/databases/mongodb'
+				href: '/databases/mongodb',
+				icon: MongoDbIcon
 			}
 		]
 	},
@@ -94,7 +101,14 @@ onMount(() => {
 							text={child.title}
 							isSelected={child.href == relativeUrl}
 							href={child.href}
-						/>
+						>
+							<div class="flex">
+								{#if child.icon}
+									<svelte:component this={child.icon} classes="w-6 h-6 mr-2 " />
+								{/if}
+								{child.title}
+							</div>
+						</SideNavMenuItem>
 					{/each}
 				</SideNavMenu>
 			{:else if item.href}

@@ -4,7 +4,7 @@ import {
 	JWT_ACCESS_SECRET,
 	JWT_ISSUER,
 	JWT_REFRESH_SECRET,
-	SSE_AUTHORIZATION_TOKEN
+	COCKPIT_SSE_TOKEN
 } from '$env/static/private';
 import { BackendEndpoints } from '@/backend-endpoints';
 import { EngineConnection } from '@/server/EngineConnection';
@@ -37,7 +37,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		// console.log("check check")
 		try {
 			const authorizationToken = event.request.headers.get('authorization')?.trim();
-			if (authorizationToken != `Bearer ${SSE_AUTHORIZATION_TOKEN}`) {
+			if (authorizationToken != `Bearer ${COCKPIT_SSE_TOKEN}`) {
 				throw new Error('Invalid token');
 			}
 		} catch (e: any) {

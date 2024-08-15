@@ -15,7 +15,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	const contextData = await EngineConnection.getInstance().getProviders();
 
-	// console.log("[DEBUG]: From Server Login ", contextData);
+	console.log("[DEBUG]: From Server Login ", contextData);
 
 	return contextData;
 };

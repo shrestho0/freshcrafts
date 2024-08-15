@@ -2,13 +2,15 @@ import { BackendEndpoints } from '@/backend-endpoints';
 import type {
 	CommonPagination,
 	EngineCommonResponseDto,
+	EngineMongoDBGetOneError,
 	EngineMySQLGetOneError,
 	EngineMySQLGetOnePayload,
 	EnginePaginatedDto,
+	EnginePostgreSQLGetOneError,
 	EngineSystemConfigResponseDto
 } from '@/types/dtos';
-import type { DBMysql } from '@/types/entities';
-import { AuthProviderType, DBMysqlStatus } from '@/types/enums';
+import type { DBMongo, DBMysql, DBPostgres } from '@/types/entities';
+import { AuthProviderType, DBMongoStatus, DBMysqlStatus } from '@/types/enums';
 import messages from '@/utils/messages';
 
 /**
@@ -38,7 +40,8 @@ export class EngineConnection {
 			signal: AbortSignal.timeout(3000)
 		})
 			.then((res) => res.json())
-			.catch(() => {
+			.catch((err) => {
+				console.log(err)
 				return {
 					success: false,
 					message: messages.RESPONSE_ERROR,
@@ -54,6 +57,7 @@ export class EngineConnection {
 			};
 			delete res.data;
 		}
+		// console.log("RESRESRES", res)
 		return res;
 	}
 
@@ -235,6 +239,7 @@ export class EngineConnection {
 			});
 	}
 
+
 	public async getMysqlDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<DBMysql, EngineMySQLGetOneError>> {
@@ -316,7 +321,7 @@ export class EngineConnection {
 			});
 	}
 
-	public async revertChanges(dbModelId: string): Promise<EngineCommonResponseDto<DBMysql, null>> {
+	public async revertChangesMysql(dbModelId: string): Promise<EngineCommonResponseDto<DBMysql, null>> {
 		// joratali revert changes
 		return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', dbModelId) + '/revert', {
 			method: 'PATCH',
@@ -335,6 +340,308 @@ export class EngineConnection {
 			});
 	}
 
+
+
+
+	////////////////////////////////////////// DB POSTGRES //////////////////////////////////////////
+
+	public async getPostgresDBs({
+		page = 1,
+		pageSize = 10,
+		orderBy = 'id',
+		sort = 'DESC'
+	}: CommonPagination): Promise<EnginePaginatedDto<DBPostgres>> {
+		console.log(page, pageSize, orderBy, sort);
+
+		const url = new URL(BackendEndpoints.POSTGRES_FIND_ALL);
+		url.searchParams.append('page', page.toString());
+		url.searchParams.append('pageSize', pageSize.toString());
+		url.searchParams.append('orderBy', orderBy);
+		url.searchParams.append('sort', sort);
+
+		return await fetch(url.toString(), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async searchPostgresDBs(query: string) {
+		return await fetch(BackendEndpoints.POSTGRES_SEARCH.replace(':query', query), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async getPostgresDB(
+		db_id: string
+	): Promise<EngineCommonResponseDto<DBPostgres, EnginePostgreSQLGetOneError>> {
+		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', db_id), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async deletePostgresDB(
+		db_id: string
+	): Promise<EngineCommonResponseDto<null, EnginePostgreSQLGetOneError>> {
+		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', db_id), {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async updatePostgresDB(
+		dbModelId: string,
+		newDBName: string,
+		newDBUser: string,
+		newUserPassword: string
+	): Promise<EngineCommonResponseDto<Partial<DBPostgres>, null>> {
+		console.warn(
+			'[DEBUG]: databases/postgres/[db_id] update',
+			JSON.stringify({ dbModelId, newDBName, newDBUser, newUserPassword }, null, 2)
+		);
+
+		if (!newDBName && !newDBUser && !newUserPassword) {
+			return {
+				success: false,
+				message: 'Atleast one field must be filled to update'
+			} as EngineCommonResponseDto<Partial<DBPostgres>, null>;
+		}
+
+		// validate invalid db names here
+		// validate invalid db users here
+		// validate invalid user passwords
+		const xObj: any = {};
+		if (newDBName) xObj['newDBName'] = newDBName;
+		if (newDBUser) xObj['newDBUser'] = newDBUser;
+		if (newUserPassword) xObj['newUserPassword'] = newUserPassword;
+
+		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', dbModelId), {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(xObj)
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async revertChangesPostgres(dbModelId: string): Promise<EngineCommonResponseDto<DBPostgres, null>> {
+		// joratali revert changes
+		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', dbModelId) + '/revert', {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ status: DBMysqlStatus.OK })
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	////////////////////////////////////////// DB MONGO //////////////////////////////////////////
+
+	public async getMongoDBs({
+		page = 1,
+		pageSize = 10,
+		orderBy = 'id',
+		sort = 'DESC'
+	}: CommonPagination): Promise<EnginePaginatedDto<DBMongo>> {
+		console.log(page, pageSize, orderBy, sort);
+
+		const url = new URL(BackendEndpoints.MONGO_FIND_ALL);
+		url.searchParams.append('page', page.toString());
+		url.searchParams.append('pageSize', pageSize.toString());
+		url.searchParams.append('orderBy', orderBy);
+		url.searchParams.append('sort', sort);
+
+		return await fetch(url.toString(), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async searchMongoDBs(query: string) {
+		return await fetch(BackendEndpoints.MONGO_SEARCH.replace(':query', query), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async getMongoDB(
+		db_id: string
+	): Promise<EngineCommonResponseDto<DBMongo, EngineMongoDBGetOneError>> {
+		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', db_id), {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async deleteMongoDB(
+		db_id: string
+	): Promise<EngineCommonResponseDto<null, EngineMongoDBGetOneError>> {
+		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', db_id), {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async updateMongoDB(
+		dbModelId: string,
+		newDBName: string,
+		newDBUser: string,
+		newUserPassword: string
+	): Promise<EngineCommonResponseDto<Partial<DBMongo>, null>> {
+		console.warn(
+			'[DEBUG]: databases/mongodb/[db_id] update',
+			JSON.stringify({ dbModelId, newDBName, newDBUser, newUserPassword }, null, 2)
+		);
+
+		if (!newDBName && !newDBUser && !newUserPassword) {
+			return {
+				success: false,
+				message: 'Atleast one field must be filled to update'
+			} as EngineCommonResponseDto<Partial<DBMongo>, null>;
+		}
+
+		// validate invalid db names here
+		// validate invalid db users here
+		// validate invalid user passwords
+		const xObj: any = {};
+		if (newDBName) xObj['newDBName'] = newDBName;
+		if (newDBUser) xObj['newDBUser'] = newDBUser;
+		if (newUserPassword) xObj['newUserPassword'] = newUserPassword;
+
+		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', dbModelId), {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(xObj)
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	public async revertChangesMongo(dbModelId: string): Promise<EngineCommonResponseDto<DBMongo, null>> {
+		// joratali revert changes
+		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', dbModelId) + '/revert', {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({ status: DBMongoStatus.OK })
+		})
+			.then((res) => res.json())
+			.catch((e: Error) => {
+				console.log(e);
+				return {
+					success: false,
+					message: e?.message ?? messages.RESPONSE_ERROR
+				};
+			});
+	}
+
+	////////////////////////////////////////// NOTIFICATIONS //////////////////////////////////////////
 
 	public async getPaginatedNotifications({
 		page = 1,
