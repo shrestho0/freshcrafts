@@ -1,4 +1,4 @@
-import { FILE_UPLOAD_DIR } from '$env/static/private';
+import { FILE_UPLOAD_DIR, GITHUB_CLIENT_ID, GITHUB_WEBHOOK_PEM_KEY } from '$env/static/private';
 import { EngineConnection } from '@/server/EngineConnection';
 import { InternalNewProjectType } from '@/types/enums';
 import messages from '@/utils/messages';
@@ -7,112 +7,134 @@ import fs from 'fs/promises';
 import path from 'path';
 import { ulid } from 'ulid';
 
-import { Octokit } from "@octokit/core";
+import { GithubWebhookHelper } from '@/server/GithubWebhookHelper';
 
 
 export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
-	const q = url.searchParams.get('q');
-	let per_page: any = url.searchParams.get('per_page') || '10';
-	let page: any = url.searchParams.get('page') || '1';
+	// const q = url.searchParams.get('q');
+	// let per_page: any = url.searchParams.get('per_page') || '10';
+	// let page: any = url.searchParams.get('page') || '1';
 
-	per_page = parseInt(per_page);
-	page = parseInt(page);
+	// per_page = parseInt(per_page);
+	// page = parseInt(page);
 
 	// return github repo list
 
 	const project_type = request.headers.get('x-freshcraft-project-type');
-	if (project_type === InternalNewProjectType.GITHUB_REPO) {
+	if (project_type === InternalNewProjectType.LIST_GITHUB_REPO) {
 
-		// gh token
 
-		const sysConf = await EngineConnection.getInstance().getSystemConfig()
-		if (!sysConf) return json({ success: false, message: messages.ENGINE_SYSCONF_MISSING }, { status: 506 });
-		const gh_token = sysConf?.systemUserOauthGithubData?.access_token;
-		if (!gh_token) return json({ success: false, message: messages.GITHUB_TOKEN_MISSING }, { status: 401 });
+		const responseObj = {
+			success: false,
+			message: messages.GITHUB_UNHANDLED_ERROR,
+			total_count: 0,
+			repos: [],
+		} as {
+			success: boolean;
+			message: string;
+			total_count: number;
+			repos: any[];
+		}
 
-		// console.log(gh_token);
-
-		// console.log(sysConf)
-
-		// get command of what to do
-
-		// get repos
-		// https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#list-repositories-for-the-authenticated-user
-		const octokit = new Octokit({ auth: gh_token });
 
 		try {
 
-			// const gh_repos_url = `https://api.github.com/user/repos`;
-			// const rdata = await fetch(gh_repos_url, {
-			// 	headers: {
-			// 		'Accept': `application/vnd.github+json`,
-			// 		'Authorization': `Bearer ${gh_token}`,
-			// 		// 'X-GitHub-Api-Version': `2022-11-28`
-			// 	}
-			// }).then(r => r.json());
+			const oOctokit = GithubWebhookHelper.getInstance().getOctokitInstance(null)
+			if (!oOctokit) {
+				responseObj.message = messages.GITHUB_OCTOKIT_CREATE_ERROR
+				return json(responseObj);
+			}
 
-			// if (!q) {
-
-			const rdata = await octokit.request('GET /user/repos', {
-				affiliation: 'owner',
-				sort: 'pushed',
-				per_page: per_page,
-				page: page,
+			const installation_request = await oOctokit.request('GET /app/installations', {
+				headers: {
+					'X-GitHub-Api-Version': '2022-11-28',
+				}
 			})
 
+			const reduced_installation_request = installation_request.data.map((installation: any) => {
+				return {
+					access_tokens_url: installation.access_tokens_url,
+					repositories_url: installation.repositories_url,
+				};
+			})
 
-			let hasNext = false;
+			// console.log('installation_request', JSON.stringify(installation_request, null, 2));
+			// console.log('access_tokens', reduced_installation_request);
 
-			if (rdata.headers.link) {
-				const linkHeader = rdata.headers.link;
-				const pagesRemaining = linkHeader.includes(`rel=\"next\"`);
-				console.log('pagesRemaining', pagesRemaining);
-				hasNext = pagesRemaining;
+			if (reduced_installation_request.length === 0) {
+				responseObj.message = messages.GITHUB_INSTALLATION_RETREIVAL_ERROR
+				return json(responseObj)
+
 			}
 
+			for await (const installation_min of reduced_installation_request) {
+				const some_access_token = await oOctokit.request('POST ' + installation_min.access_tokens_url,
+					{
+						headers: {
+							'X-GitHub-Api-Version': '2022-11-28'
+						}
+					});
 
-			console.log('rdata', rdata?.data?.length, Boolean(rdata?.headers?.link));
+				const token = some_access_token?.data?.token
+				console.log('[DEBUG] [ACCESS TOKEN]', token);
+				if (!token) return console.warn('[DEBUG] [ACCESS TOKEN] No token found');
 
-			// try {
-			// 	const x = await octokit.request('GET /installation/repositories', {
-			// 		per_page: 100,
-			// 		page: 1,
-			// 	})
-			// 	console.log('x', x)
-			// } catch (err: any) {
-			// 	console.log('xx', err)
-			// }
+				const newOcto = GithubWebhookHelper.getInstance().getOctokitInstance(token)
 
-			// const nextPattern = /(?<=<)([\S]*)(?=>; rel="Next")/i;
-			// const linkHeader = rdata.headers.link;
-			// const pagesRemaining = linkHeader && linkHeader.includes(`rel=\"next\"`);
-			// const 
+				// console.log(reporepo.headers)
+				const nextPattern = /(?<=<)([\S]*)(?=>; rel="Next")/i;
+				let pagesRemaining: any = true;
 
-			// send paginatated, that's simple, don't waste your freaking time
+				let url = installation_min.repositories_url;
 
+				while (pagesRemaining) {
+					const reporepo = await newOcto?.request('GET ' + url, {
+						headers: {
+							'X-GitHub-Api-Version': '2022-11-28'
+						},
+						per_page: 100,
 
+					})
 
+					if (!reporepo?.data?.total_count) continue
 
-			// console.log("from gh", rdata)
-			return json({ success: true, message: "Retrieved gh repos", repos: rdata, total_repos: rdata.data.length, hasNext, });
-			// } else {
+					responseObj.total_count = reporepo?.data?.total_count
+					responseObj.repos = [...responseObj.repos, ...reporepo?.data?.repositories]
 
-			// 	const rdata = await octokit.request('GET /search/repositories', {
-			// 		q,
-			// 		sort: 'updated',
-			// 		per_page: per_page,
-			// 		page: page,
+					// data = [...data, ...parsedData];
+
+					const linkHeader: string | undefined = reporepo.headers.link;
+					if (!linkHeader) break;
 
 
-			// 	})
-			// }
+					pagesRemaining = linkHeader && linkHeader.includes(`rel=\"next\"`)
+					// console.log(linkHeader)
+					if (pagesRemaining) {
+						url = linkHeader.match(nextPattern);
+						if (url.length > 0) url = url[0];
+						// console.log(url)
+						// if (!url) pagesRemaining = false;
+					}
+				}
+
+			}
+
+			responseObj.success = true;
+			responseObj.message = 'Github repos retrieved successfully';
+			console.log('[DEBUG] [REPOS]', responseObj.total_count);
+			console.log('[DEBUG] [REPOS LEN]', responseObj.repos.length);
+
+			// sort by pushed_at
+			responseObj.repos = responseObj.repos.sort((a, b) => {
+				return new Date(b.pushed_at).getTime() - new Date(a.pushed_at).getTime();
+			})
+
+			return json(responseObj);
+
+
 		} catch (err: any) {
-			// console.error('err', err);
-			console.log(err?.response?.data);
-			const data = err?.response?.data
-			if (data.status === 401) {
-				return json({ success: false, message: "Github token is invalid" }, { status: 401 });
-			}
+
+			console.log(err)
 
 			return json({ success: false, message: "Failed to retrieve gh repos" }, { status: 400 });
 		}
@@ -134,7 +156,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 
 		let data;
-		if (project_type === InternalNewProjectType.LOCAL_FILE) {
+		if (project_type === InternalNewProjectType.LOCAL_FILE_UPLOAD) {
 			data = Object.fromEntries(await request.formData()) as {
 				project_file: File | undefined;
 			};
@@ -171,16 +193,98 @@ export const PATCH: RequestHandler = async ({ request }) => {
 				fileRelativePath: filePath,
 				fileName: fileName
 			});
-		} else if (project_type === InternalNewProjectType.GITHUB_REPO) {
-			data = await request.json();
+		} else if (project_type === InternalNewProjectType.CREATE_PROJECT_FROM_GITHUB) {
+			const repo = await request.json();
+			console.log("REPO->?", repo);
+
 			// github stuff
+
+			let ooctokit = GithubWebhookHelper.getInstance().getOctokitInstance()
+			if (!ooctokit) {
+				return json({ success: false, message: 'Failed to create octokit instance' });
+			}
+
+			if (repo?.downloads_url) {
+				try {
+					const sysConf = await EngineConnection.getInstance().getSystemConfig()
+					// if (!sysConf) return json({ success: false, message: 'Failed to get system config' });
+					const gh_token = sysConf.systemUserOauthGithubData?.user_access_token
+					// 
+					// ooctokit = GithubWebhookHelper.getInstance().getOctokitInstance()
+					try {
+						// FIXME: change only the last part of the url, not the whole thing
+						const tar_download_url = repo.downloads_url?.replace("/downloads", "/tarball")
+						// const download = await ooctokit.request('GET ' + tar_download_url)
+						const download = await fetch(tar_download_url, {
+							headers: {
+								'Authorization': `token ${gh_token}`
+							}
+						}).then(res => res.blob())
+
+						// save blob to file
+						const fileName = `${repo.name}-${ulid()}.tar.gz`;
+						const filePath = path.join(FILE_UPLOAD_DIR, fileName);
+						await fs.writeFile(filePath, Buffer.from(await download.arrayBuffer()));
+
+						// get abs path of file
+						const fileAbsolutePath = path.join(process.cwd(), filePath);
+
+						const projectCreationRepoData = {
+							project_type: "github",
+
+							project_file_name: fileName,
+							// project_file_upload_dir: FILE_UPLOAD_DIR,
+							project_file_path: filePath,
+							project_file_absolute_path: fileAbsolutePath,
+
+							github_repo: repo,
+							github_tar_download_url: tar_download_url,
+						}
+
+						console.log(projectCreationRepoData);
+
+						// send to engine
+
+						// return 
+
+					} catch (err) {
+						console.log(err)
+
+					}
+				} catch (err) {
+					console.log(err)
+				}
+			}
+
 
 			return json({
 				success: true,
 				message: 'Not implemented yet',
 			});
-		} else {
-			return json({ message: 'Invalid project type' }, { status: 400 });
+		} else if (project_type == InternalNewProjectType.CREATE_PROJECT_FROM_LOCAL_FILE) {
+
+			data = await request.json();
+
+			console.log("FILE>>>>>>>>>>>>CREATE_PROJ", data);
+
+			const projectCreationRepoData = {
+				project_type: 'local_file',
+
+				project_file_name: data?.fileName,
+				// project_file_upload_dir: FILE_UPLOAD_DIR,
+				project_file_path: data?.fileRelativePath,
+				project_file_absolute_path: data?.fileAbsolutePath,
+
+				github_repo: null,
+				github_tar_download_url: null,
+			}
+
+			console.log(projectCreationRepoData);
+
+			return json({ success: true, message: 'Not implemented yet' });
+		}
+		else {
+			return json({ message: 'Invalid project creation type' }, { status: 400 });
 		}
 
 	} catch (err: any) {

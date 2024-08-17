@@ -61,7 +61,11 @@ class EnvSetup:
 
                 for env in env_data:
                     for k,v in env.items():
-                        f.write(f"{k}={v}\n")
+                        if "-----BEGIN RSA PRIVATE KEY-----" in v:
+                            f.write(f'{k}="{v}"\n')
+                        else:
+                            f.write(f'{k}={v}\n')
+
             # move to actual location
             try:
                 x = os.system(f"cp fc_temp/{service_name}_env {env_file_loc}")

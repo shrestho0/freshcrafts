@@ -28,6 +28,7 @@
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.36.0",
 		"globals": "^15.0.0",
+		"jsonwebtoken": "^9.0.2",
 		"octokit": "^4.0.2",
 		"postcss": "^8.4.39",
 		"prettier": "^3.1.1",
@@ -45,7 +46,6 @@
 	"type": "module",
 	"dependencies": {
 		"googleapis": "^140.0.1",
-		"jsonwebtoken": "^9.0.2",
 		"jwt-decode": "^4.0.0",
 		"lucide-svelte": "^0.399.0",
 		"svelte-sonner": "^0.3.24",

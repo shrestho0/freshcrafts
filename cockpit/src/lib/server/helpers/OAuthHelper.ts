@@ -8,6 +8,9 @@ import {
 
 import { google } from 'googleapis';
 
+/*
+ALL THESE SHOULD BE UNDER server/utils */
+
 export const getGithubLoginUrl = (baseUrl: string, state: string) => {
 	// if (!browser) return;
 

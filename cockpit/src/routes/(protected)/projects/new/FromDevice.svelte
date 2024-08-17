@@ -1,5 +1,7 @@
 <script lang="ts">
+import { browser } from '$app/environment';
 import { enhance } from '$app/forms';
+import PreDebug from '@/components/dev/PreDebug.svelte';
 import { InternalNewProjectType } from '@/types/enums';
 import { AllowedFileExtensions, AllowedFileMimeTypes, MaxFileSize } from '@/utils/constraints';
 import type { ActionResult } from '@sveltejs/kit';
@@ -7,85 +9,147 @@ import {
 	Button,
 	FileUploader,
 	FileUploaderButton,
-	FileUploaderItem
+	FileUploaderItem,
+	Tile
 } from 'carbon-components-svelte';
-import { FileInput } from 'lucide-svelte';
+import { ArrowRightIcon, FileInput } from 'lucide-svelte';
+import { onMount } from 'svelte';
 
-let fileUploadStatus: 'uploading' | 'edit' | 'complete' | undefined = undefined;
 const fileInvalid = false;
 const files: File[] = [];
-const theHolyFile = {
-	file: undefined,
-	invalid: false,
-	name: '',
-	size: 0,
-	status: 'edit',
-	selected: false,
-	uploaded: false,
-	fromServer: undefined
-} as {
-	size: number;
-	name: string | undefined;
-	invalid: boolean | undefined;
-	status: 'uploading' | 'edit' | 'complete' | undefined;
-	errorSubject?: string | undefined;
-	errorBody?: string | undefined;
-	file: File | undefined;
-	selected: boolean;
-	uploaded: boolean;
-	fromServer:
-		| {
-				fileAbsolutePath: string;
-				fileRelativePath: string;
-				fileName: string;
-		  }
-		| undefined;
-};
 
 let uploadLabelText = 'Upload project file';
 
+const savedFile = {
+	fileX: undefined,
+	project_url: '',
+
+	theHolyFile: {
+		file: undefined,
+		invalid: false,
+		name: '',
+		size: 0,
+		status: 'edit',
+		selected: false,
+		uploaded: false,
+		fromServer: undefined
+	},
+	fileUploadStatus: undefined,
+
+	save: (anything: any) => {
+		// do something
+
+		if (anything) {
+			savedFile.fileX = anything;
+		}
+		if (savedFile.fileX) {
+			try {
+				localStorage.setItem('savedFile.fileX', JSON.stringify(savedFile.fileX));
+				localStorage.setItem('savedFile.theHolyFile', JSON.stringify(savedFile.theHolyFile));
+				localStorage.setItem(
+					'savedFile.fileUploadStatus',
+					JSON.stringify(savedFile.fileUploadStatus)
+				);
+			} catch (e) {
+				// console.error(e);
+			}
+		}
+	},
+	load: () => {
+		// do something
+		const fileX = localStorage.getItem('savedFile.fileX');
+		const theHolyFile = localStorage.getItem('savedFile.theHolyFile');
+		const fileUploadStatus = localStorage.getItem('savedFile.fileUploadStatus');
+
+		try {
+			if (fileX) {
+				savedFile.fileX = JSON.parse(fileX);
+			}
+			if (theHolyFile) {
+				savedFile.theHolyFile = JSON.parse(theHolyFile);
+			}
+			if (fileUploadStatus) {
+				savedFile.fileUploadStatus = JSON.parse(fileUploadStatus);
+			}
+		} catch (e) {}
+	},
+	delete: () => {
+		// do something
+		savedFile.fileX = undefined;
+		localStorage.removeItem('savedFile.theHolyFile');
+		localStorage.removeItem('savedFile.fileX');
+		localStorage.removeItem('savedFile.fileUploadStatus');
+	}
+} as {
+	fileX: any;
+	project_url: string;
+	theHolyFile: {
+		size: number;
+		name: string | undefined;
+		invalid: boolean | undefined;
+		status: 'uploading' | 'edit' | 'complete' | undefined;
+		errorSubject?: string | undefined;
+		errorBody?: string | undefined;
+		file: File | undefined;
+		selected: boolean;
+		uploaded: boolean;
+		fromServer:
+			| {
+					fileAbsolutePath: string;
+					fileRelativePath: string;
+					fileName: string;
+			  }
+			| undefined;
+	};
+	save: (anything: any) => void;
+	load: () => void;
+	delete: () => void;
+
+	fileUploadStatus: 'uploading' | 'edit' | 'complete' | 'leaving_page' | undefined;
+};
 async function handleFileAdd(e: CustomEvent<readonly File[]>) {
 	console.log('Add', e.detail);
-	fileUploadStatus = 'uploading';
+	savedFile.fileUploadStatus = 'uploading';
 	if (e.detail.length > 0) {
-		theHolyFile.file = e.detail[0];
-		theHolyFile.name = e.detail[0].name;
-		theHolyFile.size = e.detail[0].size;
-		theHolyFile.file = e.detail[0];
-		theHolyFile.selected = true;
+		savedFile.theHolyFile.file = e.detail[0];
+		savedFile.theHolyFile.name = e.detail[0].name;
+		savedFile.theHolyFile.size = e.detail[0].size;
+		savedFile.theHolyFile.file = e.detail[0];
+		savedFile.theHolyFile.selected = true;
 
 		if (e.detail[0].size > MaxFileSize) {
-			theHolyFile.invalid = true;
-			theHolyFile.errorSubject = 'File too large';
-			theHolyFile.errorBody = `The file you are trying to upload is too large. Please upload a file that is less than ${MaxFileSize / 1024 / 1024} MB.`;
+			savedFile.theHolyFile.invalid = true;
+			savedFile.theHolyFile.errorSubject = 'File too large';
+			savedFile.theHolyFile.errorBody = `The file you are trying to upload is too large. Please upload a file that is less than ${MaxFileSize / 1024 / 1024} MB.`;
 		}
 		// check file type
 		const file = e.detail[0];
 		if (!AllowedFileMimeTypes.includes(file.type)) {
-			theHolyFile.invalid = true;
-			theHolyFile.errorSubject = 'Invalid file type';
-			theHolyFile.errorBody = `The file you are trying to upload is not supported. Please upload a file with one of the following extensions: ${AllowedFileExtensions.join(
+			savedFile.theHolyFile.invalid = true;
+			savedFile.theHolyFile.errorSubject = 'Invalid file type';
+			savedFile.theHolyFile.errorBody = `The file you are trying to upload is not supported. Please upload a file with one of the following extensions: ${AllowedFileExtensions.join(
 				', '
 			)}.`;
 		} else {
-			theHolyFile.status = 'uploading';
-			const { success, message, fileAbsolutePath, fileRelativePath, fileName } =
-				await uploadToServer(theHolyFile.file);
+			savedFile.theHolyFile.status = 'uploading';
+			const resX = await uploadToServer(savedFile.theHolyFile.file);
+			const { success, message, fileAbsolutePath, fileRelativePath, fileName } = resX;
 
 			if (success) {
-				theHolyFile.uploaded = true;
-				theHolyFile.status = 'edit';
-				theHolyFile.fromServer = {
+				savedFile.theHolyFile.uploaded = true;
+				savedFile.theHolyFile.status = 'edit';
+				savedFile.theHolyFile.fromServer = {
 					fileAbsolutePath,
 					fileRelativePath,
 					fileName
 				};
+				savedFile.save(resX);
 			} else {
-				theHolyFile.uploaded = false;
-				theHolyFile.status = 'edit';
-				theHolyFile.invalid = true;
-				theHolyFile.errorSubject = 'Upload failed';
-				theHolyFile.errorBody = message;
+				savedFile.theHolyFile.uploaded = false;
+				savedFile.theHolyFile.status = 'edit';
+				savedFile.theHolyFile.invalid = true;
+				savedFile.theHolyFile.errorSubject = 'Upload failed';
+				savedFile.theHolyFile.errorBody = message;
 			}
 		}
 		uploadLabelText = 'Upload project file';
@@ -95,27 +159,27 @@ async function handleFileAdd(e: CustomEvent<readonly File[]>) {
 async function handleFileDelete() {
 	// if file uploaded;
 	// delete from server
-	// else just remove theHolyFile.file()
+	// else just remove savedFile.theHolyFile.file()
 
-	if (theHolyFile.uploaded) {
-		theHolyFile.status = 'uploading'; // not actually uploading, it's deleting
-		const { success, message } = await deleteFromServer(theHolyFile);
+	if (savedFile.theHolyFile.uploaded) {
+		savedFile.theHolyFile.status = 'uploading'; // not actually uploading, it's deleting
+		const { success, message } = await deleteFromServer(savedFile.theHolyFile);
 		if (success) {
-			theHolyFile.uploaded = false;
-			theHolyFile.status = 'complete';
-			theHolyFile.file = undefined;
-			theHolyFile.fromServer = undefined;
+			savedFile.theHolyFile.uploaded = false;
+			savedFile.theHolyFile.status = 'complete';
+			savedFile.theHolyFile.file = undefined;
+			savedFile.theHolyFile.fromServer = undefined;
 		} else {
 		}
 	} else {
 	}
 
-	theHolyFile.selected = false;
-	theHolyFile.invalid = false;
-	theHolyFile.name = '';
-	theHolyFile.size = 0;
-	theHolyFile.errorBody = '';
-	theHolyFile.errorSubject = '';
+	savedFile.theHolyFile.selected = false;
+	savedFile.theHolyFile.invalid = false;
+	savedFile.theHolyFile.name = '';
+	savedFile.theHolyFile.size = 0;
+	savedFile.theHolyFile.errorBody = '';
+	savedFile.theHolyFile.errorSubject = '';
 }
 
 async function uploadToServer(file: File | undefined): Promise<any> {
@@ -129,7 +193,7 @@ async function uploadToServer(file: File | undefined): Promise<any> {
 	const res = await fetch('', {
 		method: 'PATCH',
 		headers: {
-			'x-freshcraft-project-type': InternalNewProjectType.LOCAL_FILE
+			'x-freshcraft-project-type': InternalNewProjectType.LOCAL_FILE_UPLOAD
 		},
 		body: form
 	}).then((res) => res.json());
@@ -137,31 +201,73 @@ async function uploadToServer(file: File | undefined): Promise<any> {
 	console.log('Upload complete', res);
 	return res;
 }
-async function deleteFromServer(thf: typeof theHolyFile) {
+
+async function deleteFromServer(thf: typeof savedFile.theHolyFile) {
 	if (!thf.file) return;
-	console.log('Deleting from server', theHolyFile.fromServer);
+	console.log('Deleting from server', savedFile.theHolyFile.fromServer);
 	const res = await fetch('', {
 		method: 'DELETE',
 		headers: {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify({
-			...theHolyFile.fromServer
+			...savedFile.theHolyFile.fromServer
 		})
 	}).then((res) => res.json());
+	savedFile.delete();
 	console.log('Deleting from server', res);
+
 	return res;
 }
-</script>
 
-{JSON.stringify(theHolyFile, null, 2)}
-{JSON.stringify(files, null, 2)}
+onMount(() => {
+	savedFile.load();
+});
+
+async function proceedToProjectCreation() {
+	if (!browser) return;
+	// if (savedFile.fileUploadStatus == 'complete') {
+	if (savedFile.theHolyFile.selected) {
+		window.addEventListener('beforeunload', function (e) {
+			if (savedFile.fileUploadStatus == 'leaving_page') return null;
+			e.preventDefault();
+		});
+	}
+	// }
+	// proceed to project creation
+	const res = await fetch('', {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json',
+			'x-freshcraft-project-type': InternalNewProjectType.CREATE_PROJECT_FROM_LOCAL_FILE
+		},
+		body: JSON.stringify({
+			...savedFile.theHolyFile.fromServer
+		})
+	}).then((res) => res.json());
+	if (res.success) {
+		// redirect to /projects/:id/setup
+		// window.removeEventListener('beforeunload', function (e) {
+		// 	window.location.href = `/projects/${res.project_id}/setup`;
+		// });
+		// savedGithubStuff.newly_created_project = res?.project;
+		savedFile.project_url = `/projects/${res?.project?.id}/setup`;
+		savedFile.fileUploadStatus = 'leaving_page';
+		savedFile.delete();
+		window.location.href = savedFile.project_url;
+	} else {
+		savedFile.err_msg = res?.message || 'Some error occurred';
+	}
+
+	console.log('Proceed to project creation', res);
+}
+</script>
 
 <br />
 <div class="w-full">
 	<FileUploaderButton
 		bind:labelText={uploadLabelText}
-		disabled={theHolyFile.selected}
+		disabled={savedFile.theHolyFile.selected}
 		kind="secondary"
 		on:change={handleFileAdd}
 		name="project_file"
@@ -171,13 +277,30 @@ async function deleteFromServer(thf: typeof theHolyFile) {
 	<!-- accept={AllowedFileExtensions} -->
 </div>
 
-{#if theHolyFile.selected}
+{#if savedFile.theHolyFile.selected}
 	<FileUploaderItem
-		invalid={theHolyFile.invalid}
-		name={theHolyFile.name}
-		status={theHolyFile.status}
-		errorSubject={theHolyFile.errorSubject}
-		errorBody={theHolyFile.errorBody}
+		invalid={savedFile.theHolyFile.invalid}
+		name={savedFile.theHolyFile.name}
+		status={savedFile.theHolyFile.status}
+		errorSubject={savedFile.theHolyFile.errorSubject}
+		errorBody={savedFile.theHolyFile.errorBody}
 		on:delete={handleFileDelete}
 	/>
-{/if}
+
+	<div class="w-full flex gap-4">
+		<button
+			class="w-full flex gap-2 items-center justify-center bg-[var(--cds-interactive-02)] text-white py-2"
+			on:click={proceedToProjectCreation}
+		>
+			Proceed <ArrowRightIcon class="w-5 h-5" />
+		</button>
+	</div>
+{:else if savedFile.fileUploadStatus == 'leaving_page'}
+	<Tile>
+		<div class="flex flex-col items-center justify-center">
+			<div class="text-lg font-normal">Redirecting to project setup page.</div>
+			<a class="text-md py-1" href={savedFile.project_url}>Click here if not redirected</a>
+		</div>
+	</Tile>{/if}
+<PreDebug data={savedFile.theHolyFile} />
+<PreDebug data={files} />

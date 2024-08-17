@@ -13,7 +13,7 @@
 
 import { EngineConnection } from "@/server/EngineConnection";
 import type { PageServerLoad } from "./$types";
-import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET } from "$env/static/private";
+import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_WEBHOOK_PEM_KEY } from "$env/static/private";
 import { BackendEndpoints } from "@/backend-endpoints";
 import { AuthProviderType } from "@/types/enums";
 
@@ -209,6 +209,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 	gh_url.searchParams.set('code', code as string);
 
 	const gh_res = await getAccessToken(gh_url.toString(), code, fetch);
+	console.log('gh_res', gh_res);
 	if (!gh_res || !gh_res.access_token) return {
 		success: false,
 		message: 'Failed to get access token. Code is expired or invalid',
@@ -217,6 +218,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 
 	// get users info and save it
 	const gh_user = await getUserInfo(gh_res.access_token, fetch);
+	console.log('gh_user', gh_user);
 	if (!gh_user) return {
 		success: false,
 		message: 'Failed to get user info'
@@ -241,7 +243,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 		// update access token
 		partial_sysconf = {
 			systemUserOauthGithubData: {
-				access_token: gh_res.access_token
+				user_access_token: gh_res.access_token
 			}
 		}
 
@@ -275,7 +277,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 			systemUserOauthGithubEnabled: true,
 			systemUserOAuthGithubId: gh_user?.id,
 			systemUserOauthGithubData: {
-				access_token: gh_res.access_token
+				user_access_token: gh_res.access_token,
 			}
 		}
 	}

@@ -6,3 +6,6 @@ __pycache__/
 .installation-data.json
 
 fc_test/
+
+# data/uploads
+# fc_temp
