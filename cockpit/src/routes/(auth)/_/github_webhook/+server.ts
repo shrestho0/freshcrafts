@@ -23,13 +23,16 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
         return json({ message: "Unauthorized due to invalid signature" }, { status: 401 });
     }
 
+
+
     try {
+        let parsed_payload = JSON.parse(payload);
         const d = {
             timestamp: Date.now(),
             headers: {
                 "x-hub-signature-256": signature,
                 "content-type": request.headers.get("content-type"),
-                "user-agent": request.headers.get("user-agent "),
+                "user-agent": request.headers.get("user-agent"),
                 "X-GitHub-Hook-ID": request.headers.get("X-GitHub-Hook-ID"),
                 "X-GitHub-Delivery": request.headers.get("X-GitHub-Delivery"),
                 "X-GitHub-Event": request.headers.get("X-GitHub-Event"),
@@ -37,10 +40,11 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
                 "X-GitHub-Hook-Installation-Target-ID": request.headers.get("X-GitHub-Hook-Installation-Target-ID"),
             },
             clientAddress: getClientAddress(),
-            payload: JSON.parse(payload)
+            payload: parsed_payload
         }
         temp_data_arr.push(d);
     } catch (e) {
+        console.error(e);
         return json({ message: "Error parsing payload" }, { status: 400 });
     }
 
