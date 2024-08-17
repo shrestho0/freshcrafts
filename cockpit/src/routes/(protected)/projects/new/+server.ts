@@ -71,7 +71,17 @@ export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
 			}
 
 
-			console.log('rdata', rdata.data.length, Boolean(rdata.headers.link));
+			console.log('rdata', rdata?.data?.length, Boolean(rdata?.headers?.link));
+
+			// try {
+			// 	const x = await octokit.request('GET /installation/repositories', {
+			// 		per_page: 100,
+			// 		page: 1,
+			// 	})
+			// 	console.log('x', x)
+			// } catch (err: any) {
+			// 	console.log('xx', err)
+			// }
 
 			// const nextPattern = /(?<=<)([\S]*)(?=>; rel="Next")/i;
 			// const linkHeader = rdata.headers.link;
