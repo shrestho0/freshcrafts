@@ -289,9 +289,10 @@ class BarelyWorkingInstaller:
             
             # write the nginx config file
             nginx_config_file = f"/etc/nginx/sites-available/{service_name}.conf"
-            # with open(nginx_config_file, "w") as f:
-            #     f.write(nginx_template)
-            #     console.log("Nginx config file written", style="blue")
+
+            # dir = file dir
+            os.chdir(os.path.dirname(__file__))
+
             with open(f"./fc_temp/{service_name}.conf", "w") as f:
                 f.write(nginx_template)
                 console.log("Temp Nginx config file written", style="blue")

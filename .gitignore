@@ -7,5 +7,6 @@ __pycache__/
 
 fc_test/
 
-# data/uploads
-# fc_temp
+data/uploads
+fc_temp
+*.swp

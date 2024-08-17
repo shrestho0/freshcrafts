@@ -256,6 +256,7 @@ async function proceedToProjectCreation() {
 		savedFile.delete();
 		window.location.href = savedFile.project_url;
 	} else {
+		// FIXME: Fix errors
 		savedFile.err_msg = res?.message || 'Some error occurred';
 	}
 
