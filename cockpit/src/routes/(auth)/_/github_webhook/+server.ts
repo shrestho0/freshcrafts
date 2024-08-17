@@ -24,12 +24,18 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
     }
 
     try {
-
-        const headers = structuredClone(request.headers);
-        console.log(headers);
         const d = {
             timestamp: Date.now(),
-            headers,
+            headers: {
+                "x-hub-signature-256": signature,
+                "content-type": request.headers.get("content-type"),
+                "user-agent": request.headers.get("user-agent "),
+                "X-GitHub-Hook-ID": request.headers.get("X-GitHub-Hook-ID"),
+                "X-GitHub-Delivery": request.headers.get("X-GitHub-Delivery"),
+                "X-GitHub-Event": request.headers.get("X-GitHub-Event"),
+                "X-GitHub-Hook-Installation-Target-Type": request.headers.get("X-GitHub-Hook-Installation-Target-Type"),
+                "X-GitHub-Hook-Installation-Target-ID": request.headers.get("X-GitHub-Hook-Installation-Target-ID"),
+            },
             clientAddress: getClientAddress(),
             payload: JSON.parse(payload)
         }

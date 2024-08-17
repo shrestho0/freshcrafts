@@ -22,10 +22,6 @@ type User = {
 
 export const handle: Handle = async ({ event, resolve }) => {
 	console.log('[DEBUG]: hook.server.ts');
-	console.log({
-		method: event.request.method,
-		url: event.url,
-	});
 
 	// Cokies and System wide data setup
 	const authCookie = event.cookies.get(AUTH_COOKIE_NAME);
@@ -70,7 +66,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 				}) as CustomJwtPayload;
 
 				// console.log("Verified access token payload", verifiedAccessToken)
-				console.log('Verified access token payload');
+				// console.log('Verified access token payload');
 
 				event.locals.user = {
 					name: verifiedAccessToken.systemUserName,
@@ -92,7 +88,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 						unverifiedRefreshToken,
 						verifiedRefreshToken.provider
 					);
-					console.log('Refresh token response: ', res);
+					// console.log('[DEBUG]: Refresh token response: ', res);
 
 					if (res.success == true) {
 						event.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), {
@@ -107,7 +103,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 							provider: verifiedRefreshToken.provider as AuthProviderType
 						} as SystemUser;
 
-						console.log("Refreshed token: ")
+						// console.log("[DEBUG]: Refreshed token")
 						return await resolve(event); // we'll validate in the next request
 					}
 					// console.log("verified refresh token: ", verifiedRefreshToken)

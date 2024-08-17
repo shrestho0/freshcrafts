@@ -19,10 +19,12 @@ import type { ActionResult } from '@sveltejs/kit';
 import { invalidateAll } from '$app/navigation';
 import OAuth from '@/components/OAuth.svelte';
 import { AuthProviderType } from '@/types/enums';
+import GithubOAuth from './GithubOAuth.svelte';
 export let data;
 const oauth = {
 	data: {
-		githubLoginUrl: data?.githubLoginUrl,
+		// githubLoginUrl: data?.githubLoginUrl,
+		githubLoginUrl: 'https://github.com/apps/freshcrafts/installations/new',
 		googleLoginUrl: data?.googleLoginUrl,
 		githubStatus: data.systemConfig.systemUserOauthGithubEnabled ? 'connected' : 'idle',
 		googleStatus: data.systemConfig.systemUserOauthGoogleEnabled ? 'connected' : 'idle',
@@ -125,13 +127,26 @@ function enhancedFormSubmission() {
 }
 
 onMount(() => {
-	if (browser) {
-		document.cookie = 'fromPage=link; path=/; max-age=600'; //
-	}
+	// if (browser) {
+	// 	document.cookie = 'fromPage=link; path=/; max-age=600'; //
+	// }
 });
 onDestroy(() => {
+	// if (browser) {
+	// 	document.cookie = 'fromPage=link; path=/; max-age=0 ';
+	// }
+	console.log('destroyed');
 	if (browser) {
-		document.cookie = 'fromPage=link; path=/; max-age=0 ';
+		// find and remove x from cookie
+		const cookies = document.cookie.split(';');
+		for (let i = 0; i < cookies.length; i++) {
+			const cookie = cookies[i];
+			const eqPos = cookie.indexOf('=');
+			const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+			if (name.trim() === 'fromPage') {
+				document.cookie = name + '=; Max-Age=0';
+			}
+		}
 	}
 });
 </script>
@@ -236,7 +251,8 @@ onDestroy(() => {
 	<Tile class="">
 		<h2 class="text-xl font-normal">OAuth Connections</h2>
 		<Row class="flex gap-3 p-4">
-			<OAuth {connectionCallback} {disconnectionCallback} bind:data={oauth.data} />
+			<GithubOAuth sysconf={data.systemConfig} />
+			<!-- <OAuth {connectionCallback} {disconnectionCallback} bind:data={oauth.data} /> -->
 		</Row>
 	</Tile>
 </div>

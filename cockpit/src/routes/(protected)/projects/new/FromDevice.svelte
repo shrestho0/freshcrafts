@@ -1,5 +1,6 @@
 <script lang="ts">
 import { enhance } from '$app/forms';
+import { InternalNewProjectType } from '@/types/enums';
 import { AllowedFileExtensions, AllowedFileMimeTypes, MaxFileSize } from '@/utils/constraints';
 import type { ActionResult } from '@sveltejs/kit';
 import {
@@ -127,9 +128,9 @@ async function uploadToServer(file: File | undefined): Promise<any> {
 	// send to backend
 	const res = await fetch('', {
 		method: 'PATCH',
-		// headers: {
-		// 	'Content-Type': 'multipart/form-data'
-		// },
+		headers: {
+			'x-freshcraft-project-type': InternalNewProjectType.LOCAL_FILE
+		},
 		body: form
 	}).then((res) => res.json());
 	// return response

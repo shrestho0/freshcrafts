@@ -32,12 +32,12 @@ const navBarLink: MenuWithSubmenuType[] = [
 		children: undefined
 	},
 	{
-		serviceType: 'deployments',
-		title: 'Deployments',
-		href: '/deployments',
+		serviceType: 'projects',
+		title: 'Projects',
+		href: '/projects',
 		children: [
-			{ title: 'All Deployments', href: '/deployments/all' },
-			{ title: 'New Deployments', href: '/deployments/new' }
+			{ title: 'All Projects', href: '/projects/all' },
+			{ title: 'New Project', href: '/projects/new' }
 
 			// TODO: these are children of each deployment
 			// { title: 'Metrics', href: '/deployments/metrics' }, // data from watchdog

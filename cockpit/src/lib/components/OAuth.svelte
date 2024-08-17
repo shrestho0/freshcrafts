@@ -131,6 +131,12 @@ function handleOauthLogin(oauthType: 'github' | 'google') {
 		monitorPopup(popup, oauthType);
 	}
 }
+
+const fromPage = document.cookie
+	.split('; ')
+	.find((row) => row.startsWith('fromPage='))
+	?.split('=')[1];
+console.log('fromPage', fromPage);
 </script>
 
 <div class="oauth-container oauth-container">

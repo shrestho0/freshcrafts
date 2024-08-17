@@ -32,7 +32,8 @@ const steps = [
 		description: 'Setup OAuth accounts for signing in with Google, Github',
 		component: OAuth,
 		data: {
-			githubLoginUrl: githubLoginUrl,
+			// githubLoginUrl: githubLoginUrl,
+			githubLoginUrl: 'https://github.com/apps/freshcrafts/installations/new',
 			googleLoginUrl: googleLoginUrl,
 			githubStatus: 'idle',
 			googleStatus: 'idle',

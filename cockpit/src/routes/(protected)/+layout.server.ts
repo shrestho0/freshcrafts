@@ -1,7 +1,8 @@
 import { redirect } from '@sveltejs/kit';
 import type { LayoutServerLoad } from './$types';
 
-export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
+export const load: LayoutServerLoad = async ({ locals, url, cookies, parent }) => {
+	await parent();
 	let path = url.pathname?.split('/')?.slice(1).join('/');
 
 	// remove fromPage cookie

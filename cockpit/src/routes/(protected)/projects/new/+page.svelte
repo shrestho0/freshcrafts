@@ -23,10 +23,10 @@ let items = [
 		value: 'fromDevice'
 	}
 ];
-let selected: number | null = 1;
+let selected: number | null = 0;
 </script>
 
-<h1 class="text-2xl">New Deployment</h1>
+<h1 class="text-2xl">New Project</h1>
 
 <div class="w-full grid md:grid-cols-2 gap-4 py-4">
 	{#each items as item, idx}

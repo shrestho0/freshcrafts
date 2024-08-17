@@ -19,6 +19,11 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		cookies.set(OAUTH_STATE_COOKIE_NAME, oAuthState, { path: '/', maxAge: 60 * 60 * 24 * 3, secure: false });
 	}
 
+	// if (browser) {
+	// 	document.cookie = 'fromPage=link; path=/; max-age=600'; //
+	// }
+
+	// TODO: set fromPage cookie
 	return {
 		githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),

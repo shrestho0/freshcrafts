@@ -8,7 +8,7 @@ export default defineConfig({
 	server: {
 		port: 10001,
 		fs: {
-			allow: [searchForWorkspaceRoot(process.cwd()), '../data/uploads/']
+			allow: [searchForWorkspaceRoot(process.cwd()), '../fc_data/uploads/']
 		}
 	},
 	test: {

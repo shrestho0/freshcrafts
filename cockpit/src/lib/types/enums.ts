@@ -34,3 +34,8 @@ export enum DBMongoStatus {
 	UPDATE_FAILED = 'UPDATE_FAILED',
 	PENDING_DELETE = 'PENDING_DELETE'
 }
+
+export enum InternalNewProjectType {
+	LOCAL_FILE = 'LOCAL_FILE',
+	GITHUB_REPO = 'GITHUB_REPO',
+}
