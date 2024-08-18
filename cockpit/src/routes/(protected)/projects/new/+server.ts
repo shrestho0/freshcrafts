@@ -1,6 +1,6 @@
 import { FILE_UPLOAD_DIR, GITHUB_CLIENT_ID, GITHUB_WEBHOOK_PEM_KEY } from '$env/static/private';
 import { EngineConnection } from '@/server/EngineConnection';
-import { InternalNewProjectType } from '@/types/enums';
+import { InternalNewProjectType, ProjectType } from '@/types/enums';
 import messages from '@/utils/messages';
 import { fail, json, type RequestHandler } from '@sveltejs/kit';
 import fs from 'fs/promises';
@@ -207,6 +207,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 			if (repo?.downloads_url) {
 				try {
 					const sysConf = await EngineConnection.getInstance().getSystemConfig()
+					if (!sysConf) return json({ success: false, message: 'Failed to get system config' });
 					// if (!sysConf) return json({ success: false, message: 'Failed to get system config' });
 					const gh_token = sysConf.systemUserOauthGithubData?.user_access_token
 					// 
@@ -229,23 +230,29 @@ export const PATCH: RequestHandler = async ({ request }) => {
 						// get abs path of file
 						const fileAbsolutePath = path.join(process.cwd(), filePath);
 
-						const projectCreationRepoData = {
-							project_type: "github",
+						repo.is_private = repo?.private;
 
-							project_file_name: fileName,
-							// project_file_upload_dir: FILE_UPLOAD_DIR,
-							project_file_path: filePath,
-							project_file_absolute_path: fileAbsolutePath,
+						const projectCreationRepoData = {
+							type: ProjectType.GITHUB_REPO,
+							file: {
+								name: fileName,
+								path: filePath,
+								absolute_path: fileAbsolutePath,
+							},
 
 							github_repo: repo,
 							github_tar_download_url: tar_download_url,
 						}
 
-						console.log(projectCreationRepoData);
+						// console.log(projectCreationRepoData);
 
 						// send to engine
 
-						// return 
+						// const engineConn = EngineConnection.getInstance()
+						const x = await EngineConnection.getInstance().createProject(projectCreationRepoData);
+						console.log("-------------------\n", x, "\n-------------------");
+
+						return json(x);
 
 					} catch (err) {
 						console.log(err)
@@ -259,33 +266,37 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			return json({
 				success: true,
-				message: 'Not implemented yet',
-			});
+				message: 'Failed to create project from github',
+			}, { status: 400 });
 		} else if (project_type == InternalNewProjectType.CREATE_PROJECT_FROM_LOCAL_FILE) {
 
 			data = await request.json();
 
-			console.log("FILE>>>>>>>>>>>>CREATE_PROJ", data);
+			// console.log("FILE>>>>>>>>>>>>CREATE_PROJ", data);
 
 			const projectCreationRepoData = {
-				project_type: 'local_file',
+				type: ProjectType.LOCAL_FILES,
 
-				project_file_name: data?.fileName,
-				// project_file_upload_dir: FILE_UPLOAD_DIR,
-				project_file_path: data?.fileRelativePath,
-				project_file_absolute_path: data?.fileAbsolutePath,
+				file: {
+					name: data?.fileName,
+					path: data?.fileRelativePath,
+					absolute_path: data?.fileAbsolutePath,
+				},
 
 				github_repo: null,
 				github_tar_download_url: null,
 			}
 
 			console.log(projectCreationRepoData);
-
-			return json({ success: true, message: 'Not implemented yet' });
+			const x = await EngineConnection.getInstance().createProject(projectCreationRepoData);
+			console.log("-------------------\n", x, "\n-------------------");
+			return json(x);
+			// return json({ success: true, message: 'Not implemented yet' });
 		}
 		else {
 			return json({ message: 'Invalid project creation type' }, { status: 400 });
 		}
+
 
 	} catch (err: any) {
 		return json({ success: false, message: err?.message ?? 'Some error' });

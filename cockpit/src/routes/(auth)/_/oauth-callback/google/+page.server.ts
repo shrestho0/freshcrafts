@@ -1,10 +1,8 @@
 import {
 	AUTH_COOKIE_EXPIRES_IN,
 	AUTH_COOKIE_NAME,
-	GITHUB_CLIENT_SECRET,
 	GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET,
-	GOOGLE_OAUTH_CALLBACK_URL
 } from '$env/static/private';
 import type {
 	OAuthCallbackInternalResponse,
@@ -18,12 +16,13 @@ import { jwtDecode } from 'jwt-decode';
 import { BackendEndpoints } from '@/backend-endpoints';
 import { AuthProviderType } from '@/types/enums';
 import { redirect } from '@sveltejs/kit';
+import { PUBLIC_GOOGLE_OAUTH_CALLBACK_URL } from '$env/static/public';
 
 export const load: PageServerLoad = async ({ locals, url, cookies, params }) => {
 	const oauth2Client = new google.auth.OAuth2(
 		GOOGLE_CLIENT_ID,
 		GOOGLE_CLIENT_SECRET,
-		url.origin + GOOGLE_OAUTH_CALLBACK_URL
+		url.origin + PUBLIC_GOOGLE_OAUTH_CALLBACK_URL
 	);
 
 	const dataToSendToEngine: OAuthGithubDataRequestDto = {
@@ -123,7 +122,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params }) => 
 
 			return responseObject;
 		}
-	} catch (e) {}
+	} catch (e) { }
 
 	// // decoding userInfo
 	// // try {

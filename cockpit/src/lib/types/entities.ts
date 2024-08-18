@@ -1,4 +1,4 @@
-import type { AuthProviderType, DBMongoStatus, DBMysqlStatus, DBPostgresStatus, SystemWideNoitficationTypes } from './enums';
+import type { AuthProviderType, DBMongoStatus, DBMysqlStatus, DBPostgresStatus, ProjectStatus, ProjectType, SystemWideNoitficationTypes } from './enums';
 
 export type SystemUser = {
 	name: string;
@@ -59,3 +59,16 @@ export type DBMongo = {
 //     public type: SystemWideNoitficationTypes | null = null
 
 // }
+
+
+export type Project = {
+	id: string,
+	projectUniqueName: string,
+	type: ProjectType,
+	status: ProjectStatus,
+	totalVersions: number,
+	activeDeploymentId: string,
+	portAssigned: number,
+	// githubRepo: null,
+	// domain: null
+}

@@ -20,6 +20,8 @@ const files: File[] = [];
 
 let uploadLabelText = 'Upload project file';
 
+// FIXME: Server side errors are not handled
+
 const savedFile = {
 	fileX: undefined,
 	project_url: '',
@@ -251,7 +253,8 @@ async function proceedToProjectCreation() {
 		// 	window.location.href = `/projects/${res.project_id}/setup`;
 		// });
 		// savedGithubStuff.newly_created_project = res?.project;
-		savedFile.project_url = `/projects/${res?.project?.id}/setup`;
+		const proj = res?.payload;
+		savedFile.project_url = `/projects/${proj?.id}/initial-setup`;
 		savedFile.fileUploadStatus = 'leaving_page';
 		savedFile.delete();
 		window.location.href = savedFile.project_url;

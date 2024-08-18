@@ -30,10 +30,7 @@ export type GoogleOAuthLoginCallbackDto = {
 export type EngineCommonResponseDto<P = any, E = any> = {
 	success: boolean;
 	message: string | null;
-	/**
-	 * @deprecated
-	 */
-	data: any;
+	statusCode: number;
 	payload: P;
 	errors: E;
 };

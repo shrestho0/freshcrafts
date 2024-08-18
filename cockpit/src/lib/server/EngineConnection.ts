@@ -4,12 +4,11 @@ import type {
 	EngineCommonResponseDto,
 	EngineMongoDBGetOneError,
 	EngineMySQLGetOneError,
-	EngineMySQLGetOnePayload,
 	EnginePaginatedDto,
 	EnginePostgreSQLGetOneError,
 	EngineSystemConfigResponseDto
 } from '@/types/dtos';
-import type { DBMongo, DBMysql, DBPostgres } from '@/types/entities';
+import type { DBMongo, DBMysql, DBPostgres, Project } from '@/types/entities';
 import { AuthProviderType, DBMongoStatus, DBMysqlStatus } from '@/types/enums';
 import messages from '@/utils/messages';
 
@@ -18,8 +17,9 @@ import messages from '@/utils/messages';
  * @description functions per service should be moved to its own class [Not sure]
  */
 export class EngineConnection {
+
 	private static _instance: EngineConnection;
-	static getInstance(): EngineConnection {
+	public static getInstance(): EngineConnection {
 		if (!this._instance) {
 			this._instance = new EngineConnection();
 		}
@@ -28,7 +28,32 @@ export class EngineConnection {
 
 	private constructor() { }
 
-	public async getProviders(): Promise<{
+	async customFetch<T = EngineCommonResponseDto>(url: string, init?: RequestInit): Promise<T> {
+		init = init || {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			signal: AbortSignal.timeout(1000)
+		};
+
+		if (!init?.headers) {
+			init.headers = {
+				'Content-Type': 'application/json'
+			}
+		}
+
+		return await fetch(url, init).then((res) => res.json()).catch((err) => {
+			// console.log(err)
+			return {
+				success: false,
+				message: messages.RESPONSE_ERROR
+			};
+		});
+
+
+	}
+	async getProviders(): Promise<{
 		success: boolean;
 		providers: AuthProviderType[];
 		message: string;
@@ -37,7 +62,7 @@ export class EngineConnection {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			signal: AbortSignal.timeout(3000)
+			signal: AbortSignal.timeout(1000)
 		})
 			.then((res) => res.json())
 			.catch((err) => {
@@ -61,36 +86,39 @@ export class EngineConnection {
 		return res;
 	}
 
-	public async getSystemConfig(): Promise<EngineSystemConfigResponseDto> {
-		return await fetch(BackendEndpoints.SETUP_SYSCONFIG, {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((err) => {
-				return null;
-			});
+	async getSystemConfig(): Promise<EngineSystemConfigResponseDto | null> {
+		const res = await this.customFetch<EngineCommonResponseDto<EngineSystemConfigResponseDto>>(BackendEndpoints.SETUP_SYSCONFIG)
+		if (res.success) {
+			return res.payload;
+		}
+		return null;
 	}
 
-	public async updateSystemConfigPartial(
-		new_sysconf: Partial<EngineSystemConfigResponseDto>
-	): Promise<{ success: boolean; message: string; data: EngineSystemConfigResponseDto }> {
-		return (await fetch(BackendEndpoints.SETUP_SYSCONFIG, {
+	//  async updateSystemConfigPartial(
+	// 	new_sysconf: Partial<EngineSystemConfigResponseDto>
+	// ): Promise<{ success: boolean; message: string; data: EngineSystemConfigResponseDto }> {
+	// 	return (await fetch(BackendEndpoints.SETUP_SYSCONFIG, {
+	// 		method: 'PATCH',
+	// 		headers: {
+	// 			'Content-Type': 'application/json'
+	// 		},
+	// 		body: JSON.stringify(new_sysconf)
+	// 	})
+	// 		.then((res) => res.json())
+	// 		.catch((err) => {
+	// 			return { success: false, message: messages.RESPONSE_ERROR };
+	// 		})) as unknown as { success: boolean; message: string; data: EngineSystemConfigResponseDto };
+
+	// }
+
+	async updateSystemConfigPartial(new_sysconf: Partial<EngineSystemConfigResponseDto>) {
+		return this.customFetch(BackendEndpoints.SETUP_SYSCONFIG, {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify(new_sysconf)
 		})
-			.then((res) => res.json())
-			.catch((err) => {
-				return { success: false, message: messages.RESPONSE_ERROR };
-			})) as unknown as { success: boolean; message: string; data: EngineSystemConfigResponseDto };
 	}
 
-	public async generateToken(
+	async generateToken(
 		provider: AuthProviderType,
 		data: {
 			email?: string;
@@ -101,24 +129,14 @@ export class EngineConnection {
 	) {
 		switch (provider) {
 			case AuthProviderType.EMAIL_PASSWORD:
-				return await fetch(BackendEndpoints.GENERATE_TOKEN, {
+				return await this.customFetch(BackendEndpoints.GENERATE_TOKEN, {
 					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json'
-					},
 					body: JSON.stringify({
 						provider,
 						email: data.email,
 						password: data.password
 					})
 				})
-					.then((res) => res.json())
-					.catch(() => {
-						return {
-							success: false,
-							message: messages.COMMUNICATION_FAILURE
-						};
-					});
 				break;
 			default:
 				console.log('Requested Generate Token', provider, data);
@@ -126,50 +144,33 @@ export class EngineConnection {
 		}
 	}
 
-	public async refreshToken(refreshToken: string, provider: AuthProviderType) {
-		return await fetch(BackendEndpoints.REFRESH_TOKEN, {
+	async refreshToken(refreshToken: string, provider: AuthProviderType) {
+		return this.customFetch(BackendEndpoints.REFRESH_TOKEN, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify({
 				refreshToken,
 				provider
 			})
-		})
-			.then((res) => res.json())
-			.catch(() => {
-				return { success: false };
-			});
+		});
 	}
 
-	public async changePassword({
+	async changePassword({
 		oldPassword,
 		newPassword
 	}: {
 		oldPassword: string;
 		newPassword: string;
 	}) {
-		return await fetch(BackendEndpoints.CHANGE_PASSWORD, {
+		return await this.customFetch(BackendEndpoints.CHANGE_PASSWORD, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify({
 				oldPassword,
 				newPassword
 			})
 		})
-			.then((res) => res.json())
-			.catch((e) => {
-				return {
-					success: false,
-					message: messages.COMMUNICATION_FAILURE
-				};
-			});
 	}
 
-	public async getNotificaions({
+	async getNotificaions({
 		page = 1,
 		limit = 1,
 		order = 'id',
@@ -192,7 +193,7 @@ export class EngineConnection {
 
 	////////////////////////////////////////// DB MYSQL //////////////////////////////////////////
 
-	public async getMysqlDBs({
+	async getMysqlDBs({
 		page = 1,
 		pageSize = 10,
 		orderBy = 'id',
@@ -206,79 +207,29 @@ export class EngineConnection {
 		url.searchParams.append('orderBy', orderBy);
 		url.searchParams.append('sort', sort);
 
-		return await fetch(url.toString(), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch<EnginePaginatedDto<DBMysql>>(url.toString());
 	}
 
-	public async searchMysqlDBs(query: string) {
-		return await fetch(BackendEndpoints.MYSQL_SEARCH.replace(':query', query), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+	async searchMysqlDBs(query: string) {
+		return this.customFetch(BackendEndpoints.MYSQL_SEARCH.replace(':query', query));
 	}
 
 
-	public async getMysqlDB(
+	async getMysqlDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<DBMysql, EngineMySQLGetOneError>> {
-		return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', db_id), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', db_id));
 	}
 
-	public async deleteMysqlDB(
+	async deleteMysqlDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<null, EngineMySQLGetOneError>> {
-		return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', db_id), {
+		return this.customFetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', db_id), {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			}
 		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
 	}
 
-	public async updateMysqlDB(
+	async updateMysqlDB(
 		dbModelId: string,
 		newDBName: string,
 		newDBUser: string,
@@ -304,40 +255,18 @@ export class EngineConnection {
 		if (newDBUser) xObj['newDBUser'] = newDBUser;
 		if (newUserPassword) xObj['newUserPassword'] = newUserPassword;
 
-		return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', dbModelId), {
+		return this.customFetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', dbModelId), {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify(xObj)
 		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
 	}
 
-	public async revertChangesMysql(dbModelId: string): Promise<EngineCommonResponseDto<DBMysql, null>> {
+	async revertChangesMysql(dbModelId: string): Promise<EngineCommonResponseDto<DBMysql, null>> {
 		// joratali revert changes
-		return await fetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', dbModelId) + '/revert', {
+		return this.customFetch(BackendEndpoints.MYSQL_BY_ID.replace(':id', dbModelId) + '/revert', {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify({ status: DBMysqlStatus.OK })
 		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
 	}
 
 
@@ -345,7 +274,7 @@ export class EngineConnection {
 
 	////////////////////////////////////////// DB POSTGRES //////////////////////////////////////////
 
-	public async getPostgresDBs({
+	async getPostgresDBs({
 		page = 1,
 		pageSize = 10,
 		orderBy = 'id',
@@ -359,78 +288,28 @@ export class EngineConnection {
 		url.searchParams.append('orderBy', orderBy);
 		url.searchParams.append('sort', sort);
 
-		return await fetch(url.toString(), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch(url.toString());
 	}
 
-	public async searchPostgresDBs(query: string) {
-		return await fetch(BackendEndpoints.POSTGRES_SEARCH.replace(':query', query), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+	async searchPostgresDBs(query: string) {
+		return this.customFetch(BackendEndpoints.POSTGRES_SEARCH.replace(':query', query))
 	}
 
-	public async getPostgresDB(
+	async getPostgresDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<DBPostgres, EnginePostgreSQLGetOneError>> {
-		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', db_id), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', db_id))
 	}
 
-	public async deletePostgresDB(
+	async deletePostgresDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<null, EnginePostgreSQLGetOneError>> {
-		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', db_id), {
-			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			}
+		return this.customFetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', db_id), {
+			method: 'DELETE'
 		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
 	}
 
-	public async updatePostgresDB(
+	async updatePostgresDB(
 		dbModelId: string,
 		newDBName: string,
 		newDBUser: string,
@@ -456,45 +335,23 @@ export class EngineConnection {
 		if (newDBUser) xObj['newDBUser'] = newDBUser;
 		if (newUserPassword) xObj['newUserPassword'] = newUserPassword;
 
-		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', dbModelId), {
+		return this.customFetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', dbModelId), {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify(xObj)
 		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
 	}
 
-	public async revertChangesPostgres(dbModelId: string): Promise<EngineCommonResponseDto<DBPostgres, null>> {
+	async revertChangesPostgres(dbModelId: string): Promise<EngineCommonResponseDto<DBPostgres, null>> {
 		// joratali revert changes
-		return await fetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', dbModelId) + '/revert', {
+		return this.customFetch(BackendEndpoints.POSTGRES_BY_ID.replace(':id', dbModelId) + '/revert', {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify({ status: DBMysqlStatus.OK })
 		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
 	}
 
 	////////////////////////////////////////// DB MONGO //////////////////////////////////////////
 
-	public async getMongoDBs({
+	async getMongoDBs({
 		page = 1,
 		pageSize = 10,
 		orderBy = 'id',
@@ -508,78 +365,28 @@ export class EngineConnection {
 		url.searchParams.append('orderBy', orderBy);
 		url.searchParams.append('sort', sort);
 
-		return await fetch(url.toString(), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch(url.toString());
 	}
 
-	public async searchMongoDBs(query: string) {
-		return await fetch(BackendEndpoints.MONGO_SEARCH.replace(':query', query), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+	async searchMongoDBs(query: string) {
+		return this.customFetch(BackendEndpoints.MONGO_SEARCH.replace(':query', query));
 	}
 
-	public async getMongoDB(
+	async getMongoDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<DBMongo, EngineMongoDBGetOneError>> {
-		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', db_id), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch(BackendEndpoints.MONGO_BY_ID.replace(':id', db_id));
 	}
 
-	public async deleteMongoDB(
+	async deleteMongoDB(
 		db_id: string
 	): Promise<EngineCommonResponseDto<null, EngineMongoDBGetOneError>> {
-		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', db_id), {
+		return this.customFetch(BackendEndpoints.MONGO_BY_ID.replace(':id', db_id), {
 			method: 'DELETE',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		});
 	}
 
-	public async updateMongoDB(
+	async updateMongoDB(
 		dbModelId: string,
 		newDBName: string,
 		newDBUser: string,
@@ -605,45 +412,23 @@ export class EngineConnection {
 		if (newDBUser) xObj['newDBUser'] = newDBUser;
 		if (newUserPassword) xObj['newUserPassword'] = newUserPassword;
 
-		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', dbModelId), {
+		return this.customFetch(BackendEndpoints.MONGO_BY_ID.replace(':id', dbModelId), {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify(xObj)
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		});
 	}
 
-	public async revertChangesMongo(dbModelId: string): Promise<EngineCommonResponseDto<DBMongo, null>> {
+	async revertChangesMongo(dbModelId: string): Promise<EngineCommonResponseDto<DBMongo, null>> {
 		// joratali revert changes
-		return await fetch(BackendEndpoints.MONGO_BY_ID.replace(':id', dbModelId) + '/revert', {
+		return this.customFetch(BackendEndpoints.MONGO_BY_ID.replace(':id', dbModelId) + '/revert', {
 			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
 			body: JSON.stringify({ status: DBMongoStatus.OK })
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		});
 	}
 
 	////////////////////////////////////////// NOTIFICATIONS //////////////////////////////////////////
 
-	public async getPaginatedNotifications({
+	async getPaginatedNotifications({
 		page = 1,
 		pageSize = 10,
 		orderBy = 'id',
@@ -657,19 +442,25 @@ export class EngineConnection {
 		url.searchParams.append('orderBy', orderBy);
 		url.searchParams.append('sort', sort);
 
-		return await fetch(url.toString(), {
-			method: 'GET',
-			headers: {
-				'Content-Type': 'application/json'
-			}
-		})
-			.then((res) => res.json())
-			.catch((e: Error) => {
-				console.log(e);
-				return {
-					success: false,
-					message: e?.message ?? messages.RESPONSE_ERROR
-				};
-			});
+		return this.customFetch<EnginePaginatedDto<DBMysql>>(url.toString());
 	}
-}
+
+
+	////////////////////////////////////////// PROJECT STUFF //////////////////////////////////////////
+
+	async createProject(data: any) {
+		return this.customFetch(BackendEndpoints.PROJECTS_NEW, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		});
+	}
+
+	async getProject(id: string) {
+		return this.customFetch<EngineCommonResponseDto<Project>>(BackendEndpoints.PROJECT_BY_ID.replace(':id', id));
+	}
+
+	async getProjectByUniqueName(uniqueName: string): Promise<EngineCommonResponseDto<Project, null>> {
+		return this.customFetch(BackendEndpoints.PROJECT_BY_UNIQUE_NAME.replace(':id', uniqueName));
+	}
+
+}	

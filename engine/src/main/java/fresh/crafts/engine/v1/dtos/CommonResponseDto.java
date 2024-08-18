@@ -1,5 +1,7 @@
 package fresh.crafts.engine.v1.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -7,9 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties("statusCode")
 public class CommonResponseDto {
     private Boolean success;
     private String message;
+    private Integer statusCode;
 
     // TODO: remove this one from everywhere
     @Deprecated

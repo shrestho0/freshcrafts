@@ -28,6 +28,10 @@ const _endpoints = {
 
 	NOTIFICATIONS: '/notifications',
 
+	PROJECTS_NEW: '/projects',
+	PROJECT_BY_ID: '/projects/:id',
+	PROJECT_BY_UNIQUE_NAME: '/projects/:id?isIdUniqueName=true',
+
 };
 
 type BackendEndpointsType = typeof _endpoints;

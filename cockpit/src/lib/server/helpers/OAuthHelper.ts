@@ -1,10 +1,9 @@
 import {
 	GITHUB_CLIENT_ID,
-	GITHUB_OAUTH_CALLBACK_URL,
 	GOOGLE_CLIENT_ID,
 	GOOGLE_CLIENT_SECRET,
-	GOOGLE_OAUTH_CALLBACK_URL
 } from '$env/static/private';
+import { PUBLIC_GITHUB_OAUTH_CALLBACK_URL, PUBLIC_GOOGLE_OAUTH_CALLBACK_URL } from '$env/static/public';
 
 import { google } from 'googleapis';
 
@@ -17,7 +16,7 @@ export const getGithubLoginUrl = (baseUrl: string, state: string) => {
 	let loginUrl = 'https://github.com/login/oauth/authorize';
 	let github_login_url = new URL(loginUrl);
 	github_login_url.searchParams.append('client_id', GITHUB_CLIENT_ID);
-	github_login_url.searchParams.append('redirect_uri', baseUrl + GITHUB_OAUTH_CALLBACK_URL);
+	github_login_url.searchParams.append('redirect_uri', baseUrl + PUBLIC_GITHUB_OAUTH_CALLBACK_URL);
 
 	// Setup scope
 	github_login_url.searchParams.append('scope', 'user:email repo workflow');
@@ -34,7 +33,7 @@ export function getGooleLoginhUrl(baseUrl: string, state: string) {
 	const oauth2Client = new google.auth.OAuth2(
 		GOOGLE_CLIENT_ID,
 		GOOGLE_CLIENT_SECRET,
-		baseUrl + GOOGLE_OAUTH_CALLBACK_URL
+		baseUrl + PUBLIC_GOOGLE_OAUTH_CALLBACK_URL
 	);
 
 	const scopes = [

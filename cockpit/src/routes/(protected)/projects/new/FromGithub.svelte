@@ -9,6 +9,8 @@ import { humanizedTimeDifference } from '@/utils/utils';
 import type { DetailedRepository } from '@/types/github-webhook-types';
 import { browser } from '$app/environment';
 
+// FIXME: Server side errors are not handled
+
 let loading = true;
 let original_repo_data = {
 	total_count: 0,
@@ -129,13 +131,15 @@ async function handleContinue() {
 				};
 			});
 
-		if (res.success) {
+		console.log(res);
+		if (res?.success) {
 			// redirect to /projects/:id/setup
 			// window.removeEventListener('beforeunload', function (e) {
 			// 	window.location.href = `/projects/${res.project_id}/setup`;
 			// });
 			// savedGithubStuff.newly_created_project = res?.project;
-			savedGithubStuff.project_url = `/projects/${res?.project?.id}/setup`;
+			const proj = res?.payload;
+			savedGithubStuff.project_url = `/projects/${proj?.id}/initial-setup`;
 			savedGithubStuff.select_status = 'leaving_page';
 			window.location.href = savedGithubStuff.project_url;
 		} else {

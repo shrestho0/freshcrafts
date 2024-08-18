@@ -36,7 +36,7 @@ public class TokensService {
 
     public CommonResponseDto getAllowedAuthProviders() {
 
-        CommonResponseDto response = new CommonResponseDto(false, "", null, null, null);
+        CommonResponseDto response = new CommonResponseDto(false, "", 400, null, null, null);
 
         System.out.println("[DEBUG] TokensService - getAllowedAuthProviders + blacklistedTokenRepository"
                 + blacklistedTokenRepository);

@@ -3,6 +3,7 @@ package fresh.crafts.engine.v1.controllers;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,14 +23,21 @@ public class SystemConfigController {
     private SystemConfigService systemConfigService;
 
     @GetMapping("/sysconf")
-    public SystemConfig checkSysConf() {
+    public ResponseEntity<CommonResponseDto> checkSysConf() {
         Optional<SystemConfig> systemConfig = systemConfigService.getOnly();
 
+        CommonResponseDto commonResponseDto = new CommonResponseDto();
+
         if (systemConfig.isEmpty() || systemConfig.get() == null) {
-            return systemConfigService.createDefault();
+            commonResponseDto.setPayload(systemConfigService.createDefault());
+            commonResponseDto.setSuccess(commonResponseDto.getPayload() != null);
+            return ResponseEntity.ok(commonResponseDto);
+        } else {
+            commonResponseDto.setPayload(systemConfig.get());
+            commonResponseDto.setSuccess(true);
+            return ResponseEntity.ok(commonResponseDto);
         }
 
-        return systemConfig.get();
     }
 
     @PostMapping("/sysconf")

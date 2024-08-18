@@ -28,7 +28,7 @@ export const load: PageServerLoad = async ({ locals, cookies, url }) => {
 		githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
 		providers: await engine.getProviders(),
-		systemConfig: await engine.getSystemConfig()
+		systemConfig: await engine.getSystemConfig(),
 	};
 };
 

@@ -41,3 +41,14 @@ export enum InternalNewProjectType {
 	CREATE_PROJECT_FROM_GITHUB = 'CREATE_FROM_GITHUB',
 	CREATE_PROJECT_FROM_LOCAL_FILE = 'CREATE_FROM_FILE'
 }
+export enum ProjectType {
+	LOCAL_FILES = 'LOCAL_FILES',
+	GITHUB_REPO = 'GITHUB_REPO',
+}
+export enum ProjectStatus {
+	PROSESSING_SETUP = 'PROSESSING_SETUP',
+}
+
+export enum ProjectSetupCommand {
+	CHECK_UNIQUE_NAME,
+}

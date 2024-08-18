@@ -16,7 +16,7 @@ console = Console()
 progress = Progress(transient=True,)
  
 
-class BarelyWorkingInstaller:    
+class BarelyWorkingSetupWizard:    
     
     def __init__(self):
         # check_root_permission(console)
@@ -68,6 +68,11 @@ class BarelyWorkingInstaller:
         self.prepare_services()
         self.install_system_services()
         self.setup_cockpit_nginx()
+        self.complete_process()
+    def update(self):
+        self.pre_install_stuff()
+        self.prepare_services()
+        self.install_system_services()
         self.complete_process()
 
 
@@ -318,18 +323,33 @@ class BarelyWorkingInstaller:
         # console.print_json(json.dumps(env_map))
             
 
+def usage():
+    console.print("Usage: python3 setup.py [option]", style="blue")
+    console.print("Options:\n\t--install   : Install freshcrafts from source ,\n\t--update    : Update software from source ,\n\t--uninstall : Uninstall freshcrafts", style="blue")
+    sys.exit(1)
  
 if __name__ == "__main__":
-    installer = BarelyWorkingInstaller()
-    # we'll setup .env files from here too, but, not now
-    # save current dir
-    previous_dir = os.getcwd()
-    # cd to this directory
+    wizard = BarelyWorkingSetupWizard()
+
+    prev_dir = os.getcwd()
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    installer.install()
-    # installer.setup_cockpit_nginx()
-    os.chdir(previous_dir)
-    # console.print(f"visit http://{SYSTEM_DOMAIN}/_/setup", style="green")
-    # BarelyWorkingInstaller.setup_cockpit_nginx()
-    # BarelyWorkingInstaller.check_dependencies_installed()
+
+
+    # must have a flag --update, --install or --uninstall
+    if len(sys.argv) < 2:
+        usage()
+
+    if sys.argv[1] not in ["--install", "--update", "--uninstall"]:
+        console.print("Provided options is not allowed", style="red")
+        usage()
+        sys.exit(1)
+
+    if sys.argv[1] == "--install":
+        wizard.install()
+    elif sys.argv[1] == "--update":
+        wizard.update()
+    elif sys.argv[1] == "--uninstall":
+        wizard.uninstall() 
+
+    os.chdir(prev_dir)
 

@@ -1,6 +1,7 @@
 <script lang="ts">
 import { invalidateAll } from '$app/navigation';
 import { page } from '$app/stores';
+import { PUBLIC_GITHUB_OAUTH_CALLBACK_URL } from '$env/static/public';
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import type { EngineSystemConfigResponseDto } from '@/types/dtos';
 import { Button } from 'carbon-components-svelte';
@@ -9,8 +10,11 @@ import { onMount } from 'svelte';
 
 export let sysconf: EngineSystemConfigResponseDto;
 
+const redirect_url = $page.url.origin + PUBLIC_GITHUB_OAUTH_CALLBACK_URL;
+console.log('redirect_url', redirect_url);
+
 const gh_urls = {
-	install: 'https://github.com/apps/freshcrafts/installations/new'
+	install: 'https://github.com/apps/freshcrafts/installations/new' + '?redirect_url=' + redirect_url
 	// install: $page.data.githubLoginUrl
 	// authorize: ''
 };
