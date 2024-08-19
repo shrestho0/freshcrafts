@@ -1,6 +1,7 @@
-<script lang="ts">
+<!-- <script lang="ts">
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import { ProjectSetupCommand } from '@/types/enums.js';
+import { toTitleCase } from '@/utils/utils.js';
 import {
 	SelectableTile,
 	Tab,
@@ -10,7 +11,6 @@ import {
 	TextInput,
 	Tile
 } from 'carbon-components-svelte';
-import dotenv from 'dotenv';
 import { PlusSquare } from 'lucide-svelte';
 export let data;
 const projectSetup = {
@@ -21,10 +21,13 @@ const projectSetup = {
 	envFileContent: '',
 	envKV: [{ key: '', value: '' }],
 	selectedIdx: 0,
+	buildCommand: 'npm run build',
+	runCommand: 'node build/index.js',
 	messages: ['Env File Content', 'Key-Value Pairs'],
 	placeholder: `\nKEY1=value1\nKEY2=value2\n...`,
 	errorMessage: ''
 } as {
+	buildCommand: string | number | null | undefined;
 	name: string | number | null | undefined;
 	nameChecking: boolean;
 	nameOk: boolean;
@@ -128,25 +131,21 @@ function handleSearchInput({ target: { value } }: any) {
 </script>
 
 {JSON.stringify(projectSetup)}
-
-<!-- <button
-	class="w-full"
-	on:click={() => {
-		checkName();
-	}}>sds</button
-> -->
-
-<!-- Initial Setup Page -->
-<div class="intro">
+<div class="intro flex flex-col gap-1 mb-3">
 	<h1 class="text-[24px]">Initial Setup</h1>
-	<p class="text-[16px]">
-		Let's start by setting up the environment for your project. You can either upload your .env file
-		or add key-value pairs
-	</p>
+	<div class="flex flex-col">
+		<p>
+			Project Source: <span class="font-semibold">
+				{toTitleCase(data?.payload?.type?.replace('_', ' '))}</span
+			>
+		</p>
+		<p>
+			Deployment Version: <span class="font-semibold">{data?.payload?.totalVersions + 1}</span>
+		</p>
+	</div>
 </div>
 
 <div class="text-[16px] py-2">Project Name (unique):</div>
-<div>Note: If content changed or empty, do nothing;else, check every 500 ms interval</div>
 
 <TextInput
 	bind:value={projectSetup.name}
@@ -165,6 +164,10 @@ function handleSearchInput({ target: { value } }: any) {
 					? 'Name is not available'
 					: 'Only letters, numbers, hyphens, and underscores are allowed'}
 />
+<div class="expandableTile"></div>
+<div class="text-[16px] py-2">Build Command:</div>
+<TextInput bind:value={projectSetup.buildCommand} />
+<div class="text-[16px] py-2">Build Command:</div>
 
 <div class="text-[16px] py-2">Env Setup</div>
 <div class="w-full flex gap-0 items-center justify-between">
@@ -201,8 +204,7 @@ function handleSearchInput({ target: { value } }: any) {
 		</button>
 	{/each}
 </div>
-<!-- {JSON.stringify(projectSetup)} -->
-
+ 
 {#if projectSetup.selectedIdx === 0}
 	<TextArea
 		placeholder={projectSetup.placeholder}
@@ -240,4 +242,266 @@ function handleSearchInput({ target: { value } }: any) {
 {#if projectSetup.errorMessage}
 	<div class="text-red-500">{projectSetup.errorMessage}</div>
 {/if}
+ -->
+<script lang="ts">
+import PreDebug from '@/components/dev/PreDebug.svelte';
+import type { Project } from '@/types/entities.js';
+import { ProjectType } from '@/types/enums';
+import { EnvVarsUtil, toTitleCase } from '@/utils/utils';
+import {
+	ClickableTile,
+	ExpandableTile,
+	TextArea,
+	TextInput,
+	Tile,
+	TooltipIcon
+} from 'carbon-components-svelte';
+import { ChevronDown, ChevronUp, CircleFilled, Information } from 'carbon-icons-svelte';
+import { GitBranch, Github, Slash } from 'lucide-svelte';
+export let data;
+const projectX: Project = data?.payload;
+const projectSetup = {
+	projectName: '',
+	projectNameStatus: 'initially_idle',
+	envFileContent: '',
+	envKV: [],
+	options: ['From .env file', 'Key-Value Pairs'],
+	selectedOptionIdx: 0,
+	buildCommand: 'npm run build',
+	installCommand: 'npm install',
+	outputDir: 'build'
+} as {
+	projectName: string;
+	projectNameStatus: 'initially_idle' | 'checking' | 'invalid' | 'ok';
+	envFileContent: string;
+	envKV: { key: string; value: string }[];
+	options: string[];
+	selectedOptionIdx: number;
+	buildCommand: string;
+	installCommand: string;
+	outputDir: string;
+	// runCommand: string;
+};
+const expandables = {
+	env_vars: true,
+	build_output: true
+};
+
+$: {
+	if (projectSetup.selectedOptionIdx) {
+		projectSetup.envFileContent = projectSetup.envKV
+			.filter(({ key, value }) => key && value)
+			.map(({ key, value }) => `${key}=${value}`)
+			.join('\n');
+	} else {
+		const x = EnvVarsUtil.parse(projectSetup.envFileContent);
+		Object.entries(x).map(([key, value]) => projectSetup.envKV.push({ key, value }));
+	}
+}
+</script>
+
+<PreDebug data={projectSetup} />
+
+<Tile light class="px-0 mx-0 pt-0 mt-0">
+	<h1 class="text-3xl py-2">Initial Setup</h1>
+	<div class="flex items-center">
+		<p>
+			Project Source:
+			<span class="">
+				{toTitleCase(projectX?.type?.replace('_', ' ') || '')}
+			</span>
+		</p>
+
+		<span class="px-2">/</span>
+		<p>
+			Deployment Version: <span class="">{(projectX?.totalVersions || 0) + 1}</span>
+		</p>
+	</div>
+	{#if projectX?.type == ProjectType.GITHUB_REPO}
+		<p class="flex items-center py-2">
+			<Github class="h-5 w-5  " />
+			<a
+				href="https://github.com/{projectX?.githubRepo?.fullName}"
+				target="_blank"
+				class="hover:text-blue-500"
+			>
+				{projectX?.githubRepo?.fullName}
+			</a>
+			<span class="px-2">/</span>
+			<GitBranch class="h-6 w-6  p-1" />
+			<a
+				href="https://github.com/{projectX?.githubRepo?.fullName}/tree/{projectX?.githubRepo
+					?.defaultBranch}"
+				target="_blank"
+				class="hover:text-blue-500"
+			>
+				{projectX?.githubRepo?.defaultBranch}
+			</a>
+		</p>
+	{/if}
+</Tile>
+<section>
+	<!-- <Tile> -->
+	<div>Project Name</div>
+	<TextInput bind:value={projectSetup.projectName} placeholder="anonymous-monkey"></TextInput>
+
+	{#if projectSetup.projectNameStatus === 'checking'}
+		<div>Checking...</div>
+	{:else if projectSetup.projectNameStatus === 'invalid'}
+		<div>Invalid Name</div>
+	{:else if projectSetup.projectNameStatus === 'ok'}
+		<div>Available</div>
+	{:else}
+		<div>&nbsp;</div>
+	{/if}
+
+	<!-- </Tile> -->
+
+	<ClickableTile
+		class="flex items-center justify-between"
+		on:click={() => {
+			expandables.build_output = !expandables.build_output;
+		}}
+	>
+		<div>Build and output settings</div>
+		{#if expandables.build_output}
+			<ChevronUp />
+		{:else}
+			<ChevronDown />
+		{/if}
+	</ClickableTile>
+
+	{#if expandables.build_output}
+		<div class="my-3">
+			<div>
+				<div class="flex gap-1 pt-3 items-center">
+					Build Command
+					<TooltipIcon
+						tooltipText="The command to building/compiling your code."
+						direction="top"
+						icon={Information}
+						class="h-4 w-4"
+					/>
+				</div>
+				<TextInput bind:value={projectSetup.buildCommand} />
+			</div>
+
+			<div>
+				<div class="flex gap-1 pt-3 items-center">
+					Output Directory
+					<TooltipIcon
+						tooltipText="The command to building/compiling your code."
+						direction="top"
+						icon={Information}
+						class="h-4 w-4"
+					/>
+				</div>
+				<TextInput bind:value={projectSetup.outputDir} />
+			</div>
+
+			<div>
+				<div class="flex gap-1 pt-3 items-center">
+					Install Command
+					<TooltipIcon
+						tooltipText="The command to building/compiling your code."
+						direction="top"
+						icon={Information}
+						class="h-4 w-4"
+					/>
+				</div>
+				<TextInput bind:value={projectSetup.installCommand} />
+			</div>
+		</div>
+	{/if}
+
+	<ClickableTile
+		class="flex items-center justify-between"
+		on:click={() => {
+			expandables.env_vars = !expandables.env_vars;
+		}}
+	>
+		<div>Environment Variables</div>
+		{#if expandables.env_vars}
+			<ChevronUp />
+		{:else}
+			<ChevronDown />
+		{/if}
+	</ClickableTile>
+
+	{#if expandables.env_vars}
+		<Tile>
+			<div class="w-full flex gap-0 items-center justify-between">
+				{#each projectSetup.options as option, idx}
+					<button
+						role="tab"
+						tabindex="-1"
+						class="w-full focus:outline-none text-center bx--tile bx--tile--selectable"
+						class:bx--tile--is-selected={projectSetup.selectedOptionIdx === idx}
+						on:click={() => {
+							if (projectSetup.selectedOptionIdx === idx) return;
+							projectSetup.selectedOptionIdx = idx;
+							// console.log('selectedOptionIdx', projectSetup.selectedOptionIdx);
+						}}
+					>
+						<span class="bx--tile__checkmark"
+							><svg
+								xmlns="http://www.w3.org/2000/svg"
+								viewBox="0 0 32 32"
+								fill="currentColor"
+								preserveAspectRatio="xMidYMid meet"
+								width="16"
+								height="16"
+								role="img"
+								aria-label="Tile checkmark"
+								><title>Tile checkmark</title><path
+									d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM14,21.5908l-5-5L10.5906,15,14,18.4092,21.41,11l1.5957,1.5859Z"
+								></path><path
+									fill="none"
+									d="M14 21.591L9 16.591 10.591 15 14 18.409 21.41 11 23.005 12.585 14 21.591z"
+									data-icon-path="inner-path"
+								></path></svg
+							></span
+						> <span class="bx--tile-content">{option}</span>
+					</button>
+				{/each}
+			</div>
+			<div class="body">
+				{#if projectSetup.selectedOptionIdx == 0}
+					<TextArea
+						placeholder={`\nKEY1=value1\nKEY2=value2\n...`}
+						bind:value={projectSetup.envFileContent}
+						helperText="Put content of your .env file here"
+					/>
+				{:else if (projectSetup.selectedOptionIdx = 1)}
+					<div class="add-more-btn pt-3 text-right">
+						<button
+							class="  w-full bx--btn--secondary bx--btn--sm"
+							on:click={() => {
+								projectSetup.envKV = [...projectSetup.envKV, { key: '', value: '' }];
+							}}
+						>
+							Add Key-Value Pair 🔥
+						</button>
+					</div>
+					<div class="flex flex-col gap-2 py-3">
+						{#each projectSetup.envKV as x, idx}
+							<div class="flex flex-1 gap-2">
+								<TextInput size="sm" bind:value={x.key} placeholder="KEY" />
+								<TextInput size="sm" bind:value={x.value} placeholder="value" />
+								<button
+									class="bx--btn bx--btn--secondary bx--btn--sm"
+									on:click={() => {
+										projectSetup.envKV = projectSetup.envKV.filter((_, i) => i !== idx);
+									}}
+								>
+									Remove
+								</button>
+							</div>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		</Tile>
+	{/if}
+</section>
 <PreDebug {data} />

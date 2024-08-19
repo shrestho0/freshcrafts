@@ -86,3 +86,89 @@ export const hintToSSEUrlMap = new Map([
 
 // import and export all from db-stuff.ts
 export * from './db-stuff';
+
+
+export class EnvVarsUtil {
+	/**
+	 * Utility class to handle environment variables
+	 * Part of this code has been taken from motdotla/dotenv (https://github.com/motdotla/dotenv) 
+	 * which is main repository for dotenv npm package (https://www.npmjs.com/package/dotenv)
+	 * Copyright (c) 2015, Scott Motte
+	 * All rights reserved.
+	 * @credit motdotla<https://github.com/motdotla>
+	 * @license https://github.com/motdotla/dotenv/blob/master/LICENSE
+	 */
+
+	private static LINE = /(?:^|^)\s*(?:export\s+)?([\w.-]+)(?:\s*=\s*?|:\s+?)(\s*'(?:\\'|[^'])*'|\s*"(?:\\"|[^"])*"|\s*`(?:\\`|[^`])*`|[^#\r\n]+)?\s*(?:#.*)?(?:$|$)/mg
+
+	// Parse src into an Object
+	static parse(src: string): {
+		[key: string]: string
+	} {
+		const obj: {
+			[key: string]: string
+		} = {}
+
+		// Convert buffer to string
+		let lines = src.toString()
+
+		// Convert line breaks to same format
+		lines = lines.replace(/\r\n?/mg, '\n')
+
+		let match
+		while ((match = this.LINE.exec(lines)) != null) {
+			const key = match[1]
+
+			// Default undefined or null to empty string
+			let value = (match[2] || '')
+
+			// Remove whitespace
+			value = value.trim()
+
+			// Check if double quoted
+			const maybeQuote = value[0]
+
+			// Remove surrounding quotes
+			value = value.replace(/^(['"`])([\s\S]*)\1$/mg, '$2')
+
+			// Expand newlines if double quoted
+			if (maybeQuote === '"') {
+				value = value.replace(/\\n/g, '\n')
+				value = value.replace(/\\r/g, '\r')
+			}
+
+			// Add to object
+			obj[key] = value
+		}
+
+		return obj
+	}
+
+	// Stringify object into src
+	static stringify(obj: {
+		[key: string]: string
+	}) {
+		let src = ''
+		for (const key in obj) {
+			const value = obj[key]
+			src += `${key}=${value}\n`
+		}
+		return src
+	}
+
+
+
+	static parseArr(content: string): string[] {
+		const obj = this.parse(content)
+		const arr = []
+		for (const key in obj) {
+			const value = obj[key]
+			arr.push(`${key}=${value}`)
+		}
+
+		return arr
+
+	}
+
+
+}
