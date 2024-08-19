@@ -73,16 +73,16 @@ class EnvSetup:
             except Exception as e:
                 console.log(f"Error writing env file {service_name} with error: {e}", style="red")
 
-if __name__ == "__main__":
-    # save current dir
-    previous_dir = os.getcwd()
-    # get the path of this file
-    file_path = os.path.abspath(__file__)
-    # cd to this directory
-    os.chdir(os.path.dirname(file_path))
-    with Status("Setting up environment files..."):
-        EnvSetup().make_env_files_from_root_env()
-        sleep(0.5)
-    console.print("Environment files added services.", style="bold green")
-    # cd back to previous dir
-    os.chdir(previous_dir)
+    def setup_env(self):
+        # save current dir
+        previous_dir = os.getcwd()
+        # get the path of this file
+        file_path = os.path.abspath(__file__)
+        # cd to this directory
+        os.chdir(os.path.dirname(file_path))
+        with Status("Setting up environment files..."):
+            self.make_env_files_from_root_env()
+            sleep(0.5)
+        console.print("Environment files added services.", style="bold green")
+        # cd back to previous dir
+        os.chdir(previous_dir)

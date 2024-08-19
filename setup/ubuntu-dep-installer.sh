@@ -2,13 +2,15 @@
 
 # set -e
 
+sudo apt update && sudo apt upgrade -y
+
 echo "Installing dependencies..."
 
 echo "Installing python3, python3-pip"
 sudo apt install python3 python3-pip
 python3 -m pip install rich
-python3 -m pip install python-dotenv
-
+python3 -m pip install python-dotenv 
+ 
 
 
 # Docker

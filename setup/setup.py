@@ -11,7 +11,7 @@ from rich.status import Status
 from __env import DOCKER_COMPOSE_COMMAND, DOCKER_COMPOSE_FILE, REQUIRED_OPEN_PORTS, JAVA_17_AVAILABLE,JAVA_17_DIR,SYSTEM_DEPS
 from _utils.utils import parse_domain_from_env_file
 from systemd_util import SystemDUtil
-
+from setup_env import EnvSetup
 console = Console()
 progress = Progress(transient=True,)
  
@@ -321,12 +321,46 @@ class BarelyWorkingSetupWizard:
 
         # import json
         # console.print_json(json.dumps(env_map))
-            
+    def setup_env(self):
+        s = EnvSetup()
+        s.setup_env()
 
-def usage():
-    console.print("Usage: python3 setup.py [option]", style="blue")
-    console.print("Options:\n\t--install   : Install freshcrafts from source ,\n\t--update    : Update software from source ,\n\t--uninstall : Uninstall freshcrafts", style="blue")
-    sys.exit(1)
+    def uninstall(self):
+        pass
+    
+
+    def options(self):
+        return {
+            "--install": {
+                "description": "Install freshcrafts from source",
+                "function": self.install 
+            },
+            "--env": {
+                "description": "Setup environment files",
+                "function": self.setup_env
+            },
+            "--update": {
+                "description": "Update software from source",
+                "function": self.update
+            },
+            "--uninstall": {
+                "description": "Uninstall freshcrafts",
+                "function": self.uninstall
+            }
+
+        }            
+
+    def usage(self):
+        options = self.options()
+        console.print("Usage: python3 setup.py [option]", style="blue")
+        console.print("Options:")
+        # equal spacing
+        
+        for k,v in options.items():
+            space_size = 16 - len(k)
+            console.print(f"\t{k}{' '*space_size}; {v.get('description')}", style="blue")
+        sys.exit(1)
+    
  
 if __name__ == "__main__":
     wizard = BarelyWorkingSetupWizard()
@@ -337,19 +371,16 @@ if __name__ == "__main__":
 
     # must have a flag --update, --install or --uninstall
     if len(sys.argv) < 2:
-        usage()
+        wizard.usage()
 
-    if sys.argv[1] not in ["--install", "--update", "--uninstall"]:
+    if sys.argv[1] not in wizard.options().keys():
         console.print("Provided options is not allowed", style="red")
-        usage()
+        wizard.usage()
         sys.exit(1)
+    
+    # run the function
+    wizard.options().get(sys.argv[1]).get("function")()
 
-    if sys.argv[1] == "--install":
-        wizard.install()
-    elif sys.argv[1] == "--update":
-        wizard.update()
-    elif sys.argv[1] == "--uninstall":
-        wizard.uninstall() 
 
     os.chdir(prev_dir)
 
