@@ -259,7 +259,7 @@ import {
 import { ChevronDown, ChevronUp, CircleFilled, Information } from 'carbon-icons-svelte';
 import { GitBranch, Github, Slash } from 'lucide-svelte';
 export let data;
-const projectX: Project = data?.payload;
+const projectX: Project = data?.project;
 const projectSetup = {
 	projectName: '',
 	projectNameStatus: 'initially_idle',
