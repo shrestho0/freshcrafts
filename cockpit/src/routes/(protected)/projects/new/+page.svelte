@@ -7,7 +7,7 @@ import {
 	Tile,
 	TileGroup
 } from 'carbon-components-svelte';
-import { Upload, LogoGithub } from 'carbon-icons-svelte';
+import { Upload, LogoGithub, Warning } from 'carbon-icons-svelte';
 import FromDevice from './FromDevice.svelte';
 import FromGithub from './FromGithub.svelte';
 
@@ -27,6 +27,11 @@ let selected: number | null = 0;
 </script>
 
 <h1 class="text-2xl">New Project</h1>
+<p class="text-gray-500">Choose a project source</p>
+<Tile class="warning my-2 flex gap-2 items-center">
+	<Warning />
+	Currently supporting nodejs projects only
+</Tile>
 
 <div class="w-full grid md:grid-cols-2 gap-4 py-4">
 	{#each items as item, idx}

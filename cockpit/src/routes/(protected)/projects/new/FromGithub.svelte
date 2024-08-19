@@ -166,13 +166,13 @@ const headers = [
 			<InlineLoading description="Loading Repositories" />
 		</div>
 	{:else}
-		<div class="title text-2xl">Import Git Repository</div>
-		<div class="boxes">
-			<Search icon={Query} bind:value={search_query} />
-		</div>
 		<!-- <TableBody> -->
 
 		{#if savedGithubStuff.select_status == 'showing_repos'}
+			<div class="title text-2xl">Import Git Repository</div>
+			<div class="boxes">
+				<Search icon={Query} bind:value={search_query} />
+			</div>
 			{#each repos_to_show as repo, idx}
 				<!-- <TableRow> -->
 				<!-- <TableCell> -->

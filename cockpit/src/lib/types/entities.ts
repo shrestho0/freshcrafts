@@ -60,10 +60,21 @@ export type DBMongo = {
 
 // }
 
+export type ProjectGithubRepo = {
+	id: string,
+	name: string,
+	fullName: string,
+	isPrivate: boolean,
+	downloadsUrl: string,
+	tarDownloadUrl: string,
+	defaultBranch: string,
+	deploymentsUrl: string,
+}
 
 export type Project = {
+	githubRepo: ProjectGithubRepo | null;
 	id: string,
-	projectUniqueName: string,
+	uniqueName: string,
 	type: ProjectType,
 	status: ProjectStatus,
 	totalVersions: number,
