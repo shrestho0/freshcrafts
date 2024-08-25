@@ -20,6 +20,7 @@ public class GenerateTokenRequestDto {
     // for provider: OAUTH_GOOGLE
     public String googleEmail;
 
-//    public ArrayList<String> oAuthEmails; // not sure, it may have refresh token and email if required
-    
+    // public ArrayList<String> oAuthEmails; // not sure, it may have refresh token
+    // and email if required
+
 }

@@ -11,7 +11,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties("statusCode")
 public class CommonResponseDto {
-    private Boolean success;
+
+    private Boolean success = false;
     private String message;
     private Integer statusCode;
 
@@ -20,6 +21,14 @@ public class CommonResponseDto {
     private Object data;
 
     private Object payload;
+    private Object payload2;
+    private Object payload3;
+
     private Object errors;
+
+    public CommonResponseDto(Boolean success, String message) {
+        this.success = success;
+        this.message = message;
+    }
 
 }

@@ -2,15 +2,20 @@ import { FILE_UPLOAD_DIR, GITHUB_CLIENT_ID, GITHUB_WEBHOOK_PEM_KEY } from '$env/
 import { EngineConnection } from '@/server/EngineConnection';
 import { InternalNewProjectType, ProjectType } from '@/types/enums';
 import messages from '@/utils/messages';
-import { fail, json, type RequestHandler } from '@sveltejs/kit';
+import { json, type RequestHandler } from '@sveltejs/kit';
 import fs from 'fs/promises';
 import path from 'path';
 import { ulid } from 'ulid';
 
 import { GithubWebhookHelper } from '@/server/GithubWebhookHelper';
+import { FileHelper } from '@/server/FilesHelper';
+import type { ProjectDeploymentFile, ProjectDeploymentSource } from '@/types/entities';
+
 
 
 export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
+	const fileHelper = FileHelper.getInstance();
+
 	// const q = url.searchParams.get('q');
 	// let per_page: any = url.searchParams.get('per_page') || '10';
 	// let page: any = url.searchParams.get('page') || '1';
@@ -139,6 +144,7 @@ export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
 			return json({ success: false, message: "Failed to retrieve gh repos" }, { status: 400 });
 		}
 
+
 	}
 
 	return json({ message: 'Invalid request' }, { status: 400 });
@@ -146,6 +152,7 @@ export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
 };
 
 export const PATCH: RequestHandler = async ({ request }) => {
+	const fileHelper = FileHelper.getInstance();
 
 	try {
 
@@ -169,27 +176,35 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			console.log(project_file);
 
-			const fileName = `${ulid()}-${project_file.name}`;
-
-			// if no directory exists, create it
-			await fs.mkdir(FILE_UPLOAD_DIR, { recursive: true });
 
 
-			const filePath = path.join(
-				// process.cwd(),
-				// '../data/uploads',
-				FILE_UPLOAD_DIR,
-				fileName
-				// `${ulid()}-${project_file.name}`
-				// `${crypto.randomUUID()}.${(project_file as Blob).type.split('/')[1]}`
-			);
-			// check file type
-			await fs.writeFile(filePath, Buffer.from(await (project_file as Blob).arrayBuffer()));
+			// const fileName = `${ulid()}-${project_file.name}`;
+
+			// // if no directory exists, create it
+			// await fs.mkdir(FILE_UPLOAD_DIR, { recursive: true });
+
+
+			// const filePath = path.join(
+			// 	// process.cwd(),
+			// 	// '../data/uploads',
+			// 	FILE_UPLOAD_DIR,
+			// 	fileName
+			// 	// `${ulid()}-${project_file.name}`
+			// 	// `${crypto.randomUUID()}.${(project_file as Blob).type.split('/')[1]}`
+			// );
+			// // check file type
+			// await fs.writeFile(filePath, Buffer.from(await (project_file as Blob).arrayBuffer()));
+
+			// const fileHelper = FileHelper.getInstance();
+			const _fileName = `${ulid()?.slice(0, 6)}-${project_file.name}`;
+			// saving file
+			const { fileName, filePath, fileAbsPath } = await fileHelper.writeToTempFile(_fileName, Buffer.from(await (project_file as Blob).arrayBuffer()))
+
 
 			return json({
 				success: true,
 				message: 'File uploaded successfully',
-				fileAbsolutePath: process.cwd() + filePath,
+				fileAbsolutePath: fileAbsPath,
 				fileRelativePath: filePath,
 				fileName: fileName
 			});
@@ -222,23 +237,22 @@ export const PATCH: RequestHandler = async ({ request }) => {
 							}
 						}).then(res => res.blob())
 
-						// save blob to file
-						const fileName = `${repo.name}-${ulid()}.tar.gz`;
-						const filePath = path.join(FILE_UPLOAD_DIR, fileName);
-						await fs.writeFile(filePath, Buffer.from(await download.arrayBuffer()));
-
-						// get abs path of file
-						const fileAbsolutePath = path.join(process.cwd(), filePath);
+						// const fileHelper = FileHelper.getInstance();
+						const projectId: string = ulid();
+						const _fileName = `${repo.name}-${ulid()?.slice(0, 6)}.tar.gz`;
+						// saving file
+						const { fileName, filePath, fileAbsPath } = await fileHelper.writeProjectSourceFile(projectId, _fileName, Buffer.from(await download.arrayBuffer()))
 
 						repo.is_private = repo?.private;
 
 						const projectCreationRepoData = {
 							type: ProjectType.GITHUB_REPO,
+							newProjectId: projectId,
 							file: {
 								name: fileName,
 								path: filePath,
-								absolute_path: fileAbsolutePath,
-							},
+								absPath: fileAbsPath,
+							} as ProjectDeploymentFile,
 
 							github_repo: repo,
 							github_tar_download_url: tar_download_url,
@@ -249,14 +263,13 @@ export const PATCH: RequestHandler = async ({ request }) => {
 						// send to engine
 
 						// const engineConn = EngineConnection.getInstance()
-						const x = await EngineConnection.getInstance().createProject(projectCreationRepoData);
+						const x = await EngineConnection.getInstance().initProject(projectCreationRepoData);
 						console.log("-------------------\n", x, "\n-------------------");
 
 						return json(x);
 
 					} catch (err) {
 						console.log(err)
-
 					}
 				} catch (err) {
 					console.log(err)
@@ -274,21 +287,38 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			// console.log("FILE>>>>>>>>>>>>CREATE_PROJ", data);
 
+			const projectId: string = ulid();
+
+			// move from local to project
+			const { fileName, filePath, fileAbsPath } = await fileHelper.moveFileToProjectDir(projectId, data?.fileName, data?.fileAbsolutePath)
+			const { extracted, extractedAbs } = await fileHelper.decompressProjectSource(fileAbsPath, projectId);
+			console.log("DECOMPRESSED", extracted, extractedAbs);
+
 			const projectCreationRepoData = {
 				type: ProjectType.LOCAL_FILES,
-
+				newProjectId: projectId,
 				file: {
-					name: data?.fileName,
-					path: data?.fileRelativePath,
-					absolute_path: data?.fileAbsolutePath,
-				},
+					// name: data?.fileName,
+					// path: data?.fileRelativePath,
+					// absPath: data?.fileAbsolutePath,
+					name: fileName,
+					path: filePath,
+					absPath: fileAbsPath,
+				} as ProjectDeploymentFile,
+
+				src: {
+					filesDirPath: extracted,
+					filesDirAbsPath: extractedAbs,
+				} as ProjectDeploymentSource,
 
 				github_repo: null,
 				github_tar_download_url: null,
 			}
 
+			// Decompress file
+
 			console.log(projectCreationRepoData);
-			const x = await EngineConnection.getInstance().createProject(projectCreationRepoData);
+			const x = await EngineConnection.getInstance().initProject(projectCreationRepoData);
 			console.log("-------------------\n", x, "\n-------------------");
 			return json(x);
 			// return json({ success: true, message: 'Not implemented yet' });
@@ -304,7 +334,9 @@ export const PATCH: RequestHandler = async ({ request }) => {
 };
 
 export const DELETE: RequestHandler = async ({ request }) => {
-	const { fileName } = (await request.json()) as {
+	const fileHelper = FileHelper.getInstance();
+
+	const { fileName, fileAbsolutePath, fileRelativePath } = (await request.json()) as {
 		success: boolean;
 		fileAbsolutePath: string;
 		fileRelativePath: string;
@@ -316,9 +348,11 @@ export const DELETE: RequestHandler = async ({ request }) => {
 	}
 
 	try {
-		const filePath = path.join(FILE_UPLOAD_DIR, fileName);
+		// const filePath = path.join(FILE_UPLOAD_DIR, fileName);
 
-		await fs.unlink(filePath);
+		// await fs.unlink(filePath);
+		await fileHelper.deleteFile(fileRelativePath);
+
 	} catch (err: any) {
 		return json({ success: false, message: err?.message ?? 'Failed to delete file: ' + fileName });
 	}

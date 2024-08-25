@@ -269,7 +269,7 @@ const projectSetup = {
 	selectedOptionIdx: 0,
 	buildCommand: 'npm run build',
 	installCommand: 'npm install',
-	outputDir: 'build'
+	outputDir: './build'
 } as {
 	projectName: string;
 	projectNameStatus: 'initially_idle' | 'checking' | 'invalid' | 'ok';
@@ -300,7 +300,7 @@ $: {
 }
 </script>
 
-<PreDebug data={projectSetup} />
+<PreDebug {data} />
 
 <Tile light class="px-0 mx-0 pt-0 mt-0">
 	<h1 class="text-3xl py-2">Initial Setup</h1>
@@ -340,7 +340,7 @@ $: {
 		</p>
 	{/if}
 </Tile>
-<section>
+<section class="">
 	<!-- <Tile> -->
 	<div>Project Name</div>
 	<TextInput bind:value={projectSetup.projectName} placeholder="anonymous-monkey"></TextInput>
@@ -356,152 +356,157 @@ $: {
 	{/if}
 
 	<!-- </Tile> -->
+	<div class="mb-3">
+		<ClickableTile
+			class="flex items-center justify-between "
+			on:click={() => {
+				expandables.build_output = !expandables.build_output;
+			}}
+		>
+			<div class="text-xl">Build and output settings</div>
+			{#if expandables.build_output}
+				<ChevronUp />
+			{:else}
+				<ChevronDown />
+			{/if}
+		</ClickableTile>
 
-	<ClickableTile
-		class="flex items-center justify-between"
-		on:click={() => {
-			expandables.build_output = !expandables.build_output;
-		}}
-	>
-		<div>Build and output settings</div>
 		{#if expandables.build_output}
-			<ChevronUp />
-		{:else}
-			<ChevronDown />
+			<Tile class="  ">
+				<div>
+					<div class="flex gap-1 pt-3 items-center">
+						Build Command
+						<TooltipIcon
+							tooltipText="The command to building/compiling your code."
+							direction="top"
+							icon={Information}
+							class="h-4 w-4"
+						/>
+					</div>
+					<TextInput bind:value={projectSetup.buildCommand} />
+				</div>
+
+				<div>
+					<div class="flex gap-1 pt-3 items-center">
+						Output Directory
+						<TooltipIcon
+							tooltipText="The command to building/compiling your code."
+							direction="top"
+							icon={Information}
+							class="h-4 w-4"
+						/>
+					</div>
+					<TextInput bind:value={projectSetup.outputDir} />
+				</div>
+
+				<div>
+					<div class="flex gap-1 pt-3 items-center">
+						Install Command
+						<TooltipIcon
+							tooltipText="The command to building/compiling your code."
+							direction="top"
+							icon={Information}
+							class="h-4 w-4"
+						/>
+					</div>
+					<TextInput bind:value={projectSetup.installCommand} />
+				</div>
+			</Tile>
 		{/if}
-	</ClickableTile>
+	</div>
+	<div class="mb-3">
+		<ClickableTile
+			class="flex items-center justify-between"
+			on:click={() => {
+				expandables.env_vars = !expandables.env_vars;
+			}}
+		>
+			<div>Environment Variables</div>
+			{#if expandables.env_vars}
+				<ChevronUp />
+			{:else}
+				<ChevronDown />
+			{/if}
+		</ClickableTile>
 
-	{#if expandables.build_output}
-		<div class="my-3">
-			<div>
-				<div class="flex gap-1 pt-3 items-center">
-					Build Command
-					<TooltipIcon
-						tooltipText="The command to building/compiling your code."
-						direction="top"
-						icon={Information}
-						class="h-4 w-4"
-					/>
-				</div>
-				<TextInput bind:value={projectSetup.buildCommand} />
-			</div>
-
-			<div>
-				<div class="flex gap-1 pt-3 items-center">
-					Output Directory
-					<TooltipIcon
-						tooltipText="The command to building/compiling your code."
-						direction="top"
-						icon={Information}
-						class="h-4 w-4"
-					/>
-				</div>
-				<TextInput bind:value={projectSetup.outputDir} />
-			</div>
-
-			<div>
-				<div class="flex gap-1 pt-3 items-center">
-					Install Command
-					<TooltipIcon
-						tooltipText="The command to building/compiling your code."
-						direction="top"
-						icon={Information}
-						class="h-4 w-4"
-					/>
-				</div>
-				<TextInput bind:value={projectSetup.installCommand} />
-			</div>
-		</div>
-	{/if}
-
-	<ClickableTile
-		class="flex items-center justify-between"
-		on:click={() => {
-			expandables.env_vars = !expandables.env_vars;
-		}}
-	>
-		<div>Environment Variables</div>
 		{#if expandables.env_vars}
-			<ChevronUp />
-		{:else}
-			<ChevronDown />
-		{/if}
-	</ClickableTile>
-
-	{#if expandables.env_vars}
-		<Tile>
-			<div class="w-full flex gap-0 items-center justify-between">
-				{#each projectSetup.options as option, idx}
-					<button
-						role="tab"
-						tabindex="-1"
-						class="w-full focus:outline-none text-center bx--tile bx--tile--selectable"
-						class:bx--tile--is-selected={projectSetup.selectedOptionIdx === idx}
-						on:click={() => {
-							if (projectSetup.selectedOptionIdx === idx) return;
-							projectSetup.selectedOptionIdx = idx;
-							// console.log('selectedOptionIdx', projectSetup.selectedOptionIdx);
-						}}
-					>
-						<span class="bx--tile__checkmark"
-							><svg
-								xmlns="http://www.w3.org/2000/svg"
-								viewBox="0 0 32 32"
-								fill="currentColor"
-								preserveAspectRatio="xMidYMid meet"
-								width="16"
-								height="16"
-								role="img"
-								aria-label="Tile checkmark"
-								><title>Tile checkmark</title><path
-									d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM14,21.5908l-5-5L10.5906,15,14,18.4092,21.41,11l1.5957,1.5859Z"
-								></path><path
-									fill="none"
-									d="M14 21.591L9 16.591 10.591 15 14 18.409 21.41 11 23.005 12.585 14 21.591z"
-									data-icon-path="inner-path"
-								></path></svg
-							></span
-						> <span class="bx--tile-content">{option}</span>
-					</button>
-				{/each}
-			</div>
-			<div class="body">
-				{#if projectSetup.selectedOptionIdx == 0}
-					<TextArea
-						placeholder={`\nKEY1=value1\nKEY2=value2\n...`}
-						bind:value={projectSetup.envFileContent}
-						helperText="Put content of your .env file here"
-					/>
-				{:else if (projectSetup.selectedOptionIdx = 1)}
-					<div class="add-more-btn pt-3 text-right">
+			<Tile>
+				<div class="w-full flex gap-0 items-center justify-between">
+					{#each projectSetup.options as option, idx}
 						<button
-							class="  w-full bx--btn--secondary bx--btn--sm"
+							role="tab"
+							tabindex="-1"
+							class="w-full focus:outline-none text-center bx--tile bx--tile--selectable"
+							class:bx--tile--is-selected={projectSetup.selectedOptionIdx === idx}
 							on:click={() => {
-								projectSetup.envKV = [...projectSetup.envKV, { key: '', value: '' }];
+								if (projectSetup.selectedOptionIdx === idx) return;
+								projectSetup.selectedOptionIdx = idx;
+								// console.log('selectedOptionIdx', projectSetup.selectedOptionIdx);
 							}}
 						>
-							Add Key-Value Pair 🔥
+							<span class="bx--tile__checkmark"
+								><svg
+									xmlns="http://www.w3.org/2000/svg"
+									viewBox="0 0 32 32"
+									fill="currentColor"
+									preserveAspectRatio="xMidYMid meet"
+									width="16"
+									height="16"
+									role="img"
+									aria-label="Tile checkmark"
+									><title>Tile checkmark</title><path
+										d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM14,21.5908l-5-5L10.5906,15,14,18.4092,21.41,11l1.5957,1.5859Z"
+									></path><path
+										fill="none"
+										d="M14 21.591L9 16.591 10.591 15 14 18.409 21.41 11 23.005 12.585 14 21.591z"
+										data-icon-path="inner-path"
+									></path></svg
+								></span
+							> <span class="bx--tile-content">{option}</span>
 						</button>
-					</div>
-					<div class="flex flex-col gap-2 py-3">
-						{#each projectSetup.envKV as x, idx}
-							<div class="flex flex-1 gap-2">
-								<TextInput size="sm" bind:value={x.key} placeholder="KEY" />
-								<TextInput size="sm" bind:value={x.value} placeholder="value" />
-								<button
-									class="bx--btn bx--btn--secondary bx--btn--sm"
-									on:click={() => {
-										projectSetup.envKV = projectSetup.envKV.filter((_, i) => i !== idx);
-									}}
-								>
-									Remove
-								</button>
-							</div>
-						{/each}
-					</div>
-				{/if}
-			</div>
-		</Tile>
-	{/if}
+					{/each}
+				</div>
+				<div class="body">
+					{#if projectSetup.selectedOptionIdx == 0}
+						<TextArea
+							placeholder={`\nKEY1=value1\nKEY2=value2\n...`}
+							bind:value={projectSetup.envFileContent}
+							helperText="Put content of your .env file here"
+						/>
+					{:else if (projectSetup.selectedOptionIdx = 1)}
+						<div class="add-more-btn pt-3 text-right">
+							<button
+								class="  w-full bx--btn--secondary bx--btn--sm"
+								on:click={() => {
+									projectSetup.envKV = [...projectSetup.envKV, { key: '', value: '' }];
+								}}
+							>
+								Add Key-Value Pair 🔥
+							</button>
+						</div>
+						<div class="flex flex-col gap-2 py-3">
+							{#each projectSetup.envKV as x, idx}
+								<div class="flex flex-1 gap-2">
+									<TextInput size="sm" bind:value={x.key} placeholder="KEY" />
+									<TextInput size="sm" bind:value={x.value} placeholder="value" />
+									<button
+										class="bx--btn bx--btn--secondary bx--btn--sm"
+										on:click={() => {
+											projectSetup.envKV = projectSetup.envKV.filter((_, i) => i !== idx);
+										}}
+									>
+										Remove
+									</button>
+								</div>
+							{/each}
+						</div>
+					{/if}
+				</div>
+			</Tile>
+		{/if}
+	</div>
+	<div class="dep">
+		<button class="py-4 my-6 w-full bx--btn--primary">Deploy</button>
+	</div>
 </section>
 <PreDebug {data} />

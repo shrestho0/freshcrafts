@@ -71,6 +71,24 @@ export type ProjectGithubRepo = {
 	deploymentsUrl: string,
 }
 
+export type ProjectDeploymentFile = {
+	name: string;
+	path: string;
+	absPath: string;
+}
+
+
+export type ProjectDeploymentSource = {
+	filesDirPath: string;
+	filesDirAbsPath: string;
+	rootDirPath: string;
+	rootDirAbsPath: string;
+	buildDirPath: string;
+	buildDirAbsPath: string;
+}
+
+
+
 export type Project = {
 	githubRepo: ProjectGithubRepo | null;
 	id: string,
@@ -82,4 +100,15 @@ export type Project = {
 	portAssigned: number,
 	// githubRepo: null,
 	// domain: null
+}
+
+export type ProjectDeployment = {
+	id: string,
+	project?: Project,
+	version: number,
+	isDeployed: boolean,
+
+	rawFile: ProjectDeploymentFile,
+	envFile: ProjectDeploymentFile,
+	src: ProjectDeploymentSource,
 }

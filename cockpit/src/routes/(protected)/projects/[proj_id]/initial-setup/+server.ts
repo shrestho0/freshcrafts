@@ -14,6 +14,8 @@ export const PATCH: RequestHandler = async ({ request }) => {
             const result = await EngineConnection.getInstance().getProjectByUniqueName(data);
             result.success = !result.success
             return json(result, { status: result.statusCode ?? 400 });
+        case ProjectSetupCommand.DECOMPRESS_SOURCE_FILE:
+        // const 
         default:
             break;
     }

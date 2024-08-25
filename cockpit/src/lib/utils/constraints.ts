@@ -8,10 +8,11 @@
 export const AllowedFileMimeTypes = [
 	'application/x-tar',
 	'application/gzip',
-	'application/x-bzip2',
-	'application/zip'
+	// 'application/x-bzip2',
+	'application/zip',
+	// 'application/x-xz',
 ];
 
-export const AllowedFileExtensions = ['.tar', '.tar.gz', '.tar.bz2', '.zip'];
+export const AllowedFileExtensions = ['.tar', '.tar.gz', '.zip', '.gz',];
 
 export const MaxFileSize = 1024 * 1024 * 100; // 100MB

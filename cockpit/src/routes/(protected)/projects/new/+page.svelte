@@ -23,7 +23,7 @@ let items = [
 		value: 'fromDevice'
 	}
 ];
-let selected: number | null = 0;
+let selected: number | null = null;
 </script>
 
 <h1 class="text-2xl">New Project</h1>

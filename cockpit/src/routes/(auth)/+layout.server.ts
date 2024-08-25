@@ -2,6 +2,7 @@ import { getGithubLoginUrl, getGooleLoginhUrl } from '@/server/helpers/OAuthHelp
 import type { LayoutServerLoad } from './$types';
 import { ulid } from 'ulid';
 import { OAUTH_STATE_COOKIE_NAME } from '$env/static/private';
+import { PUBLIC_GITHUB_APP_INSTALLATION_URL, PUBLIC_GITHUB_OAUTH_CALLBACK_URL } from '$env/static/public';
 
 export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 	let oAuthState = cookies.get(OAUTH_STATE_COOKIE_NAME);
@@ -13,6 +14,9 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 
 	return {
 		githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
-		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState)
+		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
+		githubAppInstallUrl: PUBLIC_GITHUB_APP_INSTALLATION_URL +
+			'?redirect_url=' + url.origin +
+			PUBLIC_GITHUB_OAUTH_CALLBACK_URL
 	};
 };

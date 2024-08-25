@@ -27,11 +27,13 @@ export type GoogleOAuthLoginCallbackDto = {
 	expiry_date: number;
 };
 
-export type EngineCommonResponseDto<P = any, E = any> = {
+export type EngineCommonResponseDto<P1 = any, E = any, P2 = any, P3 = any> = {
 	success: boolean;
 	message: string | null;
 	statusCode: number;
-	payload: P;
+	payload: P1;
+	payload2: P2;
+	payload3: P3;
 	errors: E;
 };
 

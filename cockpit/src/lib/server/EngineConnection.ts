@@ -8,7 +8,7 @@ import type {
 	EnginePostgreSQLGetOneError,
 	EngineSystemConfigResponseDto
 } from '@/types/dtos';
-import type { DBMongo, DBMysql, DBPostgres, Project } from '@/types/entities';
+import type { DBMongo, DBMysql, DBPostgres, Project, ProjectDeployment } from '@/types/entities';
 import { AuthProviderType, DBMongoStatus, DBMysqlStatus } from '@/types/enums';
 import messages from '@/utils/messages';
 
@@ -448,15 +448,15 @@ export class EngineConnection {
 
 	////////////////////////////////////////// PROJECT STUFF //////////////////////////////////////////
 
-	async createProject(data: any) {
-		return this.customFetch(BackendEndpoints.PROJECTS_NEW, {
+	async initProject(data: any) {
+		return this.customFetch(BackendEndpoints.PROJECTS_INIT, {
 			method: 'POST',
 			body: JSON.stringify(data)
 		});
 	}
 
-	async getProject(id: string) {
-		return this.customFetch<EngineCommonResponseDto<Project>>(BackendEndpoints.PROJECT_BY_ID.replace(':id', id));
+	async getProject<T>(id: string) {
+		return this.customFetch<T>(BackendEndpoints.PROJECT_BY_ID.replace(':id', id));
 	}
 
 	async getProjectByUniqueName(uniqueName: string): Promise<EngineCommonResponseDto<Project, null>> {

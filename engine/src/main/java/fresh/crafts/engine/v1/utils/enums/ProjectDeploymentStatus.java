@@ -1,20 +1,29 @@
 package fresh.crafts.engine.v1.utils.enums;
 
+// Prottek state ee engine ke event send korbe
+// Then, engine will send the notification to cockpit
+// As, step by step kaj hobe,
+// if any step fails, then, further processing will be stopped
+// and, Engine ee event jabe.
 public enum ProjectDeploymentStatus {
-    REQUESTED_APPLICATION_SETUP,
-    REQUESTED_NGINX_SETUP,
-    REQUESTED_SSL_SETUP,
+    // Requested creation is set from engine
+    PRE_CREATION,
+    REQUESTED_CREATION,
+    BUILDING_PROJECT,
+    SETTING_UP_PM2,
+    SETTING_UP_NGINX,
+    SETTING_UP_SSL,
+    COMPLETED_CREATION,
 
-    REQUESTED_APPLICATION_DELETE,
-    REQUESTED_NGINX_DELETE,
+    REQUESTED_DELETION,
+    DELETING_DEPLOYMENT,
+    // on this event, engine will delete the project and send notification
+    // accordingly
+    COMPLETED_DELETION,
 
-    PROCESSING_APPLICATION_SETUP,
-    PROCESSING_NGINX_SETUP,
-    PROCESSING_SSL_SETUP,
+    FAILED_BUILD,
+    FAILED_PM2_SETUP,
+    FAILED_NGINX_SETUP,
+    FAILED_SSL_SETUP,
 
-    PROCESSING_APPLICATION_DELETE,
-    PROCESSING_NGINX_DELETE,
-
-    SUCCESSFUL_DEPLOYMENT,
-    FAILED_DEPLOYMENT,
 }

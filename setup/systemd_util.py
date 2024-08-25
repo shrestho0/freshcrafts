@@ -199,6 +199,19 @@ class SystemDUtil:
         self.ensure_log_file(error_log)
 
         return access_log, error_log
+    
+    def stop_service(self,service_name):
+        # check if service exists
+        if os.system(f"systemctl status fc_{service_name}.service") == 0:
+            os.system(f"sudo systemctl stop fc_{service_name}.service")
+            console.log("Service stopped", service_name, style="bold green")
+        # if exists, stop it
+    def disable_service(self,service_name):
+        # check if service exists
+        if os.system(f"systemctl status fc_{service_name}.service") == 0:
+            os.system(f"sudo systemctl disable fc_{service_name}.service")
+            console.log("Service disabled", service_name, style="bold green")
+        # if exists, stop it
 
 
 

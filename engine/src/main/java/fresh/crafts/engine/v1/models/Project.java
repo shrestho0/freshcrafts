@@ -25,8 +25,12 @@ public class Project {
     ProjectStatus status;
 
     Integer totalVersions;
+    Integer activeVersion;
 
+    // as long as deployment version is active
     String activeDeploymentId;
+    // mainly for while deployment is in progress
+    String currentDeploymentId;
 
     Integer portAssigned;
 

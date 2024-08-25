@@ -1,12 +1,12 @@
 package fresh.crafts.wiz_mysql.utils.enums;
 
+// TODO: all the producers should same accross services
 public enum KEventProducers {
     ENGINE,
     NOTIFICATION,
     WIZARD_MYSQL,
     WIZARD_POSTGRES,
     WIZARD_MONGO,
-    WIZARD_APP,
-    WIZARD_NGINX,
+    DEP_WIZARD,
     // more like application and other
 }

@@ -59,6 +59,15 @@ FC_SERVICES_INFO = {
         "SYSTEMD_EXECUTABLE_FILE": "../wiz_mongo/target/wiz_mongo-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
     },
+    
+    "dep_wizard": {
+        "ENV_FILE": "../dep_wizard/src/main/resources/application.properties",
+        "SRC_DIR": "../dep_wizard",
+        "SYSTEMD_SERVICE_NAME": "fc_dep_wizard",
+        "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
+        "SYSTEMD_EXECUTABLE_FILE": "../dep_wizard/target/dep_wizard-0.0.1-SNAPSHOT.jar",
+        "SYSTEMD_EXEC_COMMAND": "java -jar ",
+    },
 
 
     "cockpit": {

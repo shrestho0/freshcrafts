@@ -24,15 +24,15 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
-    @PostMapping("")
-    public ResponseEntity<CommonResponseDto> createProject(
+    @PostMapping("/init")
+    public ResponseEntity<CommonResponseDto> initProject(
             @RequestBody CreateProjectRequestDto createProjectDto) {
 
         // response dto
         CommonResponseDto res = new CommonResponseDto();
 
         // create project
-        projectService.createProject(res, createProjectDto);
+        projectService.initProject(res, createProjectDto);
 
         ResponseEntity<CommonResponseDto> response = ResponseEntity.status(res.getStatusCode()).body(res);
         return response;

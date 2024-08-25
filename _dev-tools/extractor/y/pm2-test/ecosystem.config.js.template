@@ -1,0 +1,24 @@
+module.exports = {
+  apps: [
+    {
+      name: "{NAME}",
+
+      script: "{SCRIPT}",
+      interpreter: "{INTERPRETER}",
+      interpreter_args: "{INTERPRETER_ARGS}",
+      error_file: "{ERROR_LOG_FILE}",
+      out_file: "{OUTPUT_LOG_FILE}",
+      log_date_format: "YYYY-MM-DD HH:mm:ss",
+      max_memory_restart: "{MAX_MEMORY_RESTART}",
+      restart_delay: {RESTART_DELAY},
+      source_map_support: true,
+      cron_restart: "{CRON_RESTART}", // every 1 minute
+      autorestart: {AUTO_RESTART},
+      env_production: {
+        "PORT": {PORT},
+        "HOST": "{HOST}",
+        "ORIGIN": "{ORIGIN}"
+      }
+    }
+  ]
+}

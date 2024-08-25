@@ -1,119 +1,164 @@
 <script lang="ts">
-import { Button, InlineNotification, Loading } from 'carbon-components-svelte';
-import Account from './Account.svelte';
-import Review from './Review.svelte';
-import { onDestroy, onMount } from 'svelte';
-import { browser } from '$app/environment';
+import { toTitleCase } from '@/utils/utils';
+import { Button, InlineNotification, Loading, InlineLoading } from 'carbon-components-svelte';
+import { onMount } from 'svelte';
+import Account from '../../../../../lib/components/Account.svelte';
 import type { SetupPageAccountData, SetupPageOauthData } from '@/types/internal';
-import OAuth from '@/components/OAuth.svelte';
-
-export let data;
-const { githubLoginUrl, googleLoginUrl } = data;
-
+import PreDebug from '@/components/dev/PreDebug.svelte';
+import type { EngineSystemConfigResponseDto } from '@/types/dtos';
+import CommonOAuth from '@/components/CommonOAuth.svelte';
+import { page } from '$app/stores';
+import {
+	PUBLIC_GITHUB_APP_INSTALLATION_URL,
+	PUBLIC_GITHUB_OAUTH_CALLBACK_URL,
+	PUBLIC_GOOGLE_OAUTH_CALLBACK_URL
+} from '$env/static/public';
+import { LogoGithub } from 'carbon-icons-svelte';
+import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
+import Review from './Review.svelte';
+import { enhance } from '$app/forms';
+import type { ActionResult } from '@sveltejs/kit';
 const steps = [
 	{
-		title: 'Welcome',
+		key: 'welcome',
+		title: 'Welcome to FreshCrafts',
 		description:
 			'Welcome to the setup wizard. This wizard will guide you through the setup process.',
-		component: null
+
+		prevButtonText: 'Cancel',
+		prevButtonCallback: () => {
+			window.location.href = '/';
+		},
+		nextButtonText: 'Get Started',
+		nextButtonCallback: () => {
+			nextStep();
+		}
 	},
 	{
+		key: 'account',
 		title: 'Account',
 		description: 'Setup up your email password for the system.',
-		component: Account,
-		data: {
-			email: '',
-			password: '',
-			name: ''
-		} as SetupPageAccountData
+		prevButtonText: 'Back',
+		prevButtonCallback: () => {
+			prevStep();
+		},
+		nextButtonText: 'Next',
+		nextButtonCallback: () => {
+			nextStep();
+		}
 	},
 	{
+		key: 'oauth',
 		title: 'OAuth',
-		description: 'Setup OAuth accounts for signing in with Google, Github',
-		component: OAuth,
-		data: {
-			// githubLoginUrl: githubLoginUrl,
-			githubLoginUrl: 'https://github.com/apps/freshcrafts/installations/new',
-			googleLoginUrl: googleLoginUrl,
-			githubStatus: 'idle',
-			googleStatus: 'idle',
-			githubOAuthJson: null,
-			googleOAuthJson: null,
-			oAuthGoogleEmail: '',
-			oAuthGithubId: ''
-		} as SetupPageOauthData
+		description: 'Setup OAuth for your system. Github repos permission will be set from here',
+		prevButtonText: 'Back',
+		prevButtonCallback: () => {
+			prevStep();
+		},
+		nextButtonText: 'Next',
+		nextButtonCallback: () => {
+			nextStep();
+		}
 	},
 	{
-		title: 'Confirm Setup',
-		description: 'Review your setup and confirm your settings',
-		component: Review
-	},
-	{
-		title: 'Setup Complete!',
-		description: 'Setup is complete. You can now login to your account.',
-		component: null
+		key: 'review',
+		title: 'Review',
+		description: 'Review your setup before finalizing',
+		prevButtonText: 'Back',
+		prevButtonCallback: () => {
+			prevStep();
+		}
 	}
 ];
-let currentStep = 0;
 
-let sideLoadingIcon = false;
+let currentStepIdx = 0;
+let stepLoading = true;
+let stepErrorMessage = '';
+let errors = {
+	systemUserEmail: '',
+	systemUserName: '',
+	systemUserPasswordHash: ''
+} as any;
+$: currentStep = steps[currentStepIdx];
 
-let error_message = '';
-async function confirmSetup() {
-	sideLoadingIcon = true;
-	// on success
-	const res = await fetch('', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({ account: steps[1].data, oauth: steps[2].data })
-	}).then((res) => res.json());
-
-	console.log('res', res);
-
-	if (res?.success) {
-		sideLoadingIcon = false;
-		currentStep++;
-	} else {
-		sideLoadingIcon = false;
-		error_message = res?.message ?? 'Failed to configure sysconf';
-	}
-	// setTimeout(() => {
-	// 	sideLoadingIcon = false;
-	// 	currentStep++;
-	// }, 2000);
+export let data;
+let sysConf: EngineSystemConfigResponseDto;
+$: {
+	sysConf = data?.sysConf as EngineSystemConfigResponseDto;
+	console.log('sysConf', sysConf);
 }
 
-function cancelSetup() {
-	// on cancel
-	if (confirm('Are you sure you want to cancel the setup?')) {
-		window.location.reload();
-	}
-}
+// $: {
+// 	sysConf = data?.sysConf as EngineSystemConfigResponseDto;
+// }
 
 onMount(() => {
-	if (browser) {
-		document.cookie = 'fromPage=setup; path=/; max-age=600'; //
+	const paramStep = $page.url.searchParams.get('step');
+	if (paramStep) {
+		const stepIdx = findIndexByKey(paramStep as keyof typeof steps);
+		if (stepIdx !== -1) {
+			currentStepIdx = stepIdx;
+		}
+
+		// remove the query param
+		history.replaceState({}, '', $page.url.pathname);
 	}
+	stepLoading = false;
 });
-onDestroy(() => {
-	if (browser) {
-		document.cookie = 'fromPage=setup; path=/; max-age=0 ';
+
+function findIndexByKey(key: keyof typeof steps) {
+	return steps.findIndex((step) => step.key === key);
+}
+function hasNextStep() {
+	return currentStepIdx < steps.length - 1;
+}
+function hasPrevStep() {
+	return currentStepIdx > 0;
+}
+function prevStep() {
+	if (hasPrevStep()) {
+		currentStepIdx--;
 	}
-});
+}
+function nextStep() {
+	if (hasNextStep()) {
+		currentStepIdx++;
+	}
+}
+
+function enhanceUserPassSubmission() {
+	return async ({ result }: { result: ActionResult }) => {
+		Object.keys(errors).forEach((key) => {
+			errors[key] = '';
+		});
+
+		if (result.type === 'success') {
+			console.log('success');
+			// nextStep();
+			window.location.href = '/';
+		} else if (result.type === 'failure') {
+			console.log('failure', result?.data);
+			errors = result?.data ?? {
+				systemUserEmail: '',
+				systemUserName: '',
+				systemUserPasswordHash: ''
+			};
+			// stepErrorMessage = result?.data?.message ?? 'An error occurred';
+			// window.history.pushState({}, '', '/_/setup?step=account');
+
+			currentStepIdx = 1;
+		}
+	};
+}
 </script>
 
-<!-- <PreDebug data={steps} /> -->
-
-<Loading active={sideLoadingIcon} />
-
-<div class="w-full h-screen flex flex-col items-center justify-center pb-16 select-none">
+<Loading active={stepLoading} />
+<div class="w-full h-screen flex flex-col items-center justify-center pb-16">
 	<div class=" flex flex-col justify-between min-h-[20%] w-[40rem] bg-[#393939]">
-		{#if error_message}
+		{#if stepErrorMessage}
 			<InlineNotification
 				title="Error:"
-				subtitle={error_message}
+				subtitle={stepErrorMessage}
 				hideCloseButton
 				class="py-0 my-0 bg-[#393939] text-white  "
 			/>
@@ -122,82 +167,98 @@ onDestroy(() => {
 
 		<div class=" py-2">
 			<div class="flex items-center justify-between">
-				{#if !(currentStep === steps.length - 1)}
-					<h1 class="text-lg font-light text-white px-4 py-2">Setup Step: {currentStep + 1}</h1>
-				{/if}
+				<!-- {#if !(currentStep === steps.length - 1)} -->
+				<h1 class="text-lg font-light text-white px-4 py-2">
+					Setup Step: {currentStepIdx + 1}
+				</h1>
+				<!-- {/if} -->
 				<!-- <LoaderCircle class=" animate-spin h-6 w-6 mr-4 {!sideLoadingIcon ? 'hidden' : 'block'}" /> -->
 			</div>
 			<div class="w-full h-full p-4 py-4">
 				<div class="title">
-					<h1 class="text-4xl font-bold">{steps[currentStep].title}</h1>
-					<p class="text-md">{steps[currentStep].description}</p>
-					{#if steps[currentStep].component}
-						<div class="py-3">
-							{#if currentStep === 3}
+					<h1 class="text-4xl font-bold">{currentStep.title}</h1>
+					<p class="text-md">{currentStep.description}</p>
+					<!-- {#if steps[currentStep].component} -->
+					<div class="py-3">
+						{#if currentStep?.key === 'account'}
+							<Account bind:data={sysConf} bind:errors />
+						{:else if currentStep?.key === 'oauth'}
+							<div class="flex flex-col gap-3">
+								{#key sysConf}
+									<CommonOAuth
+										connTitle="Github"
+										icon={LogoGithub}
+										url={data?.githubAppInstallUrl}
+										removeConnFormEndpoint="?/removeGithub"
+										connEnabled={sysConf.systemUserOauthGithubEnabled}
+									/>
+
+									<CommonOAuth
+										connTitle="Google"
+										icon={GoogleIcon}
+										url={data?.googleLoginUrl}
+										removeConnFormEndpoint="?/removeGoogle"
+										connEnabled={sysConf.systemUserOauthGoogleEnabled}
+									/>
+								{/key}
+							</div>
+						{:else if currentStep?.key == 'review'}
+							<Review sysConfig={sysConf} />
+						{/if}
+					</div>
+					<!-- {#if currentStep === 3}
 								<Review account={steps[1]} oauth={steps[2]} />
+							{:else if currentStep === 2}
+								<CommonOAuth />
 							{:else}
 								<svelte:component
 									this={steps[currentStep].component}
 									bind:data={steps[currentStep].data}
 								/>
-							{/if}
-						</div>
-					{/if}
+							{/if} -->
+					<!-- {/if} -->
 				</div>
 			</div>
 		</div>
 
 		<div class="flex justify-between w-full">
-			{#if currentStep === 3}
-				<!-- <Button class="w-full" kind="secondary" on:click={cancelSetup}>Cancel</Button> -->
-				<Button
-					class="w-full"
-					kind="secondary"
-					on:click={() => {
-						currentStep = Math.max(0, currentStep - 1);
-					}}
-				>
-					Back
-				</Button><Button class="w-full " kind="primary" on:click={confirmSetup}>Confirm</Button>
-			{:else if currentStep === 4}
-				<Button
-					kind="tertiary"
-					class="w-full btn-full"
-					style="max-width:unset;text-align:center;"
-					on:click={() => {
-						window.location.href = '/signin';
-					}}
-					>Go to login page
+			{#if currentStep && currentStep?.prevButtonText && currentStep?.prevButtonCallback}
+				<Button kind="secondary" class="w-full" on:click={currentStep.prevButtonCallback}>
+					{currentStep.prevButtonText}
 				</Button>
-			{:else}
-				<Button
-					class="w-full"
-					kind="secondary"
-					on:click={() => {
-						currentStep = Math.max(0, currentStep - 1);
-					}}
-				>
-					Back
-				</Button>
+			{/if}
 
-				<Button
-					kind="primary"
-					class="w-full"
-					on:click={() => {
-						currentStep = Math.min(steps.length - 1, currentStep + 1);
-					}}
-				>
-					Next
+			{#if currentStep && currentStep?.nextButtonText && currentStep?.nextButtonCallback}
+				<Button kind="primary" class="w-full " on:click={currentStep.nextButtonCallback}>
+					{currentStep.nextButtonText}
 				</Button>
+			{/if}
+
+			{#if currentStep && currentStep?.key == 'review'}
+				<form
+					method="post"
+					action="?/saveUserInfo"
+					class="w-full"
+					on:submit={() => {
+						errors = {
+							systemUserEmail: '',
+							systemUserName: '',
+							systemUserPasswordHash: ''
+						};
+					}}
+					use:enhance={enhanceUserPassSubmission}
+				>
+					<input type="hidden" name="systemUserEmail" value={sysConf.systemUserEmail} />
+					<input type="hidden" name="systemUserName" value={sysConf.systemUserName} />
+					<input
+						type="hidden"
+						name="systemUserPasswordHash"
+						value={sysConf.systemUserPasswordHash}
+					/>
+					<Button kind="primary" class="w-full " type="submit">Finalize Setup</Button>
+				</form>
 			{/if}
 		</div>
 	</div>
 </div>
-
-<pre>
-
-	{JSON.stringify(steps, null, 2)}
-</pre>
-
-<style>
-</style>
+<PreDebug classes="bg-black text-white" {data}></PreDebug>

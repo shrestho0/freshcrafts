@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import fresh.crafts.engine.v1.entities.ProjectDeploymentFile;
+import fresh.crafts.engine.v1.entities.ProjectDeploymentSource;
 import fresh.crafts.engine.v1.utils.UlidGenerator;
 import fresh.crafts.engine.v1.utils.enums.ProjectDeploymentStatus;
 import lombok.Data;
@@ -21,7 +22,6 @@ public class ProjectDeployment {
     ProjectDeploymentStatus status;
 
     Boolean isDeployed;
-    Boolean isActive;
 
     // save other necceassary fields
     // for:
@@ -29,8 +29,10 @@ public class ProjectDeployment {
     // github commit sha might help
     // String githubCommit;
 
-    ProjectDeploymentFile srcFile;
+    ProjectDeploymentFile rawFile;
     ProjectDeploymentFile envFile;
+
+    ProjectDeploymentSource src;
 
     public ProjectDeployment() {
         this.id = UlidGenerator.generate();

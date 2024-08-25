@@ -2,6 +2,8 @@ import { EngineConnection } from "@/server/EngineConnection";
 import type { Actions, PageServerLoad } from "./$types";
 import { ProjectStatus } from "@/types/enums";
 import { error, redirect } from "@sveltejs/kit";
+import type { EngineCommonResponseDto } from "@/types/dtos";
+import type { Project, ProjectDeployment } from "@/types/entities";
 
 
 export const load: PageServerLoad = async ({ locals, parent, params }) => {
@@ -9,20 +11,29 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
 
 
     const { proj_id } = params;
-    const proj = await EngineConnection.getInstance().getProject(proj_id)
+    const proj = await EngineConnection.getInstance().getProject<EngineCommonResponseDto<Project, null, ProjectDeployment>>(proj_id)
 
-    console.log('proj', proj)
+    console.warn('proj', proj)
 
     if (proj.success == false) {
         return error(404, 'Project not found')
     }
 
-    if (proj.payload.status === ProjectStatus.PROSESSING_SETUP) {
+    const fileHelper = await EngineConnection.getInstance();
+
+    if (proj.payload.status === ProjectStatus.PROCESSING_SETUP) {
         // ok
-        return { project: proj.payload, }
+        return { project: proj.payload, deployment: proj.payload3 }
     } else {
         // redirect to the project page
         return redirect(307, `/projects/${proj_id}`)
     }
 
+};
+
+
+export const actions: Actions = {
+    requestDeployment: async ({ request }) => {
+
+    }
 };

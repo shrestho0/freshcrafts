@@ -28,7 +28,7 @@ const _endpoints = {
 
 	NOTIFICATIONS: '/notifications',
 
-	PROJECTS_NEW: '/projects',
+	PROJECTS_INIT: '/projects/init',
 	PROJECT_BY_ID: '/projects/:id',
 	PROJECT_BY_UNIQUE_NAME: '/projects/:id?isIdUniqueName=true',
 

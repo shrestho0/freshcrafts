@@ -8,8 +8,10 @@ import { PUBLIC_GITHUB_OAUTH_CALLBACK_URL, PUBLIC_GOOGLE_OAUTH_CALLBACK_URL } fr
 
 import { google } from 'googleapis';
 
+
 /*
-ALL THESE SHOULD BE UNDER server/utils */
+	FIXME: MOVE THIS TO PARENT DIRECTORY
+*/
 
 export const getGithubLoginUrl = (baseUrl: string, state: string) => {
 	// if (!browser) return;
