@@ -16,6 +16,7 @@ import type { PageServerLoad } from "./$types";
 import { AUTH_COOKIE_EXPIRES_IN, AUTH_COOKIE_NAME, GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GITHUB_WEBHOOK_PEM_KEY } from "$env/static/private";
 import { BackendEndpoints } from "@/backend-endpoints";
 import { AuthProviderType } from "@/types/enums";
+import type { EngineSystemConfigResponseDto } from "@/types/dtos";
 
 // export const load: PageServerLoad = async ({ locals, url, cookies, params }) => {
 // 	const dataToSendToEngine: OAuthGithubDataRequestDto = {
@@ -189,9 +190,22 @@ import { AuthProviderType } from "@/types/enums";
 
 export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch }) => {
 
+	// const code = url.searchParams.get('code');
+	// const isSetupAction = url.searchParams.get('setup_action') == 'install';
+
+	// const closeWindow = from_page == 'setup' || from_page == 'link'
+
+	// if (!code) {
+	// 	return {
+	// 		success: false,
+	// 		message: 'Code not found'
+	// 	}
+	// }
+
+
+
 	const from_page = cookies.get('fromPage') as 'setup' | 'link' | undefined;
 	const code = url.searchParams.get('code');
-	const isSetupAction = url.searchParams.get('setup_action') == 'install';
 
 	const closeWindow = from_page == 'setup' || from_page == 'link'
 
@@ -201,56 +215,61 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 			message: 'Code not found'
 		}
 	}
+	try {
 
 
-	const gh_url = new URL('https://github.com/login/oauth/access_token');
-	gh_url.searchParams.set('client_id', GITHUB_CLIENT_ID);
-	gh_url.searchParams.set('client_secret', GITHUB_CLIENT_SECRET);
-	gh_url.searchParams.set('code', code as string);
+		const gh_url = new URL('https://github.com/login/oauth/access_token');
+		gh_url.searchParams.set('client_id', GITHUB_CLIENT_ID);
+		gh_url.searchParams.set('client_secret', GITHUB_CLIENT_SECRET);
+		gh_url.searchParams.set('code', code as string);
 
-	const gh_res = await getAccessToken(gh_url.toString(), code, fetch);
-	console.log('gh_res', gh_res);
-	if (!gh_res || !gh_res.access_token) return {
-		success: false,
-		message: 'Failed to get access token. Code is expired or invalid',
+		const gh_res = await getAccessToken(gh_url.toString(), code, fetch);
+		console.log('gh_res', gh_res);
+		if (!gh_res || !gh_res.access_token) return {
+			success: false,
+			message: 'Failed to get access token. Code is expired or invalid',
 
-	};
+		};
 
-	// get users info and save it
-	const gh_user = await getUserInfo(gh_res.access_token, fetch);
-	console.log('gh_user', gh_user);
-	if (!gh_user) return {
-		success: false,
-		message: 'Failed to get user info'
-	}
-
-
-	// jodi ager theke github thake, validate
-	// else new one is the only one
-	const sysConf = await EngineConnection.getInstance().getSystemConfig();
-	let partial_sysconf = {};
-	if (sysConf?.systemUserOauthGithubEnabled && sysConf?.systemUserOAuthGithubId) {
-		// github enabled
-		// validate
-		console.log('github enabled')
-		if (sysConf.systemUserOAuthGithubId != gh_user?.id) {
-			return {
-				success: false,
-				message: 'Github account mismatch'
-			}
+		// get users info and save it
+		const gh_user = await getUserInfo(gh_res.access_token, fetch);
+		console.log('gh_user', gh_user);
+		if (!gh_user) return {
+			success: false,
+			message: 'Failed to get user info'
 		}
 
-		// update access token
-		partial_sysconf = {
+
+		const sysconfToUpdate: Partial<EngineSystemConfigResponseDto> = {
+			systemUserOauthGithubEnabled: true,
+			systemUserOAuthGithubId: gh_user?.id,
 			systemUserOauthGithubData: {
-				user_access_token: gh_res.access_token
+				user_access_token: gh_res.access_token,
 			}
 		}
+
+		const actualSysConf = await EngineConnection.getInstance().getSystemConfig();
+
+		if (actualSysConf?.systemUserOauthGithubEnabled && actualSysConf?.systemUserOAuthGithubId) {
+			if (sysconfToUpdate.systemUserOAuthGithubId != actualSysConf.systemUserOAuthGithubId) {
+				throw new Error('Github account mismatch')
+			}
+		}
+
+
+		const up = await EngineConnection.getInstance().updateSystemConfigPartial(sysconfToUpdate)
+
+
+		if (!up.success) {
+			return up
+		}
+
+
 
 		if (from_page != 'setup' && from_page != 'link') {
 			// generateToken
 			console.log('\n\nGenerating token\n\n')
-			const tokens = await generateEngineTokens(gh_user.id, fetch);
+			const tokens = await generateEngineTokens(sysconfToUpdate.systemUserOAuthGithubId, fetch);
 			console.log('TOKEN GENERATION RESPONSE', tokens);
 			if (!tokens.success) {
 				return {
@@ -271,36 +290,116 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 
 
 
-	} else {
-		// valiate code
-		partial_sysconf = {
-			systemUserOauthGithubEnabled: true,
-			systemUserOAuthGithubId: gh_user?.id,
-			systemUserOauthGithubData: {
-				user_access_token: gh_res.access_token,
-			}
+		return {
+			success: true,
+			message: 'Github oauth success',
+			closeWindow
 		}
-	}
-
-	// if any key is present in partial_sysconf update
-	if (Object.keys(partial_sysconf).length > 0) {
-		// save to engine
-		const up = await EngineConnection.getInstance().updateSystemConfigPartial(partial_sysconf)
-		if (up.success) {
-			return {
-				success: true,
-				message: 'Github oauth success',
-				closeWindow: closeWindow,
-			}
-		}
-
-		return up;
-	} else {
+	} catch (e: any) {
 		return {
 			success: false,
-			message: 'Invalid request'
+			message: e?.message ?? 'Failed to authorize Github OAuth'
 		}
 	}
+
+	// const gh_url = new URL('https://github.com/login/oauth/access_token');
+	// gh_url.searchParams.set('client_id', GITHUB_CLIENT_ID);
+	// gh_url.searchParams.set('client_secret', GITHUB_CLIENT_SECRET);
+	// gh_url.searchParams.set('code', code as string);
+
+	// const gh_res = await getAccessToken(gh_url.toString(), code, fetch);
+	// console.log('gh_res', gh_res);
+	// if (!gh_res || !gh_res.access_token) return {
+	// 	success: false,
+	// 	message: 'Failed to get access token. Code is expired or invalid',
+
+	// };
+
+	// // get users info and save it
+	// const gh_user = await getUserInfo(gh_res.access_token, fetch);
+	// console.log('gh_user', gh_user);
+	// if (!gh_user) return {
+	// 	success: false,
+	// 	message: 'Failed to get user info'
+	// }
+
+
+	// // jodi ager theke github thake, validate
+	// // else new one is the only one
+	// const sysConf = await EngineConnection.getInstance().getSystemConfig();
+	// let partial_sysconf = {};
+	// if (sysConf?.systemUserOauthGithubEnabled && sysConf?.systemUserOAuthGithubId) {
+	// 	// github enabled
+	// 	// validate
+	// 	console.log('github enabled')
+	// 	if (sysConf.systemUserOAuthGithubId != gh_user?.id) {
+	// 		return {
+	// 			success: false,
+	// 			message: 'Github account mismatch'
+	// 		}
+	// 	}
+
+	// 	// update access token
+	// 	partial_sysconf = {
+	// 		systemUserOauthGithubData: {
+	// 			user_access_token: gh_res.access_token
+	// 		}
+	// 	}
+
+	// 	if (from_page != 'setup' && from_page != 'link') {
+	// 		// generateToken
+	// 		console.log('\n\nGenerating token\n\n')
+	// 		const tokens = await generateEngineTokens(gh_user.id, fetch);
+	// 		console.log('TOKEN GENERATION RESPONSE', tokens);
+	// 		if (!tokens.success) {
+	// 			return {
+	// 				success: false,
+	// 				message: 'Failed to generate token'
+	// 			}
+	// 		}
+
+	// 		// set tokens in cookie if not logged in 
+	// 		if (!locals.user) {
+	// 			cookies.set(AUTH_COOKIE_NAME, JSON.stringify(tokens?.tokens), {
+	// 				path: '/',
+	// 				secure: false,
+	// 				maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN)
+	// 			});
+	// 		}
+	// 	}
+
+
+
+	// } else {
+	// 	// valiate code
+	// 	partial_sysconf = {
+	// 		systemUserOauthGithubEnabled: true,
+	// 		systemUserOAuthGithubId: gh_user?.id,
+	// 		systemUserOauthGithubData: {
+	// 			user_access_token: gh_res.access_token,
+	// 		}
+	// 	}
+	// }
+
+	// // if any key is present in partial_sysconf update
+	// if (Object.keys(partial_sysconf).length > 0) {
+	// 	// save to engine
+	// 	const up = await EngineConnection.getInstance().updateSystemConfigPartial(partial_sysconf)
+	// 	if (up.success) {
+	// 		return {
+	// 			success: true,
+	// 			message: 'Github oauth success',
+	// 			closeWindow: closeWindow,
+	// 		}
+	// 	}
+
+	// 	return up;
+	// } else {
+	// 	return {
+	// 		success: false,
+	// 		message: 'Invalid request'
+	// 	}
+	// }
 }
 
 async function generateEngineTokens(gh_user_id: any, fetch: any) {

@@ -97,13 +97,13 @@ import { fail } from '@sveltejs/kit';
 export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	let oAuthState = cookies.get(OAUTH_STATE_COOKIE_NAME);
 
-	cookies.set(
-		'fromPage',
-		'link',
-		{
-			path: '/',
-		}
-	)
+	// cookies.set(
+	// 	'fromPage',
+	// 	'link',
+	// 	{
+	// 		path: '/',
+	// 	}
+	// )
 
 	if (!oAuthState) {
 		oAuthState = ulid();

@@ -34,10 +34,11 @@ const steps = [
 			nextStep();
 		}
 	},
+
 	{
-		key: 'account',
-		title: 'Account',
-		description: 'Setup up your email password for the system.',
+		key: 'oauth',
+		title: 'OAuth',
+		description: 'Setup OAuth for your system. Github repos permission will be set from here',
 		prevButtonText: 'Back',
 		prevButtonCallback: () => {
 			prevStep();
@@ -48,9 +49,9 @@ const steps = [
 		}
 	},
 	{
-		key: 'oauth',
-		title: 'OAuth',
-		description: 'Setup OAuth for your system. Github repos permission will be set from here',
+		key: 'account',
+		title: 'Account',
+		description: 'Setup up your email password for the system.',
 		prevButtonText: 'Back',
 		prevButtonCallback: () => {
 			prevStep();

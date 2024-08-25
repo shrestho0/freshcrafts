@@ -4,7 +4,10 @@ server {
     server_name {NGINX_SERVER_NAME} ;
 
     location / {
-
+    
+        limit_req_zone $binary_remote_addr zone=mylimit:10m rate=50r/s;
+        limit_req_status 429;
+        
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
