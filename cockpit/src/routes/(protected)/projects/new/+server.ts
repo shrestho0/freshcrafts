@@ -244,6 +244,9 @@ export const PATCH: RequestHandler = async ({ request }) => {
 						const { fileName, filePath, fileAbsPath } = await fileHelper.writeProjectSourceFile(projectId, _fileName, Buffer.from(await download.arrayBuffer()))
 
 						repo.is_private = repo?.private;
+						// extract files to src
+						const { extracted, extractedAbs } = await fileHelper.decompressProjectSource(fileAbsPath, projectId);
+						console.log("DECOMPRESSED", extracted, extractedAbs);
 
 						const projectCreationRepoData = {
 							type: ProjectType.GITHUB_REPO,
@@ -253,6 +256,11 @@ export const PATCH: RequestHandler = async ({ request }) => {
 								path: filePath,
 								absPath: fileAbsPath,
 							} as ProjectDeploymentFile,
+
+							src: {
+								filesDirPath: extracted,
+								filesDirAbsPath: extractedAbs,
+							} as ProjectDeploymentSource,
 
 							github_repo: repo,
 							github_tar_download_url: tar_download_url,
@@ -289,7 +297,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			const projectId: string = ulid();
 
-			// move from local to project
+			// extract files to src
 			const { fileName, filePath, fileAbsPath } = await fileHelper.moveFileToProjectDir(projectId, data?.fileName, data?.fileAbsolutePath)
 			const { extracted, extractedAbs } = await fileHelper.decompressProjectSource(fileAbsPath, projectId);
 			console.log("DECOMPRESSED", extracted, extractedAbs);
