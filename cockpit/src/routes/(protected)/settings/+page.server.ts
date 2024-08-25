@@ -117,9 +117,11 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 		githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
 		githubAppInstallUrl: PUBLIC_GITHUB_APP_INSTALLATION_URL +
-			'?redirect_url=' + url.origin +
+			'?redirect_uri=' + url.origin +
 			PUBLIC_GITHUB_OAUTH_CALLBACK_URL
 	};
+
+
 };
 
 
