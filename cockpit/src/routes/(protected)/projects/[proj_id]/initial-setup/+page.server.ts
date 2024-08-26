@@ -19,10 +19,17 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
         return error(404, 'Project not found')
     }
 
-    const fileHelper = await EngineConnection.getInstance();
+
 
     if (proj.payload.status === ProjectStatus.PROCESSING_SETUP) {
         // ok
+        const fileHelper = await EngineConnection.getInstance();
+
+
+
+
+
+
         return { project: proj.payload, deployment: proj.payload3 }
     } else {
         // redirect to the project page

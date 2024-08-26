@@ -59,8 +59,9 @@ export const actions: Actions = {
 			// remove github
 			const res = await EngineConnection.getInstance().updateSystemConfigPartial({
 				systemUserOauthGoogleEnabled: false,
+				systemUserOAuthGoogleEmail: null,
 				systemUserOauthGoogleData: null,
-				systemUserOAuthGoogleEmail: null
+
 			})
 
 			return {
