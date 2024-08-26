@@ -86,7 +86,7 @@
 // 	}
 // };
 
-import { getGithubLoginUrl, getGooleLoginhUrl } from '@/server/helpers/OAuthHelper';
+import { getGithubAppInstallationUrl, getGithubLoginUrl, getGooleLoginhUrl } from '@/server/helpers/OAuthHelper';
 import { ulid } from 'ulid';
 import { OAUTH_STATE_COOKIE_NAME } from '$env/static/private';
 import { PUBLIC_GITHUB_APP_INSTALLATION_URL, PUBLIC_GITHUB_OAUTH_CALLBACK_URL } from '$env/static/public';
@@ -112,14 +112,26 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 
 	const sysConf = await EngineConnection.getInstance().getSystemConfig();
 
-	return {
-		sysConf,
+	// const oUrls = {
+	// 	githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
+	// 	googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
+	// 	githubAppInstallUrl: PUBLIC_GITHUB_APP_INSTALLATION_URL +
+	// 		'?redirect_uri=' + url.origin +
+	// 		PUBLIC_GITHUB_OAUTH_CALLBACK_URL
+	// };
+
+	const oUrls = {
 		githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
-		githubAppInstallUrl: PUBLIC_GITHUB_APP_INSTALLATION_URL +
-			'?redirect_uri=' + url.origin +
-			PUBLIC_GITHUB_OAUTH_CALLBACK_URL
+		githubAppInstallUrl: getGithubAppInstallationUrl(url.origin)
 	};
+
+	console.warn(`oUrls`, JSON.stringify(oUrls, null, 2));
+
+	return {
+		...oUrls,
+		sysConf,
+	}
 
 
 };

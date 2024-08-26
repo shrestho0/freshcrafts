@@ -4,7 +4,7 @@ import {
 	GOOGLE_CLIENT_SECRET,
 } from '$env/static/private';
 
-import { PUBLIC_GITHUB_OAUTH_CALLBACK_URL, PUBLIC_GOOGLE_OAUTH_CALLBACK_URL } from '$env/static/public';
+import { PUBLIC_GITHUB_APP_INSTALLATION_URL, PUBLIC_GITHUB_OAUTH_CALLBACK_URL, PUBLIC_GOOGLE_OAUTH_CALLBACK_URL } from '$env/static/public';
 
 import { google } from 'googleapis';
 
@@ -52,4 +52,11 @@ export function getGooleLoginhUrl(baseUrl: string, state: string) {
 		state: state
 	});
 	return authorizationUrl.toString();
+}
+
+
+export function getGithubAppInstallationUrl(origin: string) {
+	return PUBLIC_GITHUB_APP_INSTALLATION_URL +
+		'?redirect_uri=' + origin +
+		PUBLIC_GITHUB_OAUTH_CALLBACK_URL
 }
