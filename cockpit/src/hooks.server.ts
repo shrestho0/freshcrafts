@@ -21,7 +21,10 @@ type User = {
 };
 
 export const handle: Handle = async ({ event, resolve }) => {
-	console.log('[DEBUG]: hook.server.ts');
+	console.log('[DEBUG]: hook.server.ts from', {
+		origin: event.url.origin,
+		host: event.url.host,
+	});
 
 	// Cokies and System wide data setup
 	const authCookie = event.cookies.get(AUTH_COOKIE_NAME);

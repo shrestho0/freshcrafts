@@ -247,7 +247,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 		const sysconfToUpdate: Partial<EngineSystemConfigResponseDto> = {
 			systemUserOauthGoogleEnabled: true,
 			systemUserOAuthGoogleEmail: decodedUserInfo.email,
-			systemUserOauthGoogleData: { tokens, decodedUserInfo }
+			systemUserOauthGoogleData: { ...tokens, decodedUserInfo_email: decodedUserInfo.email, decodedUserInfo_picture: decodedUserInfo.picture }
 		}
 
 		const actualSysConf = await EngineConnection.getInstance().getSystemConfig();

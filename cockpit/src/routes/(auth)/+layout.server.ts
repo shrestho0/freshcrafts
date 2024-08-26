@@ -17,6 +17,6 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
 		githubAppInstallUrl: getGithubAppInstallationUrl(url.origin)
 	};
-	// console.warn(`oUrls`, JSON.stringify(oUrls, null, 2));
+	console.warn(`oUrls`, JSON.stringify(oUrls, null, 2));
 	return oUrls;
 };
