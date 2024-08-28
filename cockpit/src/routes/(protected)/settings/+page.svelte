@@ -4,7 +4,8 @@ import { invalidateAll } from '$app/navigation';
 import Account from '@/components/Account.svelte';
 import CommonOAuth from '@/components/CommonOAuth.svelte';
 import PreDebug from '@/components/dev/PreDebug.svelte';
-import type { EngineSystemConfigResponseDto } from '@/types/dtos.js';
+import ExpandableSection from '@/components/ExpandableSection.svelte';
+import type { EngineCommonResponseDto, EngineSystemConfigResponseDto } from '@/types/dtos.js';
 import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
 import type { ActionResult } from '@sveltejs/kit';
 import {
@@ -24,6 +25,13 @@ export let data: {
 	githubLoginUrl: string;
 	googleLoginUrl: string;
 	githubAppInstallUrl: string;
+	azureChatApi: EngineCommonResponseDto<
+		{
+			azureChatApiEndpoint: string;
+			azureChatApiKey: string;
+		},
+		null
+	>;
 };
 
 let partialSysConf = {
@@ -45,7 +53,8 @@ function resetErrors() {
 const expandables = {
 	user_info: true,
 	password_update: true,
-	oauth_modify: true
+	oauth_modify: true,
+	azure_chat_api_modify: true
 };
 
 onMount(() => {});
@@ -69,23 +78,21 @@ function enhancedSaveUserInfo(type: 'userInfoUpdate' | 'passwordUpdate') {
 		}
 	};
 }
+
+function enhancedAzureApiKeySave() {
+	return async ({ result }: { result: ActionResult }) => {
+		if (result.type == 'success') {
+			toast('Azure Chat API saved successfully');
+			invalidateAll();
+		} else {
+			toast('Failed to save Azure Chat API');
+		}
+	};
+}
 </script>
 
 <section class="select-none">
-	<ClickableTile
-		class="w-full flex items-center text-lg justify-between"
-		on:click={() => {
-			expandables.user_info = !expandables.user_info;
-		}}
-	>
-		<h2>Update User Info</h2>
-		{#if expandables.user_info}
-			<ChevronUp />
-		{:else}
-			<ChevronDown />
-		{/if}</ClickableTile
-	>
-	{#if expandables.user_info}
+	<ExpandableSection title="Update User Info" bind:open={expandables.user_info}>
 		<form
 			action="?/saveUserInfo"
 			method="post"
@@ -120,22 +127,9 @@ function enhancedSaveUserInfo(type: 'userInfoUpdate' | 'passwordUpdate') {
 
 			<Button on:click={resetErrors} class="w-full my-3   " type="submit">Update</Button>
 		</form>
-	{/if}
+	</ExpandableSection>
 
-	<ClickableTile
-		class="w-full flex items-center text-lg justify-between"
-		on:click={() => {
-			expandables.password_update = !expandables.password_update;
-		}}
-	>
-		<h2>Update Password</h2>
-		{#if expandables.password_update}
-			<ChevronUp />
-		{:else}
-			<ChevronDown />
-		{/if}
-	</ClickableTile>
-	{#if expandables.password_update}
+	<ExpandableSection title="Update Password" bind:open={expandables.password_update}>
 		<form
 			action="?/updatePassword"
 			method="post"
@@ -173,23 +167,9 @@ function enhancedSaveUserInfo(type: 'userInfoUpdate' | 'passwordUpdate') {
 
 			<Button on:click={resetErrors} class="w-full my-3" type="submit">Update Password</Button>
 		</form>
-	{/if}
+	</ExpandableSection>
 
-	<ClickableTile
-		class="w-full flex items-center text-lg justify-between"
-		on:click={() => {
-			expandables.oauth_modify = !expandables.oauth_modify;
-		}}
-	>
-		<h2>OAuth Connections</h2>
-		{#if expandables.oauth_modify}
-			<ChevronUp />
-		{:else}
-			<ChevronDown />
-		{/if}
-	</ClickableTile>
-
-	{#if expandables.oauth_modify}
+	<ExpandableSection title="OAuth Connections" bind:open={expandables.oauth_modify}>
 		{#key data?.sysConf}
 			<div class="w-full flex flex-col gap-3 items-center">
 				<CommonOAuth
@@ -208,7 +188,59 @@ function enhancedSaveUserInfo(type: 'userInfoUpdate' | 'passwordUpdate') {
 				/>
 			</div>
 		{/key}
-	{/if}
+	</ExpandableSection>
+
+	<ExpandableSection title="Azure Chat API" bind:open={expandables.azure_chat_api_modify}>
+		{#if !data?.azureChatApi?.success}
+			<InlineNotification
+				kind="warning-alt"
+				class="w-full"
+				subtitle={data?.azureChatApi?.message ?? 'Failed to fetch Azure Chat API'}
+			/>
+		{/if}
+		<form
+			action="?/saveAzureChatApi"
+			method="post"
+			class="w-full"
+			use:enhance={enhancedAzureApiKeySave}
+		>
+			<PasswordInput
+				autocomplete="one-time-password"
+				value={data?.azureChatApi?.payload?.azureChatApiEndpoint}
+				size="xl"
+				class="w-full"
+				name="azureChatApiEndpoint"
+				labelText="Azure Chat API Endpoint"
+			/>
+			<PasswordInput
+				autocomplete="one-time-password"
+				value={data?.azureChatApi?.payload?.azureChatApiKey}
+				size="xl"
+				class="w-full"
+				name="azureChatApiKey"
+				labelText="Azure Chat API Key"
+			/>
+			<Button class="w-full my-3" type="submit">Save</Button>
+		</form>
+	</ExpandableSection>
+
+	<!-- <ClickableTile
+		class="w-full flex items-center text-lg justify-between"
+		on:click={() => {
+			expandables.oauth_modify = !expandables.oauth_modify;
+		}}
+	>
+		<h2>OAuth Connections</h2>
+		{#if expandables.oauth_modify}
+			<ChevronUp />
+		{:else}
+			<ChevronDown />
+		{/if}
+	</ClickableTile> -->
+	<!-- 
+	{#if expandables.oauth_modify}
+
+	{/if} -->
 
 	<PreDebug {data} />
 </section>

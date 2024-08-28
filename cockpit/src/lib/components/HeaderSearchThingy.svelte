@@ -2,35 +2,62 @@
 import { HeaderSearch } from 'carbon-components-svelte';
 import type { Wind } from 'lucide-svelte';
 import type { KeyboardEventHandler } from 'svelte/elements';
-
+export let active: boolean;
 // Dummy Data
 const data = [
 	{
 		href: '/',
-		text: 'Kubernetes Service',
-		description:
-			'Deploy secure, highly available apps in a native Kubernetes experience. IBM Cloud Kubernetes Service creates a cluster of compute hosts and deploys highly available containers.'
+		text: 'Dashboard',
+		description: 'Dashboard'
 	},
 	{
-		href: '/',
-		text: 'Red Hat OpenShift on IBM Cloud',
-		description:
-			'Deploy and secure enterprise workloads on native OpenShift with developer focused tools to run highly available apps. OpenShift clusters build on Kubernetes container orchestration that offers consistency and flexibility in operations.'
+		href: '/projects/all',
+		text: 'All Projects',
+		description: 'Manage your projects'
 	},
 	{
-		href: '/',
-		text: 'Container Registry',
-		description:
-			'Securely store container images and monitor their vulnerabilities in a private registry.'
+		href: '/projects/new',
+		text: 'Create New Project',
+		description: 'Create a new project from your github repo or local files'
 	},
 	{
-		href: '/',
-		text: 'Code Engine',
-		description: 'Run your application, job, or container on a managed serverless platform.'
+		href: '/databases/mysql',
+		text: 'Manage MySQL Databases',
+		description: 'Manage your MySQL databases'
+	},
+	{
+		href: '/databases/mysql/new',
+		text: 'Create MySQL Database',
+		description: 'Create a new MySQL database'
+	},
+
+	{
+		href: '/databases/postgres',
+		text: 'Manage Postgres Databases',
+		description: 'Manage your postgres databases'
+	},
+	{
+		href: '/databases/postgres/new',
+		text: 'Create Postgres Database',
+		description: 'Create a new Postgres database'
+	},
+	{
+		href: '/databases/mongodb',
+		text: 'Manage Mongo Databases',
+		description: 'Manage your mongo databases'
+	},
+	{
+		href: '/databases/mongodb/new',
+		text: 'Create Mongo Database',
+		description: 'Create a new Mongo database'
+	},
+	{
+		href: '/chat/history',
+		text: 'Chat History',
+		description: 'View chat history'
 	}
 ];
 let ref: HTMLInputElement;
-let active = false;
 let value = '';
 let selectedResultIndex = 0;
 let events: any[] = [];
@@ -51,12 +78,6 @@ $: results =
 // $: console.log('value', value);
 // $: console.log('selectedResultIndex', selectedResultIndex);
 
-function handleCtrlKSearchBarOpen(event: KeyboardEvent) {
-	if (event.key === 'k' && event.altKey) {
-		active = true;
-		console.log(event);
-	}
-}
 const onActive = () => {
 	events = [...events, { type: 'active' }];
 };
@@ -67,11 +88,11 @@ const onClear = () => {
 	events = [...events, { type: 'clear' }];
 };
 const onSelect = (e: { detail: any }) => {
-	events = [...events, { type: 'select', ...e.detail }];
+	events = [...events, { type: 'select', detail: e.detail }];
+	console.log('onSelect', e.detail);
+	window.location.href = e?.detail?.selectedResult?.href ?? '';
 };
 </script>
-
-<svelte:window on:keydown={handleCtrlKSearchBarOpen} />
 
 <HeaderSearch
 	bind:ref

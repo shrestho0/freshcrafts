@@ -1,278 +1,57 @@
-<!-- <script lang="ts">
+<script lang="ts">
 import PreDebug from '@/components/dev/PreDebug.svelte';
-import { ProjectSetupCommand } from '@/types/enums.js';
-import { toTitleCase } from '@/utils/utils.js';
+import type { Project, ProjectDeployment } from '@/types/entities.js';
+import { ProjectSetupCommand, ProjectType } from '@/types/enums';
+import { EnvVarsUtil, toTitleCase } from '@/utils/utils';
 import {
-	SelectableTile,
-	Tab,
-	TabContent,
-	Tabs,
+	Button,
+	ComposedModal,
+	InlineLoading,
+	ModalBody,
+	ModalFooter,
+	ModalHeader,
 	TextArea,
 	TextInput,
 	Tile
 } from 'carbon-components-svelte';
-import { PlusSquare } from 'lucide-svelte';
-export let data;
-const projectSetup = {
-	name: '',
-	nameChecking: false,
-	nameOk: true,
-	isInvalid: false,
-	envFileContent: '',
-	envKV: [{ key: '', value: '' }],
-	selectedIdx: 0,
-	buildCommand: 'npm run build',
-	runCommand: 'node build/index.js',
-	messages: ['Env File Content', 'Key-Value Pairs'],
-	placeholder: `\nKEY1=value1\nKEY2=value2\n...`,
-	errorMessage: ''
-} as {
-	buildCommand: string | number | null | undefined;
-	name: string | number | null | undefined;
-	nameChecking: boolean;
-	nameOk: boolean;
-	isInvalid: boolean;
-	envFileContent: string;
-	envKV: { key: string; value: string }[];
-	selectedIdx: number;
-	messages: string[];
-	placeholder: string;
-	errorMessage: string;
-};
-
-$: console.log(projectSetup);
-$: if (projectSetup.selectedIdx === 0) {
-	console.log('envFileContent', projectSetup.envFileContent);
-	// sync with envKV
-	projectSetup.errorMessage = '';
-	try {
-		// projectSetup.envKV = projectSetup.envFileContent.split('\n').map((line) => {
-		// 	if (!line) return { key: '', value: '' };
-		// 	if (!line.includes('=')) throw new Error('Invalid format');
-		// 	const [key, value] = line.split('=', 2);
-
-		// 	return { key, value };
-		// });
-		// projectSetup.envKV = dotenv.parse(projectSetup.envFileContent)) as unknown as {
-		// 	key: string;
-		// 	value: string;
-		// }[];
-
-		projectSetup.envKV = Object.entries(
-			dotenv.parse(projectSetup.envFileContent) as unknown as {
-				key: string;
-				value: string;
-			}
-		).map(([key, value]) => ({ key, value }));
-	} catch (e: any) {
-		projectSetup.errorMessage = e?.message;
-	}
-} else {
-	// console.log('envKV', projectSetup.envKV);
-	try {
-		// join only if key and value are present
-		// projectSetup.envFileContent = projectSetup.envKV
-		// 	.filter(({ key, value }) => key && value)
-		// 	.map(({ key, value }) => `${key}=${value}`)
-		// 	.join('\n');
-
-		projectSetup.envFileContent = projectSetup.envKV
-			.map(({ key, value }) => `${key}=${value}`)
-			.join('\n');
-	} catch (e: any) {
-		projectSetup.errorMessage = e?.message;
-	}
-}
-async function checkName() {
-	const res = await fetch('', {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			command: ProjectSetupCommand.CHECK_UNIQUE_NAME,
-			data: projectSetup.name?.toString()?.trim()
-		})
-	})
-		.then((res) => res.json())
-		.catch((e) => console.error(e));
-	console.log(res);
-	return res?.success;
-}
-
-let timer: NodeJS.Timeout;
-const debouncedUserInput = async (v: string) => {
-	// https://svelte.dev/repl/f55e23d0bf4b43b1a221cf8b88ef9904?version=3.12.1
-	clearTimeout(timer);
-	projectSetup.nameChecking = true;
-	projectSetup.errorMessage = '';
-	const pattern = /^[a-zA-Z0-9_-]+$/;
-	if (!pattern.test(v)) {
-		projectSetup.isInvalid = true;
-		projectSetup.nameChecking = false;
-		return;
-	} else {
-		projectSetup.isInvalid = false;
-	}
-	timer = setTimeout(async () => {
-		const ok = await checkName();
-		projectSetup.nameOk = ok;
-		if (ok) {
-			console.log('setupStuff', projectSetup.name);
-		} else {
-			console.log('invalid search queries');
-		}
-		projectSetup.nameChecking = false;
-	}, 500);
-};
-function handleSearchInput({ target: { value } }: any) {
-	debouncedUserInput(value);
-}
-</script>
-
-{JSON.stringify(projectSetup)}
-<div class="intro flex flex-col gap-1 mb-3">
-	<h1 class="text-[24px]">Initial Setup</h1>
-	<div class="flex flex-col">
-		<p>
-			Project Source: <span class="font-semibold">
-				{toTitleCase(data?.payload?.type?.replace('_', ' '))}</span
-			>
-		</p>
-		<p>
-			Deployment Version: <span class="font-semibold">{data?.payload?.totalVersions + 1}</span>
-		</p>
-	</div>
-</div>
-
-<div class="text-[16px] py-2">Project Name (unique):</div>
-
-<TextInput
-	bind:value={projectSetup.name}
-	on:keyup={handleSearchInput}
-	invalid={Boolean(!projectSetup.nameOk && projectSetup.name)}
-	invalidText="Project Name already exists"
-	placeholder="anonymous-monkey"
-	pattern="^[a-zA-Z0-9_-]+$"
-	helperText={projectSetup.nameChecking
-		? 'Checking...'
-		: projectSetup.name && projectSetup.isInvalid
-			? 'Invalid characters'
-			: projectSetup.name && projectSetup.nameOk
-				? 'Name is available'
-				: projectSetup.name
-					? 'Name is not available'
-					: 'Only letters, numbers, hyphens, and underscores are allowed'}
-/>
-<div class="expandableTile"></div>
-<div class="text-[16px] py-2">Build Command:</div>
-<TextInput bind:value={projectSetup.buildCommand} />
-<div class="text-[16px] py-2">Build Command:</div>
-
-<div class="text-[16px] py-2">Env Setup</div>
-<div class="w-full flex gap-0 items-center justify-between">
-	{#each projectSetup.messages as option, idx}
-		<button
-			role="tab"
-			tabindex="-1"
-			class="w-full focus:outline-none text-center bx--tile bx--tile--selectable"
-			class:bx--tile--is-selected={projectSetup.selectedIdx === idx}
-			on:click={() => {
-				if (projectSetup.selectedIdx === idx) return;
-				projectSetup.selectedIdx = idx;
-			}}
-		>
-			<span class="bx--tile__checkmark"
-				><svg
-					xmlns="http://www.w3.org/2000/svg"
-					viewBox="0 0 32 32"
-					fill="currentColor"
-					preserveAspectRatio="xMidYMid meet"
-					width="16"
-					height="16"
-					role="img"
-					aria-label="Tile checkmark"
-					><title>Tile checkmark</title><path
-						d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM14,21.5908l-5-5L10.5906,15,14,18.4092,21.41,11l1.5957,1.5859Z"
-					></path><path
-						fill="none"
-						d="M14 21.591L9 16.591 10.591 15 14 18.409 21.41 11 23.005 12.585 14 21.591z"
-						data-icon-path="inner-path"
-					></path></svg
-				></span
-			> <span class="bx--tile-content">{option}</span>
-		</button>
-	{/each}
-</div>
- 
-{#if projectSetup.selectedIdx === 0}
-	<TextArea
-		placeholder={projectSetup.placeholder}
-		bind:value={projectSetup.envFileContent}
-		helperText="Put content of your .env file here"
-	/>
-{:else if projectSetup.selectedIdx === 1}
-	<div class="add-more-btn pt-3 text-right">
-		<button
-			class="  w-full bx--btn--secondary bx--btn--sm"
-			on:click={() => {
-				projectSetup.envKV = [...projectSetup.envKV, { key: '', value: '' }];
-			}}
-		>
-			Add Key-Value Pair 🔥
-		</button>
-	</div>
-	<div class="flex flex-col gap-2 py-3">
-		{#each projectSetup.envKV as x, idx}
-			<div class="flex flex-1 gap-2">
-				<TextInput size="sm" bind:value={x.key} placeholder="KEY" />
-				<TextInput size="sm" bind:value={x.value} placeholder="value" />
-				<button
-					class="bx--btn bx--btn--secondary bx--btn--sm"
-					on:click={() => {
-						projectSetup.envKV = projectSetup.envKV.filter((_, i) => i !== idx);
-					}}
-				>
-					Remove
-				</button>
-			</div>
-		{/each}
-	</div>
-{/if}
-{#if projectSetup.errorMessage}
-	<div class="text-red-500">{projectSetup.errorMessage}</div>
-{/if}
- -->
-<script lang="ts">
-import PreDebug from '@/components/dev/PreDebug.svelte';
-import type { Project } from '@/types/entities.js';
-import { ProjectType } from '@/types/enums';
-import { EnvVarsUtil, toTitleCase } from '@/utils/utils';
-import {
-	ClickableTile,
-	ExpandableTile,
-	TextArea,
-	TextInput,
-	Tile,
-	TooltipIcon
-} from 'carbon-components-svelte';
-import { ChevronDown, ChevronUp, CircleFilled, Information } from 'carbon-icons-svelte';
 import { GitBranch, Github, Slash } from 'lucide-svelte';
+import { onMount } from 'svelte';
+import FileTree from './FileTree.svelte';
+import BuildSettingsInputs from './BuildSettingsInputs.svelte';
+import CommonErrorBox from '@/components/CommonErrorBox.svelte';
+import ExpandableSection from '@/components/ExpandableSection.svelte';
+import CommonLoadingBox from '@/components/CommonLoadingBox.svelte';
+import EnvVarsInputs from './EnvVarsInputs.svelte';
+import { enhance } from '$app/forms';
+import type { ActionResult } from '@sveltejs/kit';
+import { toast } from 'svelte-sonner';
+import { invalidateAll } from '$app/navigation';
 export let data;
 const projectX: Project = data?.project;
+const deploymentX: ProjectDeployment = data?.deployment;
 const projectSetup = {
 	projectName: '',
 	projectNameStatus: 'initially_idle',
+	projectNameErrorMessage: '',
 	envFileContent: '',
 	envKV: [],
 	options: ['From .env file', 'Key-Value Pairs'],
 	selectedOptionIdx: 0,
 	buildCommand: 'npm run build',
 	installCommand: 'npm install',
-	outputDir: './build'
+	outputDir: './build',
+	projectRootSelectionStatus: 'initially_idle',
+	projectRootSelectionErrorMessage: '',
+	projectSourceTreeActiveId: 0,
+	projectSourceTreeSelectedIds: 0,
+	projectSourceTreeTotalLevels: 0,
+	projectSourceTreeFinalIotaVal: 0,
+	projectSourceList: [],
+	selectedFileRelativeUrl: ''
 } as {
 	projectName: string;
 	projectNameStatus: 'initially_idle' | 'checking' | 'invalid' | 'ok';
+	projectNameErrorMessage: string;
 	envFileContent: string;
 	envKV: { key: string; value: string }[];
 	options: string[];
@@ -280,27 +59,200 @@ const projectSetup = {
 	buildCommand: string;
 	installCommand: string;
 	outputDir: string;
+	projectRootSelectionStatus: 'initially_idle' | 'checking' | 'success' | 'error';
+	projectRootSelectionErrorMessage: string;
+	projectSourceList: any[];
+	projectSourceTreeActiveId: any;
+	projectSourceTreeSelectedIds: any;
+	projectSourceTreeTotalLevels: number;
+	projectSourceTreeFinalIotaVal: number;
+	selectedFileRelativeUrl: string;
+
 	// runCommand: string;
 };
+
 const expandables = {
 	env_vars: true,
-	build_output: true
+	build_output: true,
+	select_project_root: true
 };
 
-$: {
-	if (projectSetup.selectedOptionIdx) {
-		projectSetup.envFileContent = projectSetup.envKV
-			.filter(({ key, value }) => key && value)
-			.map(({ key, value }) => `${key}=${value}`)
-			.join('\n');
+async function listSourceFile() {
+	projectSetup.projectRootSelectionStatus = 'checking';
+	const res = await fetch('', {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			command: ProjectSetupCommand.LIST_SOURCE_FILES,
+			data: deploymentX?.src
+		})
+	})
+		.then((res) => res.json())
+		.catch((e) => console.error(e));
+
+	if (res?.success) {
+		projectSetup.projectSourceList = res?.files;
+		projectSetup.projectRootSelectionStatus = 'success';
+		projectSetup.projectSourceTreeTotalLevels = res?.total_levels;
+		projectSetup.projectSourceTreeFinalIotaVal = res?.iota;
 	} else {
-		const x = EnvVarsUtil.parse(projectSetup.envFileContent);
-		Object.entries(x).map(([key, value]) => projectSetup.envKV.push({ key, value }));
+		console.error(res?.message);
+		projectSetup.projectRootSelectionErrorMessage = res?.message || 'Error fetching source files';
+		projectSetup.projectRootSelectionStatus = 'error';
+		projectSetup.projectNameErrorMessage = res?.message || 'Error fetching source files';
 	}
 }
-</script>
 
-<PreDebug {data} />
+onMount(async () => {
+	await listSourceFile();
+});
+
+let timer: NodeJS.Timeout;
+let _projectName = '';
+const handleNameInput = (e: KeyboardEvent) => {
+	const v = (e.target as HTMLInputElement).value;
+	debouncedNameSearch(v);
+};
+const debouncedNameSearch = (v: string | null) => {
+	projectSetup.projectNameStatus = 'checking';
+	clearTimeout(timer);
+	timer = setTimeout(async () => {
+		// check project name and do stuff
+		// _projectName = v;
+		if (!v) {
+			projectSetup.projectNameStatus = 'initially_idle';
+			return;
+		}
+		const res = await fetch('', {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				command: ProjectSetupCommand.CHECK_UNIQUE_NAME,
+				data: v.trim()
+			})
+		})
+			.then((res) => res.json())
+			.catch((e) => console.error(e));
+		if (res?.success) {
+			projectSetup.projectNameStatus = 'ok';
+		} else {
+			projectSetup.projectNameStatus = 'invalid';
+			projectSetup.projectNameErrorMessage = res?.message || 'Invalid project name';
+		}
+
+		console.warn('res', res);
+	}, 750);
+};
+
+let confirmationModalOpen = false;
+$: checkAndSubmitButtonDisabled = (() => {
+	if (projectSetup.projectNameStatus !== 'ok') return true;
+	if (!projectSetup.buildCommand) return true;
+	if (!projectSetup.installCommand) return true;
+	if (!projectSetup.outputDir) return true;
+	if (!projectSetup.selectedFileRelativeUrl) return true;
+	return false;
+})();
+
+let actionLoading = false;
+let loadingMessage = '';
+let successMessage = '';
+let errorMessage = '';
+
+async function deployProject() {
+	let envContentFinal = '';
+	actionLoading = true;
+	confirmationModalOpen = false;
+	loadingMessage = 'Requested incomplete deployment creation.';
+	if (projectSetup.selectedOptionIdx === 0) {
+		envContentFinal = projectSetup.envFileContent;
+	} else {
+		envContentFinal = EnvVarsUtil.kvToContent(projectSetup.envKV);
+	}
+
+	const res = await fetch('', {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			command: ProjectSetupCommand.DEPLOY_PROJECT,
+			data: {
+				projectName: projectSetup.projectName,
+				buildCommand: projectSetup.buildCommand,
+				installCommand: projectSetup.installCommand,
+				outputDir: projectSetup.outputDir,
+				selectedFileRelativeUrl: projectSetup.selectedFileRelativeUrl,
+				envFileContent: envContentFinal,
+				deployment: deploymentX,
+				projectId: projectX?.id
+			}
+		})
+	})
+		.then((res) => res.json())
+		.catch((e) => console.error(e));
+
+	console.log('create project res', res);
+	actionLoading = false;
+	loadingMessage = '';
+	if (res?.success) {
+		successMessage = res?.message;
+		console.log('Project created successfully');
+		backToProjectSpecificPage();
+	} else {
+		errorMessage = res?.message;
+		console.error(res?.message);
+	}
+}
+
+async function deleteIncompleteProject() {
+	actionLoading = true;
+	loadingMessage = 'Requested incomplete deployment delete';
+
+	const res = await fetch('', {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			command: ProjectSetupCommand.DELETE_INCOMPLETE_PROJECT,
+			data: {
+				projectId: projectX?.id,
+				deploymentId: deploymentX.id,
+				rawFileAbsPath: deploymentX.rawFile.absPath,
+				srcFileAbsPath: deploymentX.src.filesDirAbsPath
+			}
+		})
+	})
+		.then((res) => res.json())
+		.catch((e) => console.error(e));
+
+	actionLoading = false;
+	loadingMessage = '';
+	if (res?.success) {
+		successMessage = res?.message + ' Page will be redirected soon.';
+		backToProjectCreationPage();
+	} else {
+		errorMessage = res?.message;
+	}
+}
+
+function backToProjectCreationPage() {
+	setTimeout(() => {
+		window.location.href = '/projects/new';
+	}, 1000);
+}
+
+function backToProjectSpecificPage() {
+	setTimeout(() => {
+		window.location.href = '';
+	}, 1000);
+}
+</script>
 
 <Tile light class="px-0 mx-0 pt-0 mt-0">
 	<h1 class="text-3xl py-2">Initial Setup</h1>
@@ -340,173 +292,173 @@ $: {
 		</p>
 	{/if}
 </Tile>
+
 <section class="">
 	<!-- <Tile> -->
 	<div>Project Name</div>
-	<TextInput bind:value={projectSetup.projectName} placeholder="anonymous-monkey"></TextInput>
+	<TextInput on:keyup={handleNameInput} placeholder="anonymous-monkey"></TextInput>
 
-	{#if projectSetup.projectNameStatus === 'checking'}
-		<div>Checking...</div>
-	{:else if projectSetup.projectNameStatus === 'invalid'}
-		<div>Invalid Name</div>
-	{:else if projectSetup.projectNameStatus === 'ok'}
-		<div>Available</div>
-	{:else}
-		<div>&nbsp;</div>
+	<div class="mb-3">
+		{#if projectSetup.projectNameStatus != 'initially_idle'}
+			<InlineLoading
+				status={projectSetup.projectNameStatus === 'checking'
+					? 'active'
+					: projectSetup.projectNameStatus === 'ok'
+						? 'finished'
+						: projectSetup.projectNameStatus === 'invalid'
+							? 'error'
+							: 'inactive'}
+				description={projectSetup.projectNameStatus === 'checking'
+					? 'Checking...'
+					: projectSetup.projectNameStatus === 'ok'
+						? 'Available'
+						: projectSetup.projectNameErrorMessage}
+			/>
+		{/if}
+	</div>
+
+	<div class="mb-3 select-none">
+		<ExpandableSection bind:open={expandables.select_project_root} title="Select Project Root">
+			<Tile>
+				{#if projectSetup.projectRootSelectionStatus === 'checking'}
+					<CommonLoadingBox message="Loading project" />
+				{:else if projectSetup.projectRootSelectionStatus === 'error'}
+					<CommonErrorBox error_msg={projectSetup.projectRootSelectionErrorMessage} />
+				{:else if projectSetup.projectRootSelectionStatus === 'success'}
+					<!-- {projectSetup.projectSourceTreeFinalIotaVal} -->
+					<!-- {projectSetup.projectSourceTreeTotalLevels} -->
+					<FileTree
+						bind:items={projectSetup.projectSourceList}
+						bind:selectedFileRelativeUrl={projectSetup.selectedFileRelativeUrl}
+					/>
+				{:else}
+					<div>&nbsp;</div>
+				{/if}
+			</Tile>
+		</ExpandableSection>
+	</div>
+
+	<div class="mb-3">
+		<ExpandableSection bind:open={expandables.build_output} title="Build and output settings">
+			<BuildSettingsInputs
+				bind:buildCommand={projectSetup.buildCommand}
+				bind:outputDir={projectSetup.outputDir}
+				bind:installCommand={projectSetup.installCommand}
+			/>
+		</ExpandableSection>
+	</div>
+
+	<div class="mb-3">
+		<ExpandableSection bind:open={expandables.env_vars} title="Environment Variables">
+			<Tile>
+				<EnvVarsInputs
+					bind:options={projectSetup.options}
+					bind:selectedOptionIdx={projectSetup.selectedOptionIdx}
+					bind:envFileContent={projectSetup.envFileContent}
+					bind:envKV={projectSetup.envKV}
+				/>
+			</Tile>
+		</ExpandableSection>
+	</div>
+
+	{#if actionLoading}
+		<InlineLoading description={actionLoading ? loadingMessage : ''} />
+	{:else if successMessage}
+		<InlineLoading status="finished" description={successMessage} />
+	{:else if errorMessage}
+		<InlineLoading status="error" description={successMessage} />
 	{/if}
 
-	<!-- </Tile> -->
-	<div class="mb-3">
-		<ClickableTile
-			class="flex items-center justify-between "
-			on:click={() => {
-				expandables.build_output = !expandables.build_output;
-			}}
+	<div class="dep grid grid-cols-3 gap-2">
+		<button
+			class="py-4 col-span-1 my-6 w-full bx--btn--danger-tertiary
+			disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
+			disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
+			disabled:border-[var(--cds-disabled-02)]
+			"
+			disabled={actionLoading}
+			on:click={deleteIncompleteProject}>Cancel Project</button
 		>
-			<div class="text-xl">Build and output settings</div>
-			{#if expandables.build_output}
-				<ChevronUp />
-			{:else}
-				<ChevronDown />
-			{/if}
-		</ClickableTile>
-
-		{#if expandables.build_output}
-			<Tile class="  ">
-				<div>
-					<div class="flex gap-1 pt-3 items-center">
-						Build Command
-						<TooltipIcon
-							tooltipText="The command to building/compiling your code."
-							direction="top"
-							icon={Information}
-							class="h-4 w-4"
-						/>
-					</div>
-					<TextInput bind:value={projectSetup.buildCommand} />
-				</div>
-
-				<div>
-					<div class="flex gap-1 pt-3 items-center">
-						Output Directory
-						<TooltipIcon
-							tooltipText="The command to building/compiling your code."
-							direction="top"
-							icon={Information}
-							class="h-4 w-4"
-						/>
-					</div>
-					<TextInput bind:value={projectSetup.outputDir} />
-				</div>
-
-				<div>
-					<div class="flex gap-1 pt-3 items-center">
-						Install Command
-						<TooltipIcon
-							tooltipText="The command to building/compiling your code."
-							direction="top"
-							icon={Information}
-							class="h-4 w-4"
-						/>
-					</div>
-					<TextInput bind:value={projectSetup.installCommand} />
-				</div>
-			</Tile>
-		{/if}
-	</div>
-	<div class="mb-3">
-		<ClickableTile
-			class="flex items-center justify-between"
+		<button
+			disabled={checkAndSubmitButtonDisabled || actionLoading}
 			on:click={() => {
-				expandables.env_vars = !expandables.env_vars;
+				confirmationModalOpen = true;
 			}}
+			class="py-4 col-span-2 my-6 w-full bx--btn--primary
+			disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
+			disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
+			disabled:cursor-not-allowed
+			">Check & Deploy</button
 		>
-			<div>Environment Variables</div>
-			{#if expandables.env_vars}
-				<ChevronUp />
-			{:else}
-				<ChevronDown />
-			{/if}
-		</ClickableTile>
-
-		{#if expandables.env_vars}
-			<Tile>
-				<div class="w-full flex gap-0 items-center justify-between">
-					{#each projectSetup.options as option, idx}
-						<button
-							role="tab"
-							tabindex="-1"
-							class="w-full focus:outline-none text-center bx--tile bx--tile--selectable"
-							class:bx--tile--is-selected={projectSetup.selectedOptionIdx === idx}
-							on:click={() => {
-								if (projectSetup.selectedOptionIdx === idx) return;
-								projectSetup.selectedOptionIdx = idx;
-								// console.log('selectedOptionIdx', projectSetup.selectedOptionIdx);
-							}}
-						>
-							<span class="bx--tile__checkmark"
-								><svg
-									xmlns="http://www.w3.org/2000/svg"
-									viewBox="0 0 32 32"
-									fill="currentColor"
-									preserveAspectRatio="xMidYMid meet"
-									width="16"
-									height="16"
-									role="img"
-									aria-label="Tile checkmark"
-									><title>Tile checkmark</title><path
-										d="M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM14,21.5908l-5-5L10.5906,15,14,18.4092,21.41,11l1.5957,1.5859Z"
-									></path><path
-										fill="none"
-										d="M14 21.591L9 16.591 10.591 15 14 18.409 21.41 11 23.005 12.585 14 21.591z"
-										data-icon-path="inner-path"
-									></path></svg
-								></span
-							> <span class="bx--tile-content">{option}</span>
-						</button>
-					{/each}
-				</div>
-				<div class="body">
-					{#if projectSetup.selectedOptionIdx == 0}
-						<TextArea
-							placeholder={`\nKEY1=value1\nKEY2=value2\n...`}
-							bind:value={projectSetup.envFileContent}
-							helperText="Put content of your .env file here"
-						/>
-					{:else if (projectSetup.selectedOptionIdx = 1)}
-						<div class="add-more-btn pt-3 text-right">
-							<button
-								class="  w-full bx--btn--secondary bx--btn--sm"
-								on:click={() => {
-									projectSetup.envKV = [...projectSetup.envKV, { key: '', value: '' }];
-								}}
-							>
-								Add Key-Value Pair 🔥
-							</button>
-						</div>
-						<div class="flex flex-col gap-2 py-3">
-							{#each projectSetup.envKV as x, idx}
-								<div class="flex flex-1 gap-2">
-									<TextInput size="sm" bind:value={x.key} placeholder="KEY" />
-									<TextInput size="sm" bind:value={x.value} placeholder="value" />
-									<button
-										class="bx--btn bx--btn--secondary bx--btn--sm"
-										on:click={() => {
-											projectSetup.envKV = projectSetup.envKV.filter((_, i) => i !== idx);
-										}}
-									>
-										Remove
-									</button>
-								</div>
-							{/each}
-						</div>
-					{/if}
-				</div>
-			</Tile>
-		{/if}
-	</div>
-	<div class="dep">
-		<button class="py-4 my-6 w-full bx--btn--primary">Deploy</button>
 	</div>
 </section>
+
+<ComposedModal bind:open={confirmationModalOpen} preventCloseOnClickOutside>
+	<ModalHeader title="Confirm Deployment" closeClass="hidden" />
+	<ModalBody>
+		<div class="flex flex-col gap-3">
+			<p class="text-lg">
+				You are about to deploy a new version of the project. Please confirm the details below.
+			</p>
+			<div class="flex flex-col gap-2">
+				<div
+					class="flex items
+					justify-between"
+				>
+					<p>Project Name</p>
+					<p>{projectSetup.projectName}</p>
+				</div>
+				<div
+					class="flex items
+					justify-between"
+				>
+					<p>Build Command</p>
+					<p>{projectSetup.buildCommand}</p>
+				</div>
+				<div
+					class="flex items
+					justify-between"
+				>
+					<p>Install Command</p>
+					<p>{projectSetup.installCommand}</p>
+				</div>
+
+				<div
+					class="flex items
+					justify-between"
+				>
+					<p>Output Directory</p>
+					<p>{projectSetup.outputDir}</p>
+				</div>
+				<div
+					class="flex items
+					justify-between"
+				>
+					<p>Project Root</p>
+					<p>./{projectSetup.selectedFileRelativeUrl}</p>
+				</div>
+				<div
+					class="flex items
+					justify-between"
+				>
+					<p>Environment Variables</p>
+				</div>
+				<div class="w-full {projectSetup.envFileContent ? 'h-60 overflow-y-scroll' : ''}">
+					<p>{projectSetup.envFileContent}</p>
+				</div>
+			</div>
+		</div>
+	</ModalBody>
+	<ModalFooter>
+		<button
+			class="bx--btn bx--btn--secondary"
+			on:click={() => {
+				confirmationModalOpen = false;
+			}}
+		>
+			Back to initial setup
+		</button>
+		<button class="bx--btn bx--btn--primary" on:click={deployProject}> Deploy </button>
+	</ModalFooter>
+</ComposedModal>
 <PreDebug {data} />

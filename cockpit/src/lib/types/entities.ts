@@ -1,4 +1,4 @@
-import type { AuthProviderType, DBMongoStatus, DBMysqlStatus, DBPostgresStatus, ProjectStatus, ProjectType, SystemWideNoitficationTypes } from './enums';
+import type { AuthProviderType, DBMongoStatus, DBMysqlStatus, DBPostgresStatus, ProjectDeploymentStatus, ProjectStatus, ProjectType, SystemWideNoitficationTypes } from './enums';
 
 export type SystemUser = {
 	name: string;
@@ -98,8 +98,7 @@ export type Project = {
 	totalVersions: number,
 	activeDeploymentId: string,
 	portAssigned: number,
-	// githubRepo: null,
-	// domain: null
+	domain: string
 }
 
 export type ProjectDeployment = {
@@ -107,8 +106,22 @@ export type ProjectDeployment = {
 	project?: Project,
 	version: number,
 	isDeployed: boolean,
+	status: ProjectDeploymentStatus
 
 	rawFile: ProjectDeploymentFile,
 	envFile: ProjectDeploymentFile,
 	src: ProjectDeploymentSource,
+}
+
+
+export type AIChatHistory = {
+	id: string;
+	chatName: string;
+	messages: AIChatMessage[];
+}
+
+export type AIChatMessage = {
+	role: 'user' | 'bot';
+	content: string;
+	timestamp: string;
 }

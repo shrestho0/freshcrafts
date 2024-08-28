@@ -7,7 +7,10 @@ package fresh.crafts.engine.v1.utils.enums;
 // and, Engine ee event jabe.
 public enum ProjectDeploymentStatus {
     // Requested creation is set from engine
+
     PRE_CREATION,
+    READY_FOR_DEPLOYMENT,
+
     REQUESTED_CREATION,
     BUILDING_PROJECT,
     SETTING_UP_PM2,

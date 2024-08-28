@@ -14,9 +14,9 @@ public class DepWizardMessageConsumer {
     @Autowired
     DepWizardMessageController controller;
 
-    @KafkaListener(topics = "DEP_WIZARD", groupId = "freshCrafts")
+    @KafkaListener(topics = "DEP_WIZ", groupId = "freshCrafts")
     public void listen(String message) {
-        System.err.println("[DEBUG] Received message from DEP_WIZARD: " + message);
+        System.err.println("[DEBUG] Received message from DEP_WIZ: " + message);
         System.err.println("[DEBUG] Controller autowired: " + controller);
 
         try {
@@ -30,7 +30,7 @@ public class DepWizardMessageConsumer {
             }
 
             if (controller == null) {
-                System.err.println("[DEBUG] Error: DEP_WIZARDMessageController is null[\0m]");
+                System.err.println("[DEBUG] Error: DEP_WIZ MessageController is null[\0m]");
                 return;
             }
 

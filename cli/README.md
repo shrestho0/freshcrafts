@@ -28,7 +28,22 @@ Run: `python3 freshcrafts.py --update `
 
 #### Github App
 
-- there will be some screenshots
+Create github app following these configurations
+
+- Callback urls
+
+>> Note: Github currently does not support redirect_uri for their github app installation, rather send to first callback url. Again, that works fine with autorization url, which is being used on the login page. Because of for installing locally, keep your local callback url on the top of the list. [Check this issue.](https://github.com/orgs/community/discussions/64705)
+
+![](assets/gh_01.png)
+
+- Setup webhook url
+
+![](assets/gh_02.png)
+
+- Setup private keys. This will be used to communicate with github server from backend for getting informations, downloading files, and more. 
+
+![](assets/gh_03.png)
+
 
 ### Environment Variables
 

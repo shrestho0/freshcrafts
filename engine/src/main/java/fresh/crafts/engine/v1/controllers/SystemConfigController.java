@@ -73,7 +73,7 @@ public class SystemConfigController {
 
         try {
 
-            SystemConfig sc = systemConfigService.update(systemConfig);
+            SystemConfig sc = systemConfigService.updatePartial(systemConfig);
             if (sc == null) {
                 commonResponseDto.setSuccess(false);
                 commonResponseDto.setMessage("System configuration update failed");

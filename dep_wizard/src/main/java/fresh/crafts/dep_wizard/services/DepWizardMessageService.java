@@ -25,7 +25,7 @@ public class DepWizardMessageService {
         CommandServiceResult cr = commandService.lsDir("/home/");
         System.err.println("[DEBUG] CommandServiceResult: " + cr);
 
-        feedbacKEvent.setEventSource(KEventProducers.DEP_WIZARD);
+        feedbacKEvent.setEventSource(KEventProducers.DEP_WIZ);
         feedbacKEvent.setEventDestination(KEventProducers.ENGINE);
         KEventFeedbackPayload payload = (KEventFeedbackPayload) feedbacKEvent.getPayload();
         HashMap<String, Object> payloadData = new HashMap<>();

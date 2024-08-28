@@ -75,7 +75,11 @@ export function humanizedTimeDifference(date: Date | undefined) {
 }
 
 export const hintToWebUrlMap = new Map([
-	['DBMYSQL', '/databases/mysql']
+	['DBMYSQL', '/databases/mysql'],
+	['DBMONGO', '/databases/mongodb'],
+	['DBPOSTGRES', '/databases/postgres'],
+
+
 	// more will be added later
 ]);
 
@@ -168,6 +172,20 @@ export class EnvVarsUtil {
 
 		return arr
 
+	}
+
+
+	/// Project specific
+	static kvToContent(kv: { key: string; value: string }[]) {
+		return kv
+			.filter(({ key, value }) => key && value)
+			.map(({ key, value }) => `${key}=${value}`)
+			.join('\n');
+	}
+
+	static contentToKV(content: string) {
+		const x = EnvVarsUtil.parse(content);
+		return Object.entries(x).map(([key, value]) => ({ key, value }));
 	}
 
 

@@ -26,11 +26,10 @@ import fresh.crafts.engine.v1.utils.enums.KEventCommandsWizardMySQL;
 public class DBMysqlService {
 
     @Autowired
-    private MessageProducer messageProducer;
-
-    @Autowired
     private DBMysqlRepository dbMysqlRepository;
 
+    @Autowired
+    private MessageProducer messageProducer;
     @Autowired
     private KEventService kEventService;
 

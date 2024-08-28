@@ -23,13 +23,6 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
 
     if (proj.payload.status === ProjectStatus.PROCESSING_SETUP) {
         // ok
-        const fileHelper = await EngineConnection.getInstance();
-
-
-
-
-
-
         return { project: proj.payload, deployment: proj.payload3 }
     } else {
         // redirect to the project page
@@ -39,8 +32,17 @@ export const load: PageServerLoad = async ({ locals, parent, params }) => {
 };
 
 
-export const actions: Actions = {
-    requestDeployment: async ({ request }) => {
+// export const actions: Actions = {
+//     deleteIncompleteDeployment: async ({ request }) => {
+//         const { id } = Object.fromEntries(await request.formData())
+//         // delete project directory
+//         console.log("deleteIncompleteDeployment", id)
+//         ///incomplete/{id}
+//     },
 
-    }
-};
+//     requestDeployment: async ({ request }) => {
+//         const req_data = Object.fromEntries(await request.formData())
+//         console.log("requestDeployment", req_data)
+
+//     }
+// };

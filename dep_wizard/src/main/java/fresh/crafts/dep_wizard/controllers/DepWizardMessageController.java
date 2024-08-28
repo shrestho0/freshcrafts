@@ -41,7 +41,7 @@ public class DepWizardMessageController {
         KEvent feedbackKEvent = new KEvent();
 
         feedbackKEvent.setEventDestination(KEventProducers.ENGINE);
-        feedbackKEvent.setEventSource(KEventProducers.DEP_WIZARD);
+        feedbackKEvent.setEventSource(KEventProducers.DEP_WIZ);
 
         KEventFeedbackPayload feedbackPayload = new KEventFeedbackPayload();
         // setting request<-event id

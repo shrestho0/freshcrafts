@@ -5,3 +5,5 @@ fc_temp/
 .env
 
 *.swp
+
+__pycache__

@@ -97,13 +97,13 @@ import { fail } from '@sveltejs/kit';
 export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	let oAuthState = cookies.get(OAUTH_STATE_COOKIE_NAME);
 
-	// cookies.set(
-	// 	'fromPage',
-	// 	'link',
-	// 	{
-	// 		path: '/',
-	// 	}
-	// )
+	cookies.set(
+		'fromPage',
+		'link',
+		{
+			path: '/',
+		}
+	)
 
 	if (!oAuthState) {
 		oAuthState = ulid();
@@ -111,6 +111,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	}
 
 	const sysConf = await EngineConnection.getInstance().getSystemConfig();
+
 
 	// const oUrls = {
 	// 	githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
@@ -123,7 +124,8 @@ export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	const oUrls = {
 		githubLoginUrl: getGithubLoginUrl(url.origin, oAuthState),
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
-		githubAppInstallUrl: getGithubAppInstallationUrl(url.origin)
+		githubAppInstallUrl: getGithubAppInstallationUrl(url.origin),
+		azureChatApi: await EngineConnection.getInstance().getChatApiKeys(),
 	};
 
 	console.warn(`oUrls`, JSON.stringify(oUrls, null, 2));
@@ -227,6 +229,23 @@ export const actions: Actions = {
 		} else {
 			return fail(403, { message: res?.message ?? 'Failed to change password' });
 		}
+	},
+	saveAzureChatApi: async ({ request, cookies, locals }) => {
+		const { azureChatApiEndpoint, azureChatApiKey } = Object.fromEntries(await request.formData()) as {
+			azureChatApiEndpoint: string;
+			azureChatApiKey: string;
+		}
+
+		console.log('saveAzureChatApi', azureChatApiEndpoint, azureChatApiKey);
+
+		const engineRes = await EngineConnection.getInstance().setChatApiKey({ azureChatApiEndpoint, azureChatApiKey });
+		console.log('saveAzureChatApi', engineRes);
+		if (engineRes.success) {
+			return engineRes;
+		} else {
+			return fail(403, { message: engineRes?.message ?? 'Failed to save Azure Chat API' });
+		}
+
 	}
 
 };

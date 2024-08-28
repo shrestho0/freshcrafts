@@ -72,6 +72,18 @@ const navBarLink: MenuWithSubmenuType[] = [
 		title: 'Settings',
 		href: '/settings',
 		children: undefined
+	},
+	{
+		serviceType: 'chat-history',
+		title: 'Chat History',
+		href: '/chat/history',
+		children: undefined
+	},
+	{
+		serviceType: 'notifications',
+		title: 'Notifications',
+		href: '/notifications',
+		children: undefined
 	}
 ];
 

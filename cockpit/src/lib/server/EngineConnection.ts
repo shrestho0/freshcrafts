@@ -8,7 +8,7 @@ import type {
 	EnginePostgreSQLGetOneError,
 	EngineSystemConfigResponseDto
 } from '@/types/dtos';
-import type { DBMongo, DBMysql, DBPostgres, Project, ProjectDeployment } from '@/types/entities';
+import type { AIChatHistory, AIChatMessage, DBMongo, DBMysql, DBPostgres, Project, ProjectDeployment, SystemwideNotification } from '@/types/entities';
 import { AuthProviderType, DBMongoStatus, DBMysqlStatus } from '@/types/enums';
 import messages from '@/utils/messages';
 
@@ -17,6 +17,7 @@ import messages from '@/utils/messages';
  * @description functions per service should be moved to its own class [Not sure]
  */
 export class EngineConnection {
+
 
 	private static _instance: EngineConnection;
 	public static getInstance(): EngineConnection {
@@ -170,26 +171,13 @@ export class EngineConnection {
 		})
 	}
 
-	async getNotificaions({
-		page = 1,
-		limit = 1,
-		order = 'id',
-		sort = 'desc'
-	}: {
-		page: number;
-		limit: number;
-		order: 'id' | any;
-		sort: 'desc' | 'asc';
-	}) {
-		console.log({ page, limit, order, sort });
-		return {
-			page: 1,
-			limit: 5,
-			orderBy: '_id',
-			sortBy: 'desc',
-			data: [{}]
-		};
+	// console.log("RESRESRES", res)
+	async removeOAuthProvider(OAUTH_GOOGLE: AuthProviderType) {
+		return this.customFetch(BackendEndpoints.REMOVE_OAUTH_PROVIDER.replace(':provider', OAUTH_GOOGLE), {
+			method: 'DELETE'
+		})
 	}
+
 
 	////////////////////////////////////////// DB MYSQL //////////////////////////////////////////
 
@@ -428,22 +416,53 @@ export class EngineConnection {
 
 	////////////////////////////////////////// NOTIFICATIONS //////////////////////////////////////////
 
+
+	async getNotificaions({
+		page = 1,
+		limit = 1,
+		order = 'id',
+		sort = 'desc'
+	}: {
+		page: number;
+		limit: number;
+		order: 'id' | any;
+		sort: 'desc' | 'asc';
+	}) {
+		console.log({ page, limit, order, sort });
+		return {
+			page: 1,
+			limit: 5,
+			orderBy: '_id',
+			sortBy: 'desc',
+			data: [{}]
+		};
+	}
+
 	async getPaginatedNotifications({
 		page = 1,
 		pageSize = 10,
 		orderBy = 'id',
 		sort = 'DESC'
-	}: CommonPagination): Promise<EnginePaginatedDto<DBMysql>> {
+	}: CommonPagination): Promise<EnginePaginatedDto<SystemwideNotification>> {
 		console.log(page, pageSize, orderBy, sort);
 
-		const url = new URL(BackendEndpoints.MYSQL_FIND_ALL);
+		const url = new URL(BackendEndpoints.NOTIFICATIONS);
 		url.searchParams.append('page', page.toString());
 		url.searchParams.append('pageSize', pageSize.toString());
 		url.searchParams.append('orderBy', orderBy);
 		url.searchParams.append('sort', sort);
 
-		return this.customFetch<EnginePaginatedDto<DBMysql>>(url.toString());
+		return this.customFetch<EnginePaginatedDto<SystemwideNotification>>(url.toString());
 	}
+
+	async deleteNofitication(id: string) {
+		return this.customFetch(BackendEndpoints.NOTIFICATION_BY_ID.replace(':id', id), {
+			method: 'DELETE',
+			body: JSON.stringify({ id })
+		})
+
+	}
+
 
 
 	////////////////////////////////////////// PROJECT STUFF //////////////////////////////////////////
@@ -461,6 +480,71 @@ export class EngineConnection {
 
 	async getProjectByUniqueName(uniqueName: string): Promise<EngineCommonResponseDto<Project, null>> {
 		return this.customFetch(BackendEndpoints.PROJECT_BY_UNIQUE_NAME.replace(':id', uniqueName));
+	}
+
+
+	async deployProject(id: string, data: any) {
+		return this.customFetch(BackendEndpoints.PROJECT_DEPLOY_BY_ID.replace(':id', id), {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async updatePartialProjectDeployment(id: string, data: Partial<ProjectDeployment>) {
+		return this.customFetch(BackendEndpoints.PROJECT_DEPLOYMENT_BY_ID.replace(':id', id), {
+			method: 'PATCH',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async deleteIncompleteProject(id: string) {
+		return this.customFetch(BackendEndpoints.PROJECT_INCOMPLETE_BY_ID.replace('{id}', id), {
+			method: 'DELETE',
+		})
+	}
+
+	////////////////////////////////////////// AI & CHAT STUFF //////////////////////////////////////////
+	async getChatApiKeys() {
+		return this.customFetch(BackendEndpoints.API_CHAT_APIKEY);
+	}
+
+	async setChatApiKey(data: {
+		azureChatApiEndpoint: string,
+		azureChatApiKey: string
+	}) {
+		console.log(data)
+		return this.customFetch(BackendEndpoints.API_CHAT_APIKEY, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
+
+	}
+	async saveAIChatMessages(data: {
+		chatName: string,
+		messages: AIChatMessage[]
+	}) {
+		return this.customFetch(BackendEndpoints.API_CHAT_HISTORY, {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async getAIChatHistory(data: {
+		page: number,
+		pageSize: number,
+		sort: 'ASC' | 'DESC',
+	}) {
+		const url = new URL(BackendEndpoints.API_CHAT_HISTORY);
+		url.searchParams.append('page', data.page.toString());
+		url.searchParams.append('pageSize', data.pageSize.toString());
+		url.searchParams.append('sort', data.sort);
+		return this.customFetch<EnginePaginatedDto<AIChatHistory>>(url.toString());
+	}
+	async deleteAIChatHistory(id: string) {
+		return this.customFetch(BackendEndpoints.API_CHAT_HISTORY_BY_ID.replace(':id', id), {
+			method: 'DELETE',
+			body: JSON.stringify({ id })
+		})
 	}
 
 }	

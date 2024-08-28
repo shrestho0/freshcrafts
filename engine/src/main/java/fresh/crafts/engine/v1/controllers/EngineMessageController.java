@@ -34,7 +34,7 @@ public class EngineMessageController {
             engineMessageService.serveForWizardPostgres(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_MONGO) {
             engineMessageService.serveForWizardMongo(kEvent);
-        } else if (kEvent.getEventSource() == KEventProducers.DEP_WIZARD) {
+        } else if (kEvent.getEventSource() == KEventProducers.DEP_WIZ) {
             //
         } else {
             // invalid event source

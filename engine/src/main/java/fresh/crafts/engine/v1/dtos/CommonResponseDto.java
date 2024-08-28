@@ -14,7 +14,7 @@ public class CommonResponseDto {
 
     private Boolean success = false;
     private String message;
-    private Integer statusCode;
+    private Integer statusCode = 400;
 
     // TODO: remove this one from everywhere
     @Deprecated

@@ -8,7 +8,7 @@ const producer = new Producer(client, {
     ackTimeoutMs: 100
 });
 
-const predefinedTopics = ['ENGINE', 'WIZARD_MYSQL', 'WIZARD_POSTGRES', 'WIZARD_MONGO', 'DEP_WIZARD']
+const predefinedTopics = ['ENGINE', 'WIZARD_MYSQL', 'WIZARD_POSTGRES', 'WIZARD_MONGO', 'DEP_WIZ']
 
 
 producer.on('ready', () => {

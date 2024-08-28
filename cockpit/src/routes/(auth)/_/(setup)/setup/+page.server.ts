@@ -2,6 +2,7 @@ import { BackendEndpoints } from '@/backend-endpoints';
 import type { PageServerLoad } from './$types';
 import { error, fail, redirect, type Actions } from '@sveltejs/kit';
 import { EngineConnection } from '@/server/EngineConnection';
+import { AuthProviderType } from '@/types/enums';
 
 export const load: PageServerLoad = async ({ locals, cookies }) => {
 	// check if already setup
@@ -19,7 +20,7 @@ export const load: PageServerLoad = async ({ locals, cookies }) => {
 
 
 	const sysConf = await EngineConnection.getInstance().getSystemConfig();
-	console.log("sysconf", sysConf);
+	// console.log("sysconf", sysConf);
 	// console.log(sysConf);
 	let allowed = sysConf != null && Object.keys(sysConf).includes("systemUserSetupComplete") && sysConf.systemUserSetupComplete === false
 
@@ -41,11 +42,7 @@ export const actions: Actions = {
 
 		if (allowed) {
 			// remove github
-			const res = await EngineConnection.getInstance().updateSystemConfigPartial({
-				systemUserOauthGithubEnabled: false,
-				systemUserOauthGithubData: null,
-				systemUserOAuthGithubId: null
-			})
+			const res = await EngineConnection.getInstance().removeOAuthProvider(AuthProviderType.OAUTH_GITHUB)
 
 			return {
 				...res
@@ -55,15 +52,17 @@ export const actions: Actions = {
 	removeGoogle: async ({ locals, cookies }) => {
 		const sysConf = await EngineConnection.getInstance().getSystemConfig();
 		let allowed = (sysConf != null && Object.keys(sysConf).includes("systemUserSetupComplete") && sysConf.systemUserSetupComplete === false) || locals.user
+
 		if (allowed) {
 			// remove github
-			const res = await EngineConnection.getInstance().updateSystemConfigPartial({
-				systemUserOauthGoogleEnabled: false,
-				systemUserOAuthGoogleEmail: null,
-				systemUserOauthGoogleData: null,
+			// const res = await EngineConnection.getInstance().updateSystemConfigPartial({
+			// 	systemUserOauthGoogleEnabled: false,
+			// 	systemUserOAuthGoogleEmail: null,
+			// 	systemUserOauthGoogleData: null,
 
-			})
+			// })
 
+			const res = await EngineConnection.getInstance().removeOAuthProvider(AuthProviderType.OAUTH_GOOGLE)
 			return {
 				...res
 			}

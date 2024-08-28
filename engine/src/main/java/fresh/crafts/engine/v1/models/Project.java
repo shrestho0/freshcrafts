@@ -36,7 +36,8 @@ public class Project {
 
     ProjectGithubRepo githubRepo;
 
-    ProjectDomain domain;
+    // ProjectDomain domain;
+    String domain;
 
     public Project() {
         this.id = UlidGenerator.generate();

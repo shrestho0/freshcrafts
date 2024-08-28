@@ -10,7 +10,8 @@ onMount(() => {
 			if (data?.closeWindow || (window.opener && window.opener !== window)) {
 				window.close();
 			}
-			goto('/dashboard');
+			// goto('/dashboard');
+			window.location.href = '/dashboard';
 		}
 	}
 });

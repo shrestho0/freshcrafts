@@ -57,9 +57,8 @@ export function getGooleLoginhUrl(baseUrl: string, state: string) {
 
 export function getGithubAppInstallationUrl(origin: string) {
 	// add a slash to PUBLIC_GITHUB_APP_INSTALLATION_URL if it doesn't have one
-	const installation_url = PUBLIC_GITHUB_APP_INSTALLATION_URL + (PUBLIC_GITHUB_APP_INSTALLATION_URL.endsWith('/') ? '' : '/');
-	const theUrl = new URL(installation_url);
-	theUrl.searchParams.append('client_id', GITHUB_CLIENT_ID);
+	const theUrl = new URL(PUBLIC_GITHUB_APP_INSTALLATION_URL);
+	// theUrl.searchParams.append('client_id', GITHUB_CLIENT_ID);
 	theUrl.searchParams.append('redirect_uri', origin + PUBLIC_GITHUB_OAUTH_CALLBACK_URL);
 	return theUrl.toString();
 	// return PUBLIC_GITHUB_APP_INSTALLATION_URL +

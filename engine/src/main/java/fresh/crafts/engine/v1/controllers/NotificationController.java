@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fresh.crafts.engine.v1.models.Notification;
 import fresh.crafts.engine.v1.services.NotificationService;
-import fresh.crafts.engine.v1.utils.enums.NotificationSortField;
+import fresh.crafts.engine.v1.utils.enums.CommonSortField;
 import fresh.crafts.engine.v1.utils.enums.NotificationType;
 import org.springframework.data.domain.Pageable;
 
@@ -27,14 +27,14 @@ public class NotificationController {
     public Page<Notification> getNotifications(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int pageSize,
-            @RequestParam(defaultValue = "id") NotificationSortField orderBy,
+            @RequestParam(defaultValue = "id") CommonSortField orderBy,
             @RequestParam(defaultValue = "DESC") Sort.Direction sort,
             @RequestParam(required = false) Boolean markedAsRead,
             @RequestParam(required = false) NotificationType type) {
 
         // no search on notifications, cause, that's the plan
 
-        Pageable pageable = PageRequest.of(page, pageSize, sort, orderBy.getNotificationFieldName());
+        Pageable pageable = PageRequest.of(page, pageSize, sort, orderBy.getFieldName());
 
         // Query query = new Query().with(pageable);
 

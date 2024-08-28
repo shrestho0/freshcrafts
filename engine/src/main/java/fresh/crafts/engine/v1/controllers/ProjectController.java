@@ -4,7 +4,9 @@ import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestAttribute;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 import fresh.crafts.engine.v1.dtos.CreateProjectRequestDto;
+import fresh.crafts.engine.v1.models.ProjectDeployment;
 import fresh.crafts.engine.v1.services.ProjectService;
 
 @RestController
@@ -36,7 +39,15 @@ public class ProjectController {
 
         ResponseEntity<CommonResponseDto> response = ResponseEntity.status(res.getStatusCode()).body(res);
         return response;
+    }
 
+    @PostMapping("/deploy/{id}")
+    public ResponseEntity<CommonResponseDto> deployProject(
+            @PathVariable String id,
+            @RequestBody HashMap<String, Object> deployInfo) {
+        // return "deployProjectById";
+        CommonResponseDto res = projectService.deployProject(id, deployInfo);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
     @GetMapping("/{id}")
@@ -59,4 +70,27 @@ public class ProjectController {
         return response;
     }
 
+    @DeleteMapping("/incomplete/{id}")
+    public ResponseEntity<CommonResponseDto> deleteIncompleteProjectById(@PathVariable String id) {
+
+        // response dto
+        CommonResponseDto res = projectService.deleteIncompleteProject(id);
+
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @GetMapping("/deployments/{id}")
+    public ResponseEntity<CommonResponseDto> getProjectDeployment(@PathVariable String id) {
+        // return "getProjectDeploymentById";
+        CommonResponseDto res = projectService.getProjectDeploymentById(id);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PatchMapping("/deployments/{id}")
+    public ResponseEntity<CommonResponseDto> updatePartialProjectDeployment(
+            @PathVariable String id,
+            @RequestBody ProjectDeployment pd) {
+        CommonResponseDto res = projectService.updatePartialProjectDeployment(id, pd);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
 }

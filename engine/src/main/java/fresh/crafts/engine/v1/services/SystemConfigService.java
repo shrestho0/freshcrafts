@@ -69,7 +69,7 @@ public class SystemConfigService {
 
     }
 
-    public SystemConfig update(SystemConfig systemConfig) throws SystemConfigurationsNotSetException {
+    public SystemConfig updatePartial(SystemConfig systemConfig) throws SystemConfigurationsNotSetException {
         // partial update
         Optional<SystemConfig> optionalExistingConfig = getOnly();
         SystemConfig existingConfig = optionalExistingConfig.orElse(null);
@@ -175,6 +175,10 @@ public class SystemConfigService {
         existingConfig.setUpdated(new Date());
         return systemConfigRepository.save(existingConfig);
 
+    }
+
+    public SystemConfig updateFull(SystemConfig c) {
+        return systemConfigRepository.save(c);
     }
 
 }

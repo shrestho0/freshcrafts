@@ -6,9 +6,7 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies, parent }) =
 	let path = url.pathname?.split('/')?.slice(1).join('/');
 
 	// REFACTOR remove fromPage cookie
-	if (url.pathname.startsWith('/_') || url.pathname.startsWith('/settings')) {
-		cookies.delete('fromPage', { path: '/' });
-	}
+
 
 	console.log('path', path);
 	if (!path) {

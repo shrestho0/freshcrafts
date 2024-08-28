@@ -3,6 +3,7 @@ import { ENGINE_BASE_URL } from '$env/static/private';
 // maybe map will be more efficient
 const _endpoints = {
 	PROVIDERS: '/tokens/allowed-providers',
+	REMOVE_OAUTH_PROVIDER: '/tokens/remove-oauth-provider/:provider',
 
 	GENERATE_TOKEN: '/tokens/generate',
 	REFRESH_TOKEN: '/tokens/refresh',
@@ -27,10 +28,21 @@ const _endpoints = {
 	MONGO_FIND_ALL: '/db-mongo',
 
 	NOTIFICATIONS: '/notifications',
+	NOTIFICATION_BY_ID: '/notifications/:id',
 
 	PROJECTS_INIT: '/projects/init',
+	PROJECT_DEPLOY_BY_ID: '/projects/deploy/:id', // POST to deploy
 	PROJECT_BY_ID: '/projects/:id',
 	PROJECT_BY_UNIQUE_NAME: '/projects/:id?isIdUniqueName=true',
+
+	PROJECT_INCOMPLETE_BY_ID: '/projects/incomplete/{id}',
+
+	PROJECT_DEPLOYMENT_BY_ID: "/projects/deployments/:id", // Get to get, PATCH to partial update
+
+	API_CHAT_APIKEY: "/ai/chat/api-keys", // Get to get, Post to set
+	API_CHAT_HISTORY: "/ai/chat/history", // Get to get, Post to send, ?page=0&pageSize=1&sort=DESC
+	API_CHAT_HISTORY_BY_ID: "/ai/chat/history/:id", // 
+
 
 };
 

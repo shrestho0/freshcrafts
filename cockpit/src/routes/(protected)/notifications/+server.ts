@@ -1,26 +1,31 @@
 
 
 import { EngineConnection } from '@/server/EngineConnection';
-import type { CommonPagination } from '@/types/dtos';
+import type { CommonPagination, EnginePaginatedDto } from '@/types/dtos';
+import type { SystemwideNotification } from '@/types/entities.js';
 import { json, type RequestHandler } from '@sveltejs/kit';
 
-export const POST: RequestHandler = async ({ request }) => {
-	const paginationORquery = await request.json();
-	const pagination: CommonPagination = {
-		page: paginationORquery.page,
-		pageSize: paginationORquery.pageSize,
-		orderBy: paginationORquery.orderBy,
-		sort: paginationORquery.sort
-	};
+export const GET: RequestHandler = async ({ url, }) => {
 
-	// console.log();
+	const page = parseInt(url.searchParams.get('page')!);
+	const pageSize = parseInt(url.searchParams.get('pageSize')!);
+	const sort = (url.searchParams.get('sort') ?? 'DESC') as 'ASC' | 'DESC';
 
-	// const query = paginationORquery.query;
-	// if (query) {
-	// return json(await EngineConnection.getInstance().getNotificaions(query));
-	// }
-
-	return json(await EngineConnection.getInstance().getPaginatedNotifications(pagination));
-
-	// return json(await EngineConnection.getInstance().getMysqlDBs(pagination));
+	const d: EnginePaginatedDto<SystemwideNotification> = await EngineConnection.getInstance().getPaginatedNotifications({
+		page, pageSize, sort, orderBy: 'id'
+	})
+	console.log(d);
+	return json(d)
 };
+
+export const PATCH: RequestHandler = async ({ request }) => {
+	// partial update
+	return json({ message: 'PATCH' });
+};
+
+export const DELETE = async ({ request }) => {
+	const { id } = await request.json() as { id: string };
+	const d = await EngineConnection.getInstance().deleteNofitication(id);
+
+	return json(d)
+}

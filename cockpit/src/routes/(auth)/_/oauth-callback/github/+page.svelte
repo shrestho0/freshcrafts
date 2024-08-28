@@ -7,11 +7,17 @@ export let data;
 onMount(() => {
 	if (browser) {
 		if (data?.success) {
-			if (data?.closeWindow || (window.opener && window.opener !== window)) {
-				window.close();
-			} else {
-				goto('/dashboard');
+			try {
+				if (data?.closeWindow || (window.opener && window.opener !== window)) {
+					window.close();
+				}
+			} catch (e) {
+				console.log('error closing window', e);
 			}
+			// goto('/dashboard');
+			window.location.href = '/dashboard';
+		} else {
+			console.log('data from oauth redirect page', data);
 		}
 		// localStorage.setItem('oc_data', JSON.stringify(data));
 		// if (data?.closeWindow) {

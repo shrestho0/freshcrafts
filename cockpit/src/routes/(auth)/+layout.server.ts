@@ -4,7 +4,8 @@ import { ulid } from 'ulid';
 import { OAUTH_STATE_COOKIE_NAME } from '$env/static/private';
 import { PUBLIC_GITHUB_APP_INSTALLATION_URL, PUBLIC_GITHUB_OAUTH_CALLBACK_URL } from '$env/static/public';
 
-export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
+export const load: LayoutServerLoad = async ({ locals, url, cookies, parent }) => {
+	await parent();
 	let oAuthState = cookies.get(OAUTH_STATE_COOKIE_NAME);
 
 	if (!oAuthState) {
@@ -17,6 +18,6 @@ export const load: LayoutServerLoad = async ({ locals, url, cookies }) => {
 		googleLoginUrl: getGooleLoginhUrl(url.origin, oAuthState),
 		githubAppInstallUrl: getGithubAppInstallationUrl(url.origin)
 	};
-	console.warn(`oUrls`, JSON.stringify(oUrls, null, 2));
+	// console.warn(`oUrls`, JSON.stringify(oUrls, null, 2));
 	return oUrls;
 };

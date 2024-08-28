@@ -6,14 +6,15 @@ import path from 'path';
 import AdmZip from 'adm-zip';
 import * as tar from 'tar';
 
-export class FileHelper {
+export class FilesHelper {
 
 
-    private static instance: FileHelper;
+    private static instance: FilesHelper;
     private basePath = FILE_UPLOAD_DIR
     private projectDir = `${this.basePath}/projects`
     private projectCompressedDirName = 'compresed'
     private projectSourceDirName = 'src'
+    private projectEnvFileDirName = 'env'
 
     private tempFileDir = `${this.basePath}/temp`
 
@@ -26,7 +27,7 @@ export class FileHelper {
     static getInstance() {
         if (!this.instance) {
 
-            this.instance = new FileHelper();
+            this.instance = new FilesHelper();
         }
         return this.instance;
     }
@@ -56,6 +57,22 @@ export class FileHelper {
         const fileAbsPath = path.join(process.cwd(), filePath)
 
         return { fileName, filePath, fileAbsPath };
+    }
+
+    async writeProjectEnvFile(projectId: string, content: string, pVersion: number = 1): Promise<{
+        name: string;
+        path: string;
+        absPath: string;
+    }> {
+        const dirPath = `${this.projectDir}/${projectId}/v${pVersion}/${this.projectEnvFileDirName}`;
+        this.ensureDirExists(dirPath);
+        const fileName = '.env';
+        const filePath = dirPath + '/' + fileName;
+        await fs.writeFile(filePath, content);
+
+        const fileAbsPath = path.join(process.cwd(), filePath)
+
+        return { name: fileName, path: filePath, absPath: fileAbsPath };
     }
 
 
@@ -122,6 +139,12 @@ export class FileHelper {
     }
 
 
+    async deleteProjectFiles(projectId: string) {
+        const projectDir = `${this.projectDir}/${projectId}`;
+        await fs.rm(projectDir, { recursive: true, force: true });
+    }
+
+
     // Function to extract .zip files
     private extractZip(zipFilePath: string, extractDir: string) {
         try {
@@ -179,5 +202,82 @@ export class FileHelper {
         return directoryPath;
     }
 
+
+
+    async listFilesRecursive(filesDirAbsPath: string) {
+        let iota = 0;
+        let total_levels = 0;
+
+        async function getDirectoryStructure(dirPath: string, level = 0, maxDepth = 5) {
+            const structure: any[] = [];
+
+            // Stop recursion if max depth is reached
+            if (level >= maxDepth) {
+                return structure;
+            }
+
+            const ignore = [
+                ".git",
+                ".gitignore",
+                ".DS_Store",
+                "node_modules",
+                "package-lock.json",
+                "yarn.lock",
+                "README.md",
+                ".svelte-kit",
+                ".vscode",
+                "__pycache__",
+                ".mvn",
+                "target",
+                ".idea",
+            ]
+
+            // list directories and files
+            // ignore the list
+
+            const files = await fs.readdir(dirPath);
+            for (const file of files) {
+                if (ignore.includes(file)) {
+                    continue;
+                }
+
+                const filePath = path.join(dirPath, file);
+                const stats = await fs.stat(filePath);
+                const isDir = stats.isDirectory();
+                const isFile = stats.isFile();
+
+                if (isDir) {
+                    const children = await getDirectoryStructure(filePath, level + 1, maxDepth);
+                    structure.push({
+                        text: file, children, isDir, disabled: !isDir, isFile, level, id: iota++
+                    });
+                } else if (isFile) {
+                    structure.push({ text: file, isDir, isFile, disabled: !isDir, level, id: iota++ });
+                }
+
+                if (level > total_levels) {
+                    total_levels = level;
+                }
+
+
+
+            }
+            return structure;
+        }
+
+        const structure = await getDirectoryStructure(filesDirAbsPath);
+        return {
+            total_levels,
+            iota: iota--,
+            structure,
+        };
+
+    }
+
+
+
+    joinPath(...paths: string[]) {
+        return path.join(...paths);
+    }
 
 }

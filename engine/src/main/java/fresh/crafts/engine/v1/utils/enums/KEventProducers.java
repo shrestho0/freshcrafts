@@ -6,6 +6,6 @@ public enum KEventProducers {
     WIZARD_MYSQL,
     WIZARD_POSTGRES,
     WIZARD_MONGO,
-    DEP_WIZARD,
+    DEP_WIZ,
     // more like application and other
 }

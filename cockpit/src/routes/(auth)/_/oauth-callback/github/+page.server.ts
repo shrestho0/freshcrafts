@@ -247,7 +247,7 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 				user_access_token: gh_res.access_token,
 			}
 		}
-
+		console.log('sysconfToUpdate', sysconfToUpdate)
 		const actualSysConf = await EngineConnection.getInstance().getSystemConfig();
 
 		if (actualSysConf?.systemUserOauthGithubEnabled && actualSysConf?.systemUserOAuthGithubId) {
@@ -259,18 +259,19 @@ export const load: PageServerLoad = async ({ locals, url, cookies, params, fetch
 
 		const up = await EngineConnection.getInstance().updateSystemConfigPartial(sysconfToUpdate)
 
-
+		console.log('up', up)
 		if (!up.success) {
 			return up
 		}
 
-
+		console.log('from_page', from_page)
 
 		if (from_page != 'setup' && from_page != 'link') {
 			// generateToken
 			console.log('\n\nGenerating token\n\n')
 			const tokens = await generateEngineTokens(sysconfToUpdate.systemUserOAuthGithubId, fetch);
 			console.log('TOKEN GENERATION RESPONSE', tokens);
+
 			if (!tokens.success) {
 				return {
 					success: false,

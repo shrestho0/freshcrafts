@@ -8,13 +8,13 @@ import path from 'path';
 import { ulid } from 'ulid';
 
 import { GithubWebhookHelper } from '@/server/GithubWebhookHelper';
-import { FileHelper } from '@/server/FilesHelper';
+import { FilesHelper } from '@/server/FilesHelper';
 import type { ProjectDeploymentFile, ProjectDeploymentSource } from '@/types/entities';
 
 
 
 export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
-	const fileHelper = FileHelper.getInstance();
+	const fileHelper = FilesHelper.getInstance();
 
 	// const q = url.searchParams.get('q');
 	// let per_page: any = url.searchParams.get('per_page') || '10';
@@ -152,7 +152,7 @@ export const GET: RequestHandler = async ({ locals, url, request, fetch }) => {
 };
 
 export const PATCH: RequestHandler = async ({ request }) => {
-	const fileHelper = FileHelper.getInstance();
+	const fileHelper = FilesHelper.getInstance();
 
 	try {
 
@@ -342,7 +342,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 };
 
 export const DELETE: RequestHandler = async ({ request }) => {
-	const fileHelper = FileHelper.getInstance();
+	const fileHelper = FilesHelper.getInstance();
 
 	const { fileName, fileAbsolutePath, fileRelativePath } = (await request.json()) as {
 		success: boolean;

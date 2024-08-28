@@ -8,6 +8,6 @@ public enum KEventProducers {
     WIZARD_MONGO,
     WIZARD_APP,
     WIZARD_NGINX,
-    DEP_WIZARD,
+    DEP_WIZ,
     // more like application and other
 }

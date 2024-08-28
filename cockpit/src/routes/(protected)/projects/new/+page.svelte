@@ -3,6 +3,7 @@ import WhatDeviceIsThat from '@/components/dev/WhatDeviceIsThat.svelte';
 import {
 	ClickableTile,
 	RadioTile,
+	Button,
 	SelectableTile,
 	Tile,
 	TileGroup
@@ -10,6 +11,8 @@ import {
 import { Upload, LogoGithub, Warning } from 'carbon-icons-svelte';
 import FromDevice from './FromDevice.svelte';
 import FromGithub from './FromGithub.svelte';
+import type { EngineSystemConfigResponseDto } from '@/types/dtos';
+import PreDebug from '@/components/dev/PreDebug.svelte';
 
 let items = [
 	{
@@ -24,6 +27,9 @@ let items = [
 	}
 ];
 let selected: number | null = null;
+
+export let data;
+const sysConf = data?.sysConf as EngineSystemConfigResponseDto;
 </script>
 
 <h1 class="text-2xl">New Project</h1>
@@ -60,8 +66,19 @@ let selected: number | null = null;
 {:else if items[selected].value === 'fromDevice'}
 	<FromDevice />
 {:else if items[selected].value === 'fromGithub'}
-	<FromGithub />
+	{#if sysConf?.systemUserOauthGithubEnabled}
+		<FromGithub />
+	{:else}
+		<Tile class="flex items-center justify-center text-lg gap-2">
+			<Warning class="h-6 w-6" />
+			Github not enabled. Enable from
+			<a href="/settings" class="text-[var(--cds-link-01)] hover:text-[var(--cds-link-02)]"
+				>settings</a
+			> page
+		</Tile>
+	{/if}
 {/if}
+<PreDebug data={sysConf} />
 
 <!-- {#if items[selected].value === 'fromDevice'}
 	<FromDevice />

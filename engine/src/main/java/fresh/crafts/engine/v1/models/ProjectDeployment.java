@@ -3,6 +3,7 @@ package fresh.crafts.engine.v1.models;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import fresh.crafts.engine.v1.entities.ProjectDeploymentCommands;
 import fresh.crafts.engine.v1.entities.ProjectDeploymentFile;
 import fresh.crafts.engine.v1.entities.ProjectDeploymentSource;
 import fresh.crafts.engine.v1.utils.UlidGenerator;
@@ -31,6 +32,7 @@ public class ProjectDeployment {
 
     ProjectDeploymentFile rawFile;
     ProjectDeploymentFile envFile;
+    ProjectDeploymentCommands depCommands;
 
     ProjectDeploymentSource src;
 

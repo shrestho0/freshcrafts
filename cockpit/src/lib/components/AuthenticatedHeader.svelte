@@ -9,7 +9,7 @@ import {
 import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
 import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
 import HeaderSearchThingy from './HeaderSearchThingy.svelte';
-import { Notification as NotificationIcon, NotificationNew } from 'carbon-icons-svelte';
+import { Chat, Notification as NotificationIcon, NotificationNew } from 'carbon-icons-svelte';
 import { source } from 'sveltekit-sse';
 import { browser } from '$app/environment';
 import { Circle } from 'lucide-svelte';
@@ -17,6 +17,7 @@ import type { SystemwideNotification } from '@/types/entities';
 import { page } from '$app/stores';
 import { invalidate, invalidateAll } from '$app/navigation';
 import { hintToWebUrlMap } from '@/utils/utils';
+import ChatBox from './ChatBox.svelte';
 
 export let isSideNavOpen: boolean;
 
@@ -60,26 +61,6 @@ if (browser && value) {
 	});
 }
 
-// function invalidateAggregationPages(actionHints: string) {
-// 	const [action, locationHint, id] = actionHints?.split('_');
-// 	// remove trailing slash
-
-// 	let path = $page.url.pathname;
-// 	path = path.replace(/\/$/, '');
-
-// 	console.warn(
-// 		'Invalidation func',
-// 		hintToWebUrlMap.get(locationHint) == path,
-// 		locationHint,
-// 		path
-// 	);
-// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
-// 		console.log('Invalidating');
-// 		invalidateAll();
-// 		// invalidateAll();
-// 	}
-// }
-
 async function handleLogout() {
 	const bres = await fetch('/logout', {
 		method: 'POST',
@@ -104,7 +85,38 @@ async function handleLogout() {
  * So, we need to keep track of datetime of updated, created will be found from ulid
  * TODO: There shouldn't be any markedAsRead=true message
  */
+
+const gloaballyActiveables = {
+	search: false,
+	notification: false,
+	chat: false
+};
+function handleGlobalKeyEvents(event: KeyboardEvent) {
+	if (event.altKey) {
+		switch (event.key) {
+			case 'k':
+				gloaballyActiveables.search = !gloaballyActiveables.search;
+				break;
+			case 'n':
+				gloaballyActiveables.notification = !gloaballyActiveables.notification;
+				break;
+			case 'c':
+				gloaballyActiveables.chat = !gloaballyActiveables.chat;
+				break;
+			case 'l':
+				handleLogout();
+				break;
+			default:
+				break;
+		}
+	}
+	// if (event.key === 'k' && event.altKey) {
+	// 	gloaballyActiveables.search = !gloaballyActiveables.search;
+	// }
+}
 </script>
+
+<svelte:window on:keydown={handleGlobalKeyEvents} />
 
 <!-- <Header platformName="FreshCrafts" href="/" persistentHamburgerMenu bind:isSideNavOpen> -->
 <Header platformName="FreshCrafts (v0.1)" href="/" bind:isSideNavOpen>
@@ -113,14 +125,9 @@ async function handleLogout() {
 	</svelte:fragment>
 
 	<HeaderUtilities>
-		<HeaderSearchThingy />
+		<HeaderSearchThingy bind:active={gloaballyActiveables.search} />
 		<HeaderThemeSwitcher />
-		<!-- <HeaderGlobalAction
-			icon={notificationStuff.hasNew ? NotificationNew : NotificationIcon}
-			on:click={() => {
-				notificationStuff.open = !notificationStuff.open;
-			}}
-		/> -->
+
 		<button
 			type="button"
 			aria-label="Search"
@@ -128,7 +135,7 @@ async function handleLogout() {
 			tabindex="0"
 			class="bx--header-search-button bx--header__action"
 			on:click={() => {
-				notificationStuff.open = !notificationStuff.open;
+				gloaballyActiveables.notification = !gloaballyActiveables.notification;
 				notificationStuff.hasNew = false;
 			}}
 		>
@@ -140,6 +147,15 @@ async function handleLogout() {
 			{/if}
 		</button>
 
+		<button
+			class="bx--header-search-button bx--header__action"
+			on:click={() => {
+				gloaballyActiveables.chat = !gloaballyActiveables.chat;
+			}}
+		>
+			<Chat height="20" width="20" />
+		</button>
+
 		<HeaderGlobalAction
 			iconDescription="Logout"
 			tooltipAlignment="end"
@@ -148,7 +164,7 @@ async function handleLogout() {
 		/>
 	</HeaderUtilities>
 </Header>
-{#if notificationStuff.open}
+{#if gloaballyActiveables.notification}
 	<div
 		transition:slide
 		class="top-10 right-12 z-10 fixed bg-[#161616] p-3 m-2 w-[300px] text-gray-100"
@@ -169,7 +185,7 @@ async function handleLogout() {
 			<a
 				href="/notifications"
 				on:click={() => {
-					notificationStuff.open = false;
+					gloaballyActiveables.notification = false;
 				}}
 			>
 				view all notifications
@@ -177,3 +193,4 @@ async function handleLogout() {
 		</div>
 	</div>
 {/if}
+<ChatBox bind:open={gloaballyActiveables.chat} />

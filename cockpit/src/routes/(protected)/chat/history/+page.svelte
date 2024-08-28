@@ -2,20 +2,26 @@
 import { page } from '$app/stores';
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import type { EngineCommonResponseDto, EnginePaginatedDto, Pageable } from '@/types/dtos';
-import type { SystemwideNotification } from '@/types/entities';
-import { humanizedTimeDifference, toTitleCase, ulidToDate } from '@/utils/utils';
+import type { AIChatHistory } from '@/types/entities';
+import { humanizedTimeDifference, ulidToDate } from '@/utils/utils';
 import SvelteMarkdown from 'svelte-markdown';
-import { Tile, Pagination, Tag } from 'carbon-components-svelte';
+import {
+	ClickableTile,
+	ComposedModal,
+	ModalBody,
+	ModalHeader,
+	Button,
+	Pagination,
+	ModalFooter,
+	PaginationNav,
+	Tile
+} from 'carbon-components-svelte';
 import { afterUpdate, getContext, onMount } from 'svelte';
 import type { ActionResult } from '@sveltejs/kit';
 import { invalidateAll } from '$app/navigation';
 import { toast } from 'svelte-sonner';
 import { enhance } from '$app/forms';
 import { browser } from '$app/environment';
-import ExpandableSection from '@/components/ExpandableSection.svelte';
-import { Dot, SquareArrowOutUpRight } from 'lucide-svelte';
-import { CircleSolid } from 'carbon-icons-svelte';
-import { SystemWideNoitficationTypes } from '@/types/enums';
 
 let form: HTMLFormElement;
 
@@ -28,7 +34,7 @@ const pageData = {
 } as {
 	page: number;
 	pageSize: number;
-	content: SystemwideNotification[];
+	content: AIChatHistory[];
 	totalElements: number;
 	allowedSizes: number[];
 };
@@ -45,7 +51,7 @@ async function fetchData(p = 1, pageSize = 10) {
 		headers: {
 			'Content-Type': 'application/json'
 		}
-	}).then((res) => res.json())) as EnginePaginatedDto<SystemwideNotification>;
+	}).then((res) => res.json())) as EnginePaginatedDto<AIChatHistory>;
 
 	pageData.totalElements = d.totalElements;
 	// pageData.page = p;
@@ -76,22 +82,6 @@ async function deleteSelected() {
 	}
 	selectedIdx = null;
 }
-
-function generateTagColor(type: SystemWideNoitficationTypes): any {
-	switch (type) {
-		case SystemWideNoitficationTypes.SUCCESS:
-			return 'teal';
-		case SystemWideNoitficationTypes.INFO:
-			return 'warm-gray';
-		case SystemWideNoitficationTypes.WARNING:
-			return 'high-contrast';
-		case SystemWideNoitficationTypes.ERROR:
-			return 'red';
-		default:
-			return 'outline';
-	}
-	// if (type==SystemWideNoitficationTypes.SUCCESS) ? 'teal'
-}
 </script>
 
 <div class="py-4">
@@ -99,22 +89,26 @@ function generateTagColor(type: SystemWideNoitficationTypes): any {
 </div>
 
 {#if pageData.content?.length > 0}
-	<!-- on click, mark as read  -->
 	{#each pageData.content as chat, idx}
-		<Tile class="flex items-center justify-between rounded my-2 select-none ">
+		<ClickableTile
+			class="flex items-center justify-between rounded my-2"
+			on:click={() => {
+				selectedIdx = idx;
+			}}
+		>
 			<div class="flex items-center gap-2">
-				<!-- icon={!chat.markedAsRead ? CircleSolid : undefined} -->
-				<Tag type={generateTagColor(chat.type)}>{toTitleCase(chat.type)}</Tag>
-				{chat.message}
+				<h2 class="text-lg">{chat.chatName}</h2>
+				<p class="text-gray-600 text-sm">
+					({chat.messages?.length} messages)
+				</p>
 			</div>
-			<div class="flex gap-3">
+			<div>
 				{humanizedTimeDifference(ulidToDate(chat.id))}
-				<SquareArrowOutUpRight />
 			</div>
-		</Tile>
+		</ClickableTile>
 	{/each}
 {/if}
-<!-- 
+
 <ComposedModal
 	open={selectedIdx != null}
 	on:close={() => {
@@ -137,6 +131,7 @@ function generateTagColor(type: SystemWideNoitficationTypes): any {
 							: ' bg-gray-300 '} break-all"
 					>
 						<SvelteMarkdown source={message.content} />
+						<!-- {message.content} -->
 					</div>
 				</div>
 			{/each}
@@ -152,7 +147,7 @@ function generateTagColor(type: SystemWideNoitficationTypes): any {
 		>
 		<Button class="w-full" kind="danger" on:click={deleteSelected}>Delete</Button>
 	</ModalFooter>
-</ComposedModal> -->
+</ComposedModal>
 
 <section class="w-full">
 	<div class="w-full flex items-center">
@@ -166,6 +161,12 @@ function generateTagColor(type: SystemWideNoitficationTypes): any {
 				await fetchData(pageData.page, pageData.pageSize);
 			}}
 		/>
+		<!-- on:click:button--next={nextPage}
+			on:click:button--previous={prevPage} -->
+		<!-- on:click:button--next={() => {
+					form.page.value = data.pageable.pageNumber + 1;
+					form.submit();
+				}} -->
 	</div>
 </section>
 <PreDebug data={pageData} />

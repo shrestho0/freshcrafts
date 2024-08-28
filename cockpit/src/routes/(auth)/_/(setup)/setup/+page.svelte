@@ -18,6 +18,7 @@ import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
 import Review from './Review.svelte';
 import { enhance } from '$app/forms';
 import type { ActionResult } from '@sveltejs/kit';
+import { browser } from '$app/environment';
 const steps = [
 	{
 		key: 'welcome',
@@ -85,8 +86,10 @@ $: currentStep = steps[currentStepIdx];
 export let data;
 let sysConf: EngineSystemConfigResponseDto;
 $: {
-	sysConf = data?.sysConf as EngineSystemConfigResponseDto;
-	console.log('sysConf', sysConf);
+	if (browser) {
+		sysConf = data?.sysConf as EngineSystemConfigResponseDto;
+		console.log('sysConf', sysConf);
+	}
 }
 
 // $: {

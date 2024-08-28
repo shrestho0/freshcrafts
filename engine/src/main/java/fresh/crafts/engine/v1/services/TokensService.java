@@ -271,7 +271,7 @@ public class TokensService {
         if (BCrypt.checkpw(passwordDto.getOldPassword(), conf.getSystemUserPasswordHash())) {
             SystemConfig partialConfForPassword = new SystemConfig();
             partialConfForPassword.setSystemUserPasswordHash(passwordDto.getNewPassword());
-            systemConfigService.update(partialConfForPassword);
+            systemConfigService.updatePartial(partialConfForPassword);
             // change on success
             // send success message on success
             res.setSuccess(true);
@@ -283,6 +283,42 @@ public class TokensService {
         }
 
         return res;
+    }
+
+    public CommonResponseDto removeOAuthProvider(String provider) {
+        CommonResponseDto res = new CommonResponseDto();
+        res.setErrors(400);
+        // check if provider is valid
+        if (provider.equals(AuthProviderType.OAUTH_GOOGLE.toString())
+                || provider.equals(AuthProviderType.OAUTH_GITHUB.toString())) {
+
+            SystemConfig actualSystemConfig = systemConfigService.getOnly().orElse(null);
+
+            if (provider.equals(AuthProviderType.OAUTH_GOOGLE.toString())) {
+                actualSystemConfig.setSystemUserOauthGoogleEnabled(false);
+                actualSystemConfig.setSystemUserOAuthGoogleEmail(null);
+                actualSystemConfig.setSystemUserOauthGoogleData(null);
+            } else if (provider.equals(AuthProviderType.OAUTH_GITHUB.toString())) {
+                actualSystemConfig.setSystemUserOauthGithubEnabled(false);
+                actualSystemConfig.setSystemUserOAuthGithubId(null);
+                actualSystemConfig.setSystemUserOauthGithubData(null);
+            }
+
+            SystemConfig savedConf = systemConfigService.updateFull(actualSystemConfig);
+            if (savedConf == null) {
+                res.setStatusCode(500);
+                res.setMessage("Failed to remove provider");
+                return res;
+            }
+            res.setStatusCode(200);
+            res.setSuccess(true);
+            res.setMessage("Provider Removed Successfully");
+
+        } else {
+            res.setMessage("Invalid Provider");
+        }
+        return res;
+
     }
 
 }
