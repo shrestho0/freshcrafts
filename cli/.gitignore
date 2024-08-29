@@ -3,6 +3,7 @@ installation-data.json
 fc_temp/
 
 .env
+.env.*
 
 *.swp
 

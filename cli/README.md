@@ -44,6 +44,25 @@ Create github app following these configurations
 
 ![](assets/gh_03.png)
 
+Set to read-only, Actions, Administration, Checks,Code scanning alerts , Contents, Deployments(read/write), Metadata, Pull requests ,Repository security advisories , Secret scanning alerts 
+
+Check events:
+- Installation target 
+- Meta
+- Code scanning alert
+- Deployment
+- Pull Request
+- Public
+- Push
+- Repository
+- Release
+
+
+
+
+
+
+
 
 ### Environment Variables
 
