@@ -4,7 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import fresh.crafts.engine.v1.models.KEvent;
+import fresh.crafts.engine.v1.services.EngineDepwizMessageService;
 import fresh.crafts.engine.v1.services.EngineMessageService;
+import fresh.crafts.engine.v1.services.KEventService;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 
 @Controller
@@ -13,10 +15,16 @@ public class EngineMessageController {
     @Autowired
     private EngineMessageService engineMessageService;
 
+    @Autowired
+    private EngineDepwizMessageService engineDepwizMessageService;
+
     public void handleStuff(KEvent kEvent) {
         System.err.println("[DEBUG]: Engine Message Controller");
         System.err.println("[DEBUG]: engineMessageService: " + engineMessageService);
         System.err.println("[DEBUG]: KEvent: " + kEvent);
+
+        // // save or update event
+        // kEventService.createOrUpdate(kevent);
 
         if (engineMessageService == null) {
             System.err.println("[DEBUG]: Service null");
@@ -35,7 +43,7 @@ public class EngineMessageController {
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_MONGO) {
             engineMessageService.serveForWizardMongo(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.DEP_WIZ) {
-            //
+            engineDepwizMessageService.serve(kEvent);
         } else {
             // invalid event source
             System.err.println("[DEBUG]: Invalid event source");

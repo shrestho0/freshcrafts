@@ -174,6 +174,8 @@ async function deployProject() {
 		envContentFinal = EnvVarsUtil.kvToContent(projectSetup.envKV);
 	}
 
+	console.log(projectSetup.projectName);
+
 	const res = await fetch('', {
 		method: 'PATCH',
 		headers: {

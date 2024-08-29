@@ -10,7 +10,7 @@ export const load: PageServerLoad = async ({ locals, params }) => {
 
     const proj = await EngineConnection.getInstance().getProject<EngineCommonResponseDto<Project, null, ProjectDeployment | null, ProjectDeployment | null>>(proj_id)
 
-    console.log('proj', proj)
+    console.log('proj', Object.keys(proj))
 
     if (proj.success == false) {
         return error(404, 'Project not found')

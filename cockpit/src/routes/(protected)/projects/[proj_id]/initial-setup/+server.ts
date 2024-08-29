@@ -67,13 +67,20 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
             // TODO: send only the abs path
             // create env file from env content
-            const envFile = await filesHelper.writeProjectEnvFile(d.projectId, d.envFileContent);
+            // const envFile = await filesHelper.writeProjectEnvFile(d.projectId, d.envFileContent);
+
+            // Env file should be projectRoot/.env
 
             // whole source should be checked and saved
             const src = d.deployment.src;
-            src.rootDirPath = filesHelper.joinPath(src.filesDirPath, d.selectedFileRelativeUrl)
+            // src.rootDirPath should be relative to the filesDirPath
+            src.rootDirPath = filesHelper.joinPath(d.selectedFileRelativeUrl)
             src.rootDirAbsPath = filesHelper.joinPath(src.filesDirAbsPath, d.selectedFileRelativeUrl)
-            src.buildDirPath = filesHelper.joinPath(src.rootDirPath, d.outputDir)
+
+            const envFile = await filesHelper.writeProjectEnvFile(src.rootDirAbsPath, d.envFileContent);
+
+            // src.buildDirPath should be relative to the rootDirPath
+            src.buildDirPath = filesHelper.joinPath(d.outputDir)
             src.buildDirAbsPath = filesHelper.joinPath(src.rootDirAbsPath, d.outputDir)
 
             const depCommands = {
@@ -89,6 +96,8 @@ export const PATCH: RequestHandler = async ({ request }) => {
             } as Partial<ProjectDeployment>);
 
             // now create project
+
+            console.log('d', d)
 
             const firstDeploy = await EngineConnection.getInstance().deployProject(d.projectId, {
                 uniqueName: d.projectName,

@@ -106,8 +106,8 @@ export type ProjectDeployment = {
 	project?: Project,
 	version: number,
 	isDeployed: boolean,
-	status: ProjectDeploymentStatus
-
+	status: ProjectDeploymentStatus,
+	partialDeploymentMsg: string,
 	rawFile: ProjectDeploymentFile,
 	envFile: ProjectDeploymentFile,
 	src: ProjectDeploymentSource,

@@ -21,6 +21,7 @@ import fresh.crafts.engine.v1.models.Project;
 import fresh.crafts.engine.v1.models.ProjectDeployment;
 import fresh.crafts.engine.v1.repositories.ProjectDeploymentRepository;
 import fresh.crafts.engine.v1.repositories.ProjectRepository;
+import fresh.crafts.engine.v1.utils.CraftUtils;
 import fresh.crafts.engine.v1.utils.enums.DepWizKEventCommands;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 import fresh.crafts.engine.v1.utils.enums.ProjectDeploymentStatus;
@@ -125,6 +126,7 @@ public class ProjectService {
         return res;
     }
 
+    /////////////// getProjectById ///////////////////////
     public CommonResponseDto getProjectById(CommonResponseDto res, String id) {
         Optional<Project> p = projectRepository.findById(id);
         if (p.isPresent()) {
@@ -143,6 +145,15 @@ public class ProjectService {
         res.setStatusCode(404);
         res.setMessage("Project not found with id: " + id);
         return res;
+    }
+
+    // The project
+    public Project getProjectById(String id) {
+        Optional<Project> p = projectRepository.findById(id);
+        if (p.isPresent()) {
+            return p.get();
+        }
+        return null;
     }
 
     public void getProjectByUniqueName(CommonResponseDto res, String id) {
@@ -196,6 +207,7 @@ public class ProjectService {
 
     }
 
+    /////////////////////// getProjectDeploymentById ///////////////////////
     public CommonResponseDto getProjectDeploymentById(String id) {
         CommonResponseDto res = new CommonResponseDto();
         ProjectDeployment pd = projectDeploymentService.getProjectDeploymentById(id, true);
@@ -209,6 +221,10 @@ public class ProjectService {
         res.setStatusCode(404);
         res.setMessage("Project Deployment not found with id: " + id);
         return res;
+    }
+
+    public ProjectDeployment getProjectDeploymentById2(String id) {
+        return projectDeploymentService.getProjectDeploymentById(id, true);
     }
 
     public CommonResponseDto updatePartialProjectDeployment(String id, ProjectDeployment pd) {
@@ -257,6 +273,14 @@ public class ProjectService {
         }
     }
 
+    public ProjectDeployment updateProjectDeployment(ProjectDeployment pd) {
+        return projectDeploymentService.save(pd);
+    }
+
+    public Project updateProject(Project p) {
+        return projectRepository.save(p);
+    }
+
     public CommonResponseDto deployProject(String id, HashMap<String, Object> deployInfo) {
 
         Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
@@ -269,6 +293,16 @@ public class ProjectService {
 
         try {
             Project p = projectRepository.findById(id).get();
+            ProjectDeployment pd = projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId(), false);
+
+            // if not p.getCurrentDeploymentId() or pd.getStatus() != READY_FOR_DEPLOYMENT,
+            // return with success false
+
+            HashMap<String, Object> requiredFields = new HashMap<>();
+            requiredFields.put("domain", deployInfo.get("domain"));
+            requiredFields.put("uniqueName", deployInfo.get("uniqueName"));
+
+            CraftUtils.throwIfRequiredValuesAreNull(requiredFields);
 
             if (deployInfo.get("domain") != null)
                 p.setDomain(deployInfo.get("domain").toString());
@@ -278,12 +312,13 @@ public class ProjectService {
 
             // port will be added by dep_wiz
             p.setStatus(ProjectStatus.PROCESSING_DEPLOYMENT);
+            pd.setStatus(ProjectDeploymentStatus.REQUESTED_DEPLOYMENT);
 
-            // update p
+            // update p && pd
             projectRepository.save(p);
+            projectDeploymentService.save(pd);
 
             // send to dep wiz
-            // TODO
             KEvent kevent = generateCommonKEvent();
             DepWizKEventPayload payload = new DepWizKEventPayload();
             payload.setCommand(DepWizKEventCommands.DEPLOY);
@@ -296,6 +331,8 @@ public class ProjectService {
             res.setStatusCode(202); // Processing
             res.setMessage("Deployment request is being processed");
 
+            // save or update event
+            kEventService.createOrUpdate(kevent);
             // send to dep_wiz
             messageProducer.sendEvent(kevent);
 

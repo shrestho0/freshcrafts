@@ -208,7 +208,7 @@ onMount(() => {
 							: 'justify-start'} "
 					>
 						<div
-							class="p-2 bg-gray-300 rounded-lg {message.role === 'user'
+							class="p-2 rounded-lg {message.role === 'user'
 								? ' bg-[var(--cds-interactive-01)] text-white '
 								: ' bg-gray-300 '} break-all"
 						>

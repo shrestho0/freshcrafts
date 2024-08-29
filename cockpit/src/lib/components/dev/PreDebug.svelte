@@ -1,5 +1,5 @@
 <script lang="ts">
-export let data: {};
+export let data: {} | null;
 export let title: string = '';
 data = structuredClone(data);
 export let classes: string = '';

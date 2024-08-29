@@ -11,6 +11,8 @@ public class KEventFeedbackPayload implements KEventPayloadInterface {
 
     private String requestEventId;
     private Boolean success;
+    private Boolean isPartial;
+
     private String message;
     private HashMap<String, Object> data;
 

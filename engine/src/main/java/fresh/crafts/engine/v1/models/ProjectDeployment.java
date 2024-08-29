@@ -24,6 +24,8 @@ public class ProjectDeployment {
 
     Boolean isDeployed;
 
+    String partialDeploymentMsg;
+
     // save other necceassary fields
     // for:
     // deployment files might be lost,

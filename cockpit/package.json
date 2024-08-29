@@ -11,7 +11,7 @@
 		"test": "vitest",
 		"lint": "prettier --check . && eslint .",
 		"format": "prettier --write .",
-		"reset": "rm -rf node_modules && rm -rf .svelte-kit && rm -rf package-lock.json"
+		"reset": "rm -rf node_modules && rm -rf .svelte-kit && rm -rf package-lock.json && rm -rf build"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",

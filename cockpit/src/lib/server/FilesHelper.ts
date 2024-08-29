@@ -14,7 +14,7 @@ export class FilesHelper {
     private projectDir = `${this.basePath}/projects`
     private projectCompressedDirName = 'compresed'
     private projectSourceDirName = 'src'
-    private projectEnvFileDirName = 'env'
+    // private projectEnvFileDirName = 'env'
 
     private tempFileDir = `${this.basePath}/temp`
 
@@ -59,12 +59,13 @@ export class FilesHelper {
         return { fileName, filePath, fileAbsPath };
     }
 
-    async writeProjectEnvFile(projectId: string, content: string, pVersion: number = 1): Promise<{
+    async writeProjectEnvFile(projectRootAbsPath: string, content: string): Promise<{
         name: string;
         path: string;
         absPath: string;
     }> {
-        const dirPath = `${this.projectDir}/${projectId}/v${pVersion}/${this.projectEnvFileDirName}`;
+        // const dirPath = `${this.projectDir}/${projectId}/v${pVersion}/${this.projectEnvFileDirName}`;
+        const dirPath = `${projectRootAbsPath}`;
         this.ensureDirExists(dirPath);
         const fileName = '.env';
         const filePath = dirPath + '/' + fileName;
