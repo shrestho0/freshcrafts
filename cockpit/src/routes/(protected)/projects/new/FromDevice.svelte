@@ -25,6 +25,7 @@ let uploadLabelText = 'Upload project file';
 const savedFile = {
 	fileX: undefined,
 	project_url: '',
+	err_msg: '',
 
 	theHolyFile: {
 		file: undefined,
@@ -85,6 +86,7 @@ const savedFile = {
 } as {
 	fileX: any;
 	project_url: string;
+	err_msg: string;
 	theHolyFile: {
 		size: number;
 		name: string | undefined;
@@ -225,8 +227,9 @@ async function deleteFromServer(thf: typeof savedFile.theHolyFile) {
 onMount(() => {
 	savedFile.load();
 });
-
+let procceeding = false;
 async function proceedToProjectCreation() {
+	procceeding = true;
 	if (!browser) return;
 	// if (savedFile.fileUploadStatus == 'complete') {
 	if (savedFile.theHolyFile.selected) {
@@ -293,6 +296,7 @@ async function proceedToProjectCreation() {
 
 	<div class="w-full flex gap-4">
 		<button
+			disabled={procceeding}
 			class="w-full flex gap-2 items-center justify-center bg-[var(--cds-interactive-02)] text-white py-2"
 			on:click={proceedToProjectCreation}
 		>

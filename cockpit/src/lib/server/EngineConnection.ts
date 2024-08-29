@@ -35,7 +35,7 @@ export class EngineConnection {
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			signal: AbortSignal.timeout(1000)
+			signal: AbortSignal.timeout(3000)
 		};
 
 		if (!init?.headers) {

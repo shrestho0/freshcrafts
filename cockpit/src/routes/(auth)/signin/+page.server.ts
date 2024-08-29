@@ -1,7 +1,7 @@
 import { fail, redirect, type Actions } from '@sveltejs/kit';
 import type { PageServerLoad } from './$types';
 import { EngineConnection } from '@/server/EngineConnection';
-import { AUTH_COOKIE_NAME, AUTH_COOKIE_EXPIRES_IN } from '$env/static/private';
+import { AUTH_COOKIE_NAME, AUTH_COOKIE_EXPIRES_IN, ENV } from '$env/static/private';
 import { AuthProviderType } from '@/types/enums';
 export const load: PageServerLoad = async ({ locals }) => {
 	// request server authorized oauth providers and emails associated
@@ -38,7 +38,10 @@ export const actions: Actions = {
 			cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res.tokens), {
 				path: '/',
 				maxAge: parseInt(AUTH_COOKIE_EXPIRES_IN),
-				secure: false,
+				secure: ENV === 'prod',
+				httpOnly: true,
+				sameSite: 'strict'
+
 			});
 
 			// goto

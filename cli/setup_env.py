@@ -29,12 +29,16 @@ class EnvSetup:
             "wiz_mysql": [],
             "dep_wizard":[],
             "engine": [],
+            "gopher": [],
             "all_spring": [], # only if key,val are same
             "group_g": [], # stuff for cockpit and engine, jwt and common stuff basically
+            "group_w":[], # stuff for cockpit, and gopher
         }
         all_spring = ["engine","wiz_postgres", "wiz_mongo", "wiz_mysql","dep_wizard"]
         group_g = ["cockpit", "engine"]
+        group_w = ["cockpit", "gopher"]
         remove_prefix = lambda x: x.split("_", 1)[1]
+        
         for x,val in env_vals.items():
             for k in env_map.keys():
                 if x.startswith(k.upper().replace("_", "")+"_"):
@@ -49,7 +53,12 @@ class EnvSetup:
             env_map[k]+= env_map["group_g"]
         env_map.pop("group_g")
         
-        import json
+        for k in group_w:
+            env_map[k]+= env_map["group_w"]
+        env_map.pop("group_w")
+        
+        
+        # import json
         # console.print_json(json.dumps(env_map))
 
         for service_name, env_data in env_map.items():

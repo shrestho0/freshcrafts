@@ -26,9 +26,12 @@ import { enhance } from '$app/forms';
 import type { ActionResult } from '@sveltejs/kit';
 import { toast } from 'svelte-sonner';
 import { invalidateAll } from '$app/navigation';
-export let data;
-const projectX: Project = data?.project;
-const deploymentX: ProjectDeployment = data?.deployment;
+import type { EngineCommonResponseDto } from '@/types/dtos';
+import { browser } from '$app/environment';
+export let data: EngineCommonResponseDto<Project, null, null, ProjectDeployment>;
+let loading = true;
+const projectX: Project = data?.payload || {};
+const deploymentX: ProjectDeployment = data?.payload3 || {};
 const projectSetup = {
 	projectName: '',
 	projectNameStatus: 'initially_idle',
@@ -41,6 +44,7 @@ const projectSetup = {
 	installCommand: 'npm install',
 	postInstall: '',
 	outputDir: './build',
+	filesLoading: true,
 	projectRootSelectionStatus: 'initially_idle',
 	projectRootSelectionErrorMessage: '',
 	projectSourceTreeActiveId: 0,
@@ -60,6 +64,7 @@ const projectSetup = {
 	buildCommand: string;
 	installCommand: string;
 	postInstall: string;
+	filesLoading: boolean;
 	outputDir: string;
 	projectRootSelectionStatus: 'initially_idle' | 'checking' | 'success' | 'error';
 	projectRootSelectionErrorMessage: string;
@@ -94,6 +99,8 @@ async function listSourceFile() {
 		.then((res) => res.json())
 		.catch((e) => console.error(e));
 
+	projectSetup.filesLoading = false;
+
 	if (res?.success) {
 		projectSetup.projectSourceList = res?.files;
 		projectSetup.projectRootSelectionStatus = 'success';
@@ -108,7 +115,10 @@ async function listSourceFile() {
 }
 
 onMount(async () => {
+	// setTimeout(async () => {
 	await listSourceFile();
+	loading = false;
+	// }, 1000);
 });
 
 let timer: NodeJS.Timeout;
@@ -153,6 +163,7 @@ const debouncedNameSearch = (v: string | null) => {
 
 let confirmationModalOpen = false;
 $: checkAndSubmitButtonDisabled = (() => {
+	if (!browser) return true;
 	if (projectSetup.projectNameStatus !== 'ok') return true;
 	if (!projectSetup.buildCommand) return true;
 	if (!projectSetup.installCommand) return true;
@@ -228,9 +239,9 @@ async function deleteIncompleteProject() {
 			command: ProjectSetupCommand.DELETE_INCOMPLETE_PROJECT,
 			data: {
 				projectId: projectX?.id,
-				deploymentId: deploymentX.id,
-				rawFileAbsPath: deploymentX.rawFile.absPath,
-				srcFileAbsPath: deploymentX.src.filesDirAbsPath
+				deploymentId: deploymentX?.id,
+				rawFileAbsPath: deploymentX?.rawFile?.absPath,
+				srcFileAbsPath: deploymentX?.src?.filesDirAbsPath
 			}
 		})
 	})
@@ -260,212 +271,150 @@ function backToProjectSpecificPage() {
 }
 </script>
 
-<Tile light class="px-0 mx-0 pt-0 mt-0">
-	<h1 class="text-3xl py-2">Initial Setup</h1>
-	<div class="flex items-center">
-		<p>
-			Project Source:
-			<span class="">
-				{toTitleCase(projectX?.type?.replace('_', ' ') || '')}
-			</span>
-		</p>
+{#if !loading}
+	<Tile light class="px-0 mx-0 pt-0 mt-0">
+		<h1 class="text-3xl py-2">Initial Setup</h1>
+		<div class="flex items-center">
+			<p>
+				Project Source:
+				<span class="">
+					{toTitleCase(projectX?.type?.replace('_', ' ') || '')}
+				</span>
+			</p>
 
-		<span class="px-2">/</span>
-		<p>
-			Deployment Version: <span class="">{(projectX?.totalVersions || 0) + 1}</span>
-		</p>
-	</div>
-	{#if projectX?.type == ProjectType.GITHUB_REPO}
-		<p class="flex items-center py-2">
-			<Github class="h-5 w-5  " />
-			<a
-				href="https://github.com/{projectX?.githubRepo?.fullName}"
-				target="_blank"
-				class="hover:text-blue-500"
-			>
-				{projectX?.githubRepo?.fullName}
-			</a>
 			<span class="px-2">/</span>
-			<GitBranch class="h-6 w-6  p-1" />
-			<a
-				href="https://github.com/{projectX?.githubRepo?.fullName}/tree/{projectX?.githubRepo
-					?.defaultBranch}"
-				target="_blank"
-				class="hover:text-blue-500"
-			>
-				{projectX?.githubRepo?.defaultBranch}
-			</a>
-		</p>
-	{/if}
-</Tile>
-
-<section class="">
-	<!-- <Tile> -->
-	<div>Project Name</div>
-	<TextInput on:keyup={handleNameInput} placeholder="anonymous-monkey"></TextInput>
-
-	<div class="mb-3">
-		{#if projectSetup.projectNameStatus != 'initially_idle'}
-			<InlineLoading
-				status={projectSetup.projectNameStatus === 'checking'
-					? 'active'
-					: projectSetup.projectNameStatus === 'ok'
-						? 'finished'
-						: projectSetup.projectNameStatus === 'invalid'
-							? 'error'
-							: 'inactive'}
-				description={projectSetup.projectNameStatus === 'checking'
-					? 'Checking...'
-					: projectSetup.projectNameStatus === 'ok'
-						? 'Available'
-						: projectSetup.projectNameErrorMessage}
-			/>
+			<p>
+				Deployment Version: <span class="">{(projectX?.totalVersions || 0) + 1}</span>
+			</p>
+		</div>
+		{#if projectX?.type == ProjectType.GITHUB_REPO}
+			<p class="flex items-center py-2">
+				<Github class="h-5 w-5  " />
+				<a
+					href="https://github.com/{projectX?.githubRepo?.fullName}"
+					target="_blank"
+					class="hover:text-blue-500"
+				>
+					{projectX?.githubRepo?.fullName}
+				</a>
+				<span class="px-2">/</span>
+				<GitBranch class="h-6 w-6  p-1" />
+				<a
+					href="https://github.com/{projectX?.githubRepo?.fullName}/tree/{projectX?.githubRepo
+						?.defaultBranch}"
+					target="_blank"
+					class="hover:text-blue-500"
+				>
+					{projectX?.githubRepo?.defaultBranch}
+				</a>
+			</p>
 		{/if}
-	</div>
+	</Tile>
 
-	<div class="mb-3 select-none">
-		<ExpandableSection bind:open={expandables.select_project_root} title="Select Project Root">
-			<Tile>
-				{#if projectSetup.projectRootSelectionStatus === 'checking'}
-					<CommonLoadingBox message="Loading project" />
-				{:else if projectSetup.projectRootSelectionStatus === 'error'}
-					<CommonErrorBox error_msg={projectSetup.projectRootSelectionErrorMessage} />
-				{:else if projectSetup.projectRootSelectionStatus === 'success'}
-					<!-- {projectSetup.projectSourceTreeFinalIotaVal} -->
-					<!-- {projectSetup.projectSourceTreeTotalLevels} -->
-					<FileTree
-						bind:items={projectSetup.projectSourceList}
-						bind:selectedFileRelativeUrl={projectSetup.selectedFileRelativeUrl}
-					/>
-				{:else}
-					<div>&nbsp;</div>
-				{/if}
-			</Tile>
-		</ExpandableSection>
-	</div>
-
-	<div class="mb-3">
-		<ExpandableSection bind:open={expandables.build_output} title="Build and output settings">
-			<BuildSettingsInputs
-				bind:buildCommand={projectSetup.buildCommand}
-				bind:outputDir={projectSetup.outputDir}
-				bind:installCommand={projectSetup.installCommand}
-				bind:postInstall={projectSetup.postInstall}
-			/>
-		</ExpandableSection>
-	</div>
-
-	<div class="mb-3">
-		<ExpandableSection bind:open={expandables.env_vars} title="Environment Variables">
-			<Tile>
-				<EnvVarsInputs
-					bind:options={projectSetup.options}
-					bind:selectedOptionIdx={projectSetup.selectedOptionIdx}
-					bind:envFileContent={projectSetup.envFileContent}
-					bind:envKV={projectSetup.envKV}
+	<section class="">
+		<!-- <Tile> -->
+		<div>Project Name</div>
+		<TextInput on:keyup={handleNameInput} placeholder="anonymous-monkey" />
+		<div class="mb-3">
+			{#if projectSetup.projectNameStatus != 'initially_idle'}
+				<InlineLoading
+					status={projectSetup.projectNameStatus === 'checking'
+						? 'active'
+						: projectSetup.projectNameStatus === 'ok'
+							? 'finished'
+							: projectSetup.projectNameStatus === 'invalid'
+								? 'error'
+								: 'inactive'}
+					description={projectSetup.projectNameStatus === 'checking'
+						? 'Checking...'
+						: projectSetup.projectNameStatus === 'ok'
+							? 'Available'
+							: (projectSetup?.projectNameErrorMessage ?? '')}
 				/>
-			</Tile>
-		</ExpandableSection>
-	</div>
+			{/if}
+		</div>
 
-	{#if actionLoading}
-		<InlineLoading description={actionLoading ? loadingMessage : ''} />
-	{:else if successMessage}
-		<InlineLoading status="finished" description={successMessage} />
-	{:else if errorMessage}
-		<InlineLoading status="error" description={successMessage} />
-	{/if}
+		<!-- 
+-->
+		<!-- 
+	
+	
+	-->
+		<div class="mb-3 select-none">
+			<ExpandableSection bind:open={expandables.select_project_root} title="Select Project Root">
+				<Tile>
+					{#if projectSetup.projectRootSelectionStatus == 'checking'}
+						<CommonLoadingBox message="Loading project" />
+						<!-- {:else if projectSetup.projectRootSelectionStatus === 'error'}
+						<CommonErrorBox error_msg={projectSetup.projectRootSelectionErrorMessage} /> -->
+						<!-- 
+		
+						-->
+					{:else if projectSetup.projectRootSelectionStatus == 'success'}
+						<!-- <FileTree
+							bind:items={projectSetup.projectSourceList}
+							bind:selectedFileRelativeUrl={projectSetup.selectedFileRelativeUrl}
+						/>
+					{:else} -->
+						<div>&nbsp;</div>
+					{/if}
+				</Tile>
+			</ExpandableSection>
+		</div>
 
-	<div class="dep grid grid-cols-3 gap-2">
-		<button
-			class="py-4 col-span-1 my-6 w-full bx--btn--danger-tertiary
+		<div class="mb-3">
+			<ExpandableSection bind:open={expandables.build_output} title="Build and output settings">
+				<BuildSettingsInputs
+					bind:buildCommand={projectSetup.buildCommand}
+					bind:outputDir={projectSetup.outputDir}
+					bind:installCommand={projectSetup.installCommand}
+					bind:postInstall={projectSetup.postInstall}
+				/>
+			</ExpandableSection>
+		</div>
+		<div class="mb-3">
+			<ExpandableSection bind:open={expandables.env_vars} title="Environment Variables">
+				<Tile>
+					<EnvVarsInputs
+						bind:options={projectSetup.options}
+						bind:selectedOptionIdx={projectSetup.selectedOptionIdx}
+						bind:envFileContent={projectSetup.envFileContent}
+						bind:envKV={projectSetup.envKV}
+					/>
+				</Tile>
+			</ExpandableSection>
+		</div>
+
+		{#if actionLoading}
+			<InlineLoading description={actionLoading ? loadingMessage : ''} />
+		{:else if successMessage}
+			<InlineLoading status="finished" description={successMessage} />
+		{:else if errorMessage}
+			<InlineLoading status="error" description={successMessage} />
+		{/if}
+
+		<div class="dep grid grid-cols-3 gap-2">
+			<button
+				class="py-4 col-span-1 my-6 w-full bx--btn--danger-tertiary
 			disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
 			disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
 			disabled:border-[var(--cds-disabled-02)]
 			"
-			disabled={actionLoading}
-			on:click={deleteIncompleteProject}>Cancel Project</button
-		>
-		<button
-			disabled={checkAndSubmitButtonDisabled || actionLoading}
-			on:click={() => {
-				confirmationModalOpen = true;
-			}}
-			class="py-4 col-span-2 my-6 w-full bx--btn--primary
+				disabled={actionLoading}
+				on:click={deleteIncompleteProject}>Cancel Project</button
+			>
+			<button
+				disabled={checkAndSubmitButtonDisabled || actionLoading}
+				on:click={() => {
+					confirmationModalOpen = true;
+				}}
+				class="py-4 col-span-2 my-6 w-full bx--btn--primary
 			disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
 			disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
 			disabled:cursor-not-allowed
 			">Check & Deploy</button
-		>
-	</div>
-</section>
-
-<ComposedModal bind:open={confirmationModalOpen} preventCloseOnClickOutside>
-	<ModalHeader title="Confirm Deployment" closeClass="hidden" />
-	<ModalBody>
-		<div class="flex flex-col gap-3">
-			<p class="text-lg">
-				You are about to deploy a new version of the project. Please confirm the details below.
-			</p>
-			<div class="flex flex-col gap-2">
-				<div
-					class="flex items
-					justify-between"
-				>
-					<p>Project Name</p>
-					<p>{projectSetup.projectName}</p>
-				</div>
-				<div
-					class="flex items
-					justify-between"
-				>
-					<p>Build Command</p>
-					<p>{projectSetup.buildCommand}</p>
-				</div>
-				<div
-					class="flex items
-					justify-between"
-				>
-					<p>Install Command</p>
-					<p>{projectSetup.installCommand}</p>
-				</div>
-
-				<div
-					class="flex items
-					justify-between"
-				>
-					<p>Output Directory</p>
-					<p>{projectSetup.outputDir}</p>
-				</div>
-				<div
-					class="flex items
-					justify-between"
-				>
-					<p>Project Root</p>
-					<p>./{projectSetup.selectedFileRelativeUrl}</p>
-				</div>
-				<div
-					class="flex items
-					justify-between"
-				>
-					<p>Environment Variables</p>
-				</div>
-				<div class="w-full {projectSetup.envFileContent ? 'h-60 overflow-y-scroll' : ''}">
-					<p>{projectSetup.envFileContent}</p>
-				</div>
-			</div>
+			>
 		</div>
-	</ModalBody>
-	<ModalFooter>
-		<button
-			class="bx--btn bx--btn--secondary"
-			on:click={() => {
-				confirmationModalOpen = false;
-			}}
-		>
-			Back to initial setup
-		</button>
-		<button class="bx--btn bx--btn--primary" on:click={deployProject}> Deploy </button>
-	</ModalFooter>
-</ComposedModal>
+	</section>
+{:else}{/if}
 <PreDebug {data} />

@@ -1,6 +1,6 @@
 import { FILE_UPLOAD_DIR } from "$env/static/private";
 
-import * as fsBase from "fs";
+// import * as fsBase from "fs";
 import fs from "fs/promises";
 import path from 'path';
 import AdmZip from 'adm-zip';
@@ -20,9 +20,9 @@ export class FilesHelper {
     private tempFileDir = `${this.basePath}/temp`
 
     private constructor() {
-        this.ensureDirExists(this.basePath);
-        this.ensureDirExists(this.projectDir);
-        this.ensureDirExists(this.tempFileDir);
+        // this.ensureDirExists(this.basePath);
+        // this.ensureDirExists(this.projectDir);
+        // this.ensureDirExists(this.tempFileDir);
     }
 
     static getInstance() {
@@ -33,13 +33,19 @@ export class FilesHelper {
         return this.instance;
     }
 
-    private ensureDirExists(dirPath: string) {
+    private async ensureDirExists(dirPath: string) {
 
-        if (!fsBase.existsSync(dirPath)) {
-            fsBase.mkdirSync(dirPath, { recursive: true });
-        }
-        if (!fsBase.existsSync(dirPath)) {
-            throw new Error(`Failed to create directory: ${dirPath}`);
+        // if (!fsBase.existsSync(dirPath)) {
+        //     fsBase.mkdirSync(dirPath, { recursive: true });
+        // }
+        // if (!fsBase.existsSync(dirPath)) {
+        //     throw new Error(`Failed to create directory: ${dirPath}`);
+        // }
+
+        try {
+            await fs.mkdir(dirPath, { recursive: true });
+        } catch (err: any) {
+            console.error(`Failed to create directory: ${dirPath}: ${err?.message}`);
         }
 
     }
@@ -51,7 +57,7 @@ export class FilesHelper {
     }> {
         // const filePath = `${this.projectDir}/${fileName}`;
         const dirPath = `${this.projectDir}/${projectId}/v${pVersion}/${this.projectCompressedDirName}`;
-        this.ensureDirExists(dirPath);
+        await this.ensureDirExists(dirPath);
         const filePath = dirPath + '/' + fileName;
         await fs.writeFile(filePath, content,);
 
@@ -93,10 +99,10 @@ export class FilesHelper {
         // project/id[]/v[]/prod/logs
         const filesDir = `${this.projectDir}/${projectId}/v${pVersion}`;
         const prodDir = path.join(filesDir, this.projectProdDirName);
-        this.ensureDirExists(prodDir);
+        await this.ensureDirExists(prodDir);
 
         const logsDir = path.join(prodDir, this.projectLogsDirName);
-        this.ensureDirExists(logsDir);
+        await this.ensureDirExists(logsDir);
 
         const outFilePath = path.join(logsDir, 'out.log');
         const errorFilePath = path.join(logsDir, 'error.log');
@@ -162,7 +168,7 @@ export class FilesHelper {
         const fileName = `${Date.now()}-${_fileName}`.replace(/[^a-zA-Z0-9.-]/g, '_');
         const filePath = `${this.tempFileDir}/${fileName}`;
 
-        this.ensureDirExists(path.dirname(filePath));
+        await this.ensureDirExists(path.dirname(filePath));
 
         await fs.writeFile(filePath, arg1);
 
@@ -180,7 +186,7 @@ export class FilesHelper {
         // const dirPath = this.projectDir + '/' + projectId + '/' + this.projectCompressedDirName;
         const dirPath = `${this.projectDir}/${projectId}/v${pVersion}/${this.projectCompressedDirName}`;
 
-        this.ensureDirExists(dirPath);
+        await this.ensureDirExists(dirPath);
         const destfilePath = dirPath + '/' + destfileName
         await fs.rename(srcfilePath, destfilePath);
 
@@ -199,7 +205,7 @@ export class FilesHelper {
         const dirPath = `${this.projectDir}/${projectId}/v${pVersion}/${this.projectCompressedDirName}`;
 
         if (ext === '.zip') {
-            const extracted = this.extractZip(absPath, dirPath) ?? '';
+            const extracted = await this.extractZip(absPath, dirPath) ?? '';
             const extractedAbs = extracted ? path.join(process.cwd(), extracted) : '';
             return { extracted, extractedAbs }
         } else if (ext == '.gz' || ext == '.tar' || ext == '.xz') {
@@ -223,13 +229,13 @@ export class FilesHelper {
 
 
     // Function to extract .zip files
-    private extractZip(zipFilePath: string, extractDir: string) {
+    private async extractZip(zipFilePath: string, extractDir: string) {
         try {
 
             extractDir = extractDir.replace(this.projectCompressedDirName, this.projectSourceDirName)
             const zip = new AdmZip(zipFilePath);
             zip.extractAllTo(extractDir, true);
-            this.moveSingleFileToParentDir(extractDir);
+            // await this.moveSingleFileToParentDir(extractDir);
             console.log(`.zip files extracted to ${extractDir}`);
             return extractDir;
         } catch (err: any) {
@@ -244,14 +250,15 @@ export class FilesHelper {
 
             extractDir = extractDir.replace(this.projectCompressedDirName, this.projectSourceDirName)
             // Ensure the directory exists
-            fsBase.mkdirSync(extractDir, { recursive: true });
+            // fsBase.mkdirSync(extractDir, { recursive: true });
+            await fs.mkdir(extractDir, { recursive: true });
             // Extract tar.gz file
             await tar.extract({
                 file: tarGzFilePath,
                 cwd: extractDir
             });
 
-            this.moveSingleFileToParentDir(extractDir);
+            // await this.moveSingleFileToParentDir(extractDir);
             console.log(`.tar.gz files extracted to ${extractDir}`);
             return extractDir;
         } catch (err: any) {
@@ -264,16 +271,20 @@ export class FilesHelper {
 
 
     // If decompressed directory has only one file, move it to the parent directory
-    private moveSingleFileToParentDir(directoryPath: string) {
-        const files = fsBase.readdirSync(directoryPath);
+    private async moveSingleFileToParentDir(directoryPath: string) {
+        // const files = fsBase.readdirSync(directoryPath);
+        const files = await fs.readdir(directoryPath);
         if (files.length === 1) {
             const fileName = files[0];
             const oldPath = path.join(directoryPath, fileName);
             const newPath = path.join(path.dirname(directoryPath), fileName);
             console.log(`Moving file ${fileName} to ${path.dirname(directoryPath)}`);
-            fsBase.renameSync(oldPath, newPath);
-            fsBase.rmdirSync(directoryPath);
-            fsBase.renameSync(newPath, directoryPath);
+            // fsBase.renameSync(oldPath, newPath);
+            await fs.rename(oldPath, newPath);
+            // fsBase.rmdirSync(directoryPath);
+            await fs.rm(directoryPath, { recursive: true });
+            // fsBase.renameSync(newPath, directoryPath);
+            await fs.rename(newPath, directoryPath);
         }
 
         return directoryPath;

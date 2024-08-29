@@ -3,14 +3,20 @@ import type { EngineCommonResponseDto } from "@/types/dtos";
 import type { AIChatMessage } from "@/types/entities";
 import { AIChatCommands } from "@/types/enums";
 import { error, json, type RequestHandler } from "@sveltejs/kit";
-import { AzureOpenAI } from "openai";
+// import { AzureOpenAI } from "openai";
 import { ulid } from "ulid";
 
+
+let apiData: {
+    azureChatApiEndpoint: string;
+    azureChatApiKey: string;
+} | undefined = undefined;
 
 let messages: AIChatMessage[] = [];
 
 
-let openAiClient: AzureOpenAI | undefined = undefined;
+// let openAiClient: AzureOpenAI | undefined = undefined;
+
 let syncedWithEngine = false;// flag
 
 export const PATCH: RequestHandler = async ({ request, locals }) => {
@@ -23,24 +29,23 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
         switch (command) {
             case AIChatCommands.INIT_CHAT:
 
-                if (openAiClient === undefined) {
+                if (apiData === undefined) {
 
 
                     // get api keys from engine,
                     // create openai client
                     // set openAiClient
-                    const apiData = await EngineConnection.getInstance().getChatApiKeys();
-                    if (!apiData.success) throw new Error(apiData?.message ?? "Failed to get chat api keys");
+                    const x = await EngineConnection.getInstance().getChatApiKeys();
+                    if (!x?.success) throw new Error(x?.message ?? "Failed to get chat api keys");
 
-                    const { azureChatApiEndpoint, azureChatApiKey } = apiData.payload;
+                    console.log(x);
 
-                    const endpointFull = new URL(azureChatApiEndpoint);
+                    apiData = x?.payload ?? undefined;
+                    if (!apiData) throw new Error("Failed to get chat api keys");
 
-                    openAiClient = new AzureOpenAI({
-                        baseURL: azureChatApiEndpoint,
-                        apiKey: azureChatApiKey,
-                        apiVersion: endpointFull.searchParams.get("api-version")!, // throws if null
-                    });
+
+
+
 
 
                     // TODO: Uncomment this block to enable AI chat
@@ -68,22 +73,13 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
                     messages.push(augmented);
 
 
-
-                    // DUMMY
-                    // const dummyMsg: AIChatMessage = {
-                    //     role: "bot",
-                    //     content: "Hello there 👋",
-                    //     timestamp: new Date().toISOString(),
-                    // }
-                    // messages.push(dummyMsg);
-
                     return json({ success: true, message: "Chat initialized", payload: messages });
                 }
             // else fall through
             case AIChatCommands.GET_MESSAGES:
                 return json({ success: true, payload: messages });
             case AIChatCommands.SEND_MESSAGE:
-                const msg = data;
+                let msg = data;
 
                 if (!msg) throw new Error("Message is empty");
 
@@ -96,18 +92,32 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
 
 
-                // DUMMY
-                const d: AIChatMessage = {
-                    role: "bot",
-                    content: msg,
-                    timestamp: new Date().toISOString(),
-                }
+                // // // DUMMY
+                // // const d: AIChatMessage = {
+                // //     role: "bot",
+                // //     content: msg,
+                // //     timestamp: new Date().toISOString(),
+                // // }
 
-                messages.push(d);
+
+
+                // messages.push(d);
+
+                msg = await generateText(msg);
+
+                if (!msg?.choices[0]?.message?.content) throw new Error("Failed to parse AI response ");
+
+                const recievedMsg: AIChatMessage = {
+                    role: "bot",
+                    content: msg.choices[0].message.content?.toString()!,
+                    timestamp: new Date().toISOString(),
+
+                }
+                console.log(recievedMsg);
+                messages.push(recievedMsg);
 
                 return json({ success: true, message: "Message sent", payload: messages });
             case AIChatCommands.CLOSE_CHAT_WITH_SYNC:
-                openAiClient = undefined;
 
                 // generate chat name from first message of user's
                 let chatName: string | undefined;
@@ -127,7 +137,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
                 if (!engineRes.success) throw new Error(engineRes.message ?? "Failed to save chat messages");
             // fallthrough on success
             case AIChatCommands.CLOSE_CHAT_WITHOUT_SYNC:
-                openAiClient = undefined;
+                apiData = undefined;
                 messages = [];
                 return json({ success: true, message: syncedWithEngine ? "Chat saved and closed" : "Chat closed" });
 
@@ -152,12 +162,27 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
 
 async function generateText(content: string) {
-    if (!openAiClient) throw new Error("OpenAI client not initialized");
+    if (!apiData || !apiData?.azureChatApiEndpoint || !apiData?.azureChatApiKey)
+        throw new Error("OpenAI client not initialized");
 
-    return await openAiClient.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: content }],
+    return await fetch(apiData.azureChatApiEndpoint, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "api-key": apiData.azureChatApiKey,
+        },
+        body: JSON.stringify({
+            messages: [{ role: "user", content: content }],
+        }),
+    }).then(res => res.json()).catch(e => {
+        console.error(e);
+        throw new Error("Failed to generate text");
     });
+
+    // return await openAiClient.chat.completions.create({
+    //     model: "gpt-4o-mini",
+    //     messages: [{ role: "user", content: content }],
+    // });
 
 
 }

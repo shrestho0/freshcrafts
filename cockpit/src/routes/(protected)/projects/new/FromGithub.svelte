@@ -48,7 +48,7 @@ onMount(async () => {
 let repos_to_show: any[] = [];
 async function loadGithubRepos() {
 	const res = await fetch(``, {
-		method: 'GET',
+		method: 'PATCH',
 		headers: {
 			'x-freshcraft-project-type': InternalNewProjectType.LIST_GITHUB_REPO
 		}

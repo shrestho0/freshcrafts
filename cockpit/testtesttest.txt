@@ -4,6 +4,8 @@
 DATABASE_URL="postgresql://test__0:test__0@localhost:15432/test__0"
 SHADOW_DATABASE_URL="postgresql://test__0_shadow:test__0_shadow@localhost:15432/test__0_shadow"
 
+DATABASE_URL="postgresql://test__10:test__10@thisthing.works:15432/test__10"
+SHADOW_DATABASE_URL="postgresql://test__11:test__11@thisthing.works:15432/test__11"
 
 npx prisma migrate dev --name init
 npx prisma db seed

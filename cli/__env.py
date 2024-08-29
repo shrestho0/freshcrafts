@@ -68,6 +68,15 @@ FC_SERVICES_INFO = {
         "SYSTEMD_EXECUTABLE_FILE": "../depwiz/target/depwiz-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
     },
+    
+    "gopher": {
+        "ENV_FILE": "../gopher/.env",
+        "SRC_DIR": "../gopher",
+        "SYSTEMD_SERVICE_NAME": "fc_gopher",
+        "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
+        "SYSTEMD_EXECUTABLE_FILE": "../gopher/watchdog",
+        "SYSTEMD_EXEC_COMMAND": " ",
+    },
 
 
     "cockpit": {

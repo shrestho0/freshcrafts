@@ -6,13 +6,17 @@ import {
 	Button,
 	SelectableTile,
 	Tile,
-	TileGroup
+	TileGroup,
+	Loading
 } from 'carbon-components-svelte';
 import { Upload, LogoGithub, Warning } from 'carbon-icons-svelte';
 import FromDevice from './FromDevice.svelte';
 import FromGithub from './FromGithub.svelte';
 import type { EngineSystemConfigResponseDto } from '@/types/dtos';
 import PreDebug from '@/components/dev/PreDebug.svelte';
+import { onMount } from 'svelte';
+
+let loading = true;
 
 let items = [
 	{
@@ -30,60 +34,66 @@ let selected: number | null = null;
 
 export let data;
 const sysConf = data?.sysConf as EngineSystemConfigResponseDto;
+
+onMount(() => {
+	loading = false;
+});
 </script>
 
-<h1 class="text-2xl">New Project</h1>
-<p class="text-gray-500">Choose a project source</p>
-<Tile class="warning my-2 flex gap-2 items-center">
-	<Warning />
-	Currently supporting nodejs projects only
-</Tile>
+{#if !loading}
+	<h1 class="text-2xl">New Project</h1>
+	<p class="text-gray-500">Choose a project source</p>
+	<Tile class="warning my-2 flex gap-2 items-center">
+		<Warning />
+		Currently supporting nodejs projects only
+	</Tile>
 
-<div class="w-full grid md:grid-cols-2 gap-4 py-4">
-	{#each items as item, idx}
-		<SelectableTile
-			value={items[idx].value}
-			selected={selected != null && items[selected].value === item.value}
-			disabled={selected != null && items[selected].value !== item.value}
-			on:select={(e) => {
-				selected = idx;
-			}}
-			on:deselect={(e) => {
-				selected = null;
-			}}
-			class="flex items-center justify-between px-4 py-6  "
-		>
-			<div class="w-full flex items-center justify-center gap-3">
-				<h2 class="text-xl">{item.title}</h2>
-				<LogoGithub />
-			</div>
-		</SelectableTile>
-	{/each}
-</div>
+	<div class="w-full grid md:grid-cols-2 gap-4 py-4">
+		{#each items as item, idx}
+			<SelectableTile
+				value={items[idx].value}
+				selected={selected != null && items[selected].value === item.value}
+				disabled={selected != null && items[selected].value !== item.value}
+				on:select={(e) => {
+					selected = idx;
+				}}
+				on:deselect={(e) => {
+					selected = null;
+				}}
+				class="flex items-center justify-between px-4 py-6  "
+			>
+				<div class="w-full flex items-center justify-center gap-3">
+					<h2 class="text-xl">{item.title}</h2>
+					<LogoGithub />
+				</div>
+			</SelectableTile>
+		{/each}
+	</div>
 
-{#if selected === null}
-	<p class="">Select an option</p>
-{:else if items[selected].value === 'fromDevice'}
-	<FromDevice />
-{:else if items[selected].value === 'fromGithub'}
-	{#if sysConf?.systemUserOauthGithubEnabled}
-		<FromGithub />
-	{:else}
-		<Tile class="flex items-center justify-center text-lg gap-2">
-			<Warning class="h-6 w-6" />
-			Github not enabled. Enable from
-			<a href="/settings" class="text-[var(--cds-link-01)] hover:text-[var(--cds-link-02)]"
-				>settings</a
-			> page
-		</Tile>
+	{#if selected === null}
+		<p class="">Select an option</p>
+	{:else if items[selected].value === 'fromDevice'}
+		<FromDevice />
+	{:else if items[selected].value === 'fromGithub'}
+		{#if sysConf?.systemUserOauthGithubEnabled}
+			<FromGithub />
+		{:else}
+			<Tile class="flex items-center justify-center text-lg gap-2">
+				<Warning class="h-6 w-6" />
+				Github not enabled. Enable from
+				<a href="/settings" class="text-[var(--cds-link-01)] hover:text-[var(--cds-link-02)]"
+					>settings</a
+				> page
+			</Tile>
+		{/if}
 	{/if}
-{/if}
-<PreDebug data={sysConf} />
+	<PreDebug data={sysConf} />
 
-<!-- {#if items[selected].value === 'fromDevice'}
+	<!-- {#if items[selected].value === 'fromDevice'}
 	<FromDevice />
 {:else if selected === 1}
 	<FromGithub />
 {:else}
 	<p>Select an option</p>
 {/if} -->
+{/if}
