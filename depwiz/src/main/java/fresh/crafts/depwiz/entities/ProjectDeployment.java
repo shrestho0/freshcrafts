@@ -26,6 +26,7 @@ public class ProjectDeployment {
     ProjectDeploymentFile rawFile;
     ProjectDeploymentFile envFile;
     ProjectDeploymentCommands depCommands;
+    ProjectDeploymentProdFiles prodFiles;
 
     ProjectDeploymentSource src;
 

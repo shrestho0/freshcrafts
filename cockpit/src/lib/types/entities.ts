@@ -101,6 +101,16 @@ export type Project = {
 	domain: string
 }
 
+export type ProjectProdFiles = {
+	ecoSystemFilePath: string;
+	ecoSystemFileAbsPath: string,
+	outLogFileAbsPath: string,
+	errorLogFileAbsPath: string,
+	nginxConfFilePath: string;
+	nginxConfFileAbsPath: string;
+	logsDir: string;
+}
+
 export type ProjectDeployment = {
 	id: string,
 	project?: Project,
@@ -110,7 +120,13 @@ export type ProjectDeployment = {
 	partialDeploymentMsg: string,
 	rawFile: ProjectDeploymentFile,
 	envFile: ProjectDeploymentFile,
+	prodFiles: ProjectProdFiles,
 	src: ProjectDeploymentSource,
+	depCommands: {
+		build: string,
+		install: string,
+		postInstall: string
+	},
 }
 
 

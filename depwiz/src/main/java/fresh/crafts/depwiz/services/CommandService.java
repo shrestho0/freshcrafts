@@ -132,9 +132,59 @@ public class CommandService {
         ProcessBuilder processBuilder = new ProcessBuilder();
         File wd = new File(rootDir);
         processBuilder.directory(wd);
-        processBuilder.command("npm", "install");
+        processBuilder.command("npm", "install", "--force");
         CommandServiceResult r = runIt(processBuilder);
         return r;
+
+    }
+
+    public CommandServiceResult postInstallCommands(ProjectDeployment pd) {
+        // post install command is multi line and multiple commands
+        // run one by one
+        // fail on fail
+        // single success result
+
+        String rootDir = pd.getSrc().getRootDirAbsPath();
+
+        String[] commands = pd.getDepCommands().getPostInstall().split("\n");
+
+        CommandServiceResult[] results = new CommandServiceResult[commands.length];
+
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        File wd = new File(rootDir);
+
+        for (int i = 0; i < commands.length; i++) {
+            processBuilder.directory(wd);
+            if (commands[i].trim().length() == 0) {
+                continue;
+            }
+            processBuilder.command("bash", "-c", commands[i]);
+            results[i] = runIt(processBuilder);
+        }
+
+        // if any fails, return the first failure
+        // for (CommandServiceResult r : results) {
+        // if (r.getExitCode() != 0) {
+        // return r;
+
+        // }
+        // }
+        for (int i = 0; i < results.length; i++) {
+            if (results[i] == null) {
+                continue;
+            }
+            if (results[i].getExitCode() != 0) {
+                results[i].setShortError("Post install command `" + commands[i] + "` failed with exit code: "
+                        + results[i].getExitCode());
+                return results[i];
+            }
+        }
+
+        CommandServiceResult result = new CommandServiceResult();
+        result.setExitCode(0);
+        result.setOutput("All commands ran successfully");
+
+        return result;
 
     }
 
@@ -178,6 +228,14 @@ public class CommandService {
         result.setError(commandError);
         result.setCommand(commandError);
 
+        return result;
+    }
+
+    public CommandServiceResult startPM2(String ecoSystemFileAbsPath) {
+        // pm2 start ecosystem.config.js
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("pm2", "start", ecoSystemFileAbsPath);
+        CommandServiceResult result = runIt(processBuilder);
         return result;
     }
 

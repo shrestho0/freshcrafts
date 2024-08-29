@@ -6,4 +6,5 @@ import lombok.Data;
 public class ProjectDeploymentCommands {
     String build;
     String install;
+    String postInstall;
 }

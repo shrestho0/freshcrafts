@@ -10,3 +10,7 @@ fc_test/
 data/uploads
 fc_temp
 *.swp
+
+*.zip
+*.tar.gz
+*.tar

@@ -7,5 +7,6 @@ public class CommandServiceResult {
     private String command;
     private String output;
     private String error;
+    private String shortError;
     private int exitCode;
 }

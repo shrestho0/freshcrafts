@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import fresh.crafts.engine.v1.entities.ProjectDeploymentCommands;
 import fresh.crafts.engine.v1.entities.ProjectDeploymentFile;
+import fresh.crafts.engine.v1.entities.ProjectDeploymentProdFiles;
 import fresh.crafts.engine.v1.entities.ProjectDeploymentSource;
 import fresh.crafts.engine.v1.utils.UlidGenerator;
 import fresh.crafts.engine.v1.utils.enums.ProjectDeploymentStatus;
@@ -25,6 +26,7 @@ public class ProjectDeployment {
     Boolean isDeployed;
 
     String partialDeploymentMsg;
+    String errorTraceback;
 
     // save other necceassary fields
     // for:
@@ -37,6 +39,7 @@ public class ProjectDeployment {
     ProjectDeploymentCommands depCommands;
 
     ProjectDeploymentSource src;
+    ProjectDeploymentProdFiles prodFiles;
 
     public ProjectDeployment() {
         this.id = UlidGenerator.generate();

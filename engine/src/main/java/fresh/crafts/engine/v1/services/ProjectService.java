@@ -259,6 +259,9 @@ public class ProjectService {
             if (pd.getSrc() != null)
                 existingPd.setSrc(pd.getSrc());
 
+            if (pd.getProdFiles() != null)
+                existingPd.setProdFiles(pd.getProdFiles());
+
             ProjectDeployment updatedPd = projectDeploymentService.save(existingPd);
             res.setPayload(updatedPd);
             res.setSuccess(true);
@@ -313,6 +316,8 @@ public class ProjectService {
             // port will be added by dep_wiz
             p.setStatus(ProjectStatus.PROCESSING_DEPLOYMENT);
             pd.setStatus(ProjectDeploymentStatus.REQUESTED_DEPLOYMENT);
+            pd.setPartialDeploymentMsg("");
+            pd.setErrorTraceback("");
 
             // update p && pd
             projectRepository.save(p);

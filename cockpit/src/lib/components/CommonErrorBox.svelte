@@ -9,4 +9,5 @@ export let error_msg: string;
 	<div class="text-center text-[var(--cds-interactive-02)]">
 		<div class="text-lg font-normal">{error_msg}</div>
 	</div>
+	<slot />
 </div>

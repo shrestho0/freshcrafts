@@ -1,10 +1,11 @@
 <script lang="ts">
-import { TextInput, Tile, TooltipIcon } from 'carbon-components-svelte';
+import { TextArea, TextInput, Tile, TooltipIcon } from 'carbon-components-svelte';
 import { Information } from 'carbon-icons-svelte';
 
 export let buildCommand: string;
 export let outputDir: string;
 export let installCommand: string;
+export let postInstall: string;
 </script>
 
 <Tile class="  ">
@@ -44,5 +45,18 @@ export let installCommand: string;
 			/>
 		</div>
 		<TextInput bind:value={outputDir} />
+	</div>
+
+	<div>
+		<div class="flex gap-1 pt-3 items-center">
+			Post Install Commands (if any)
+			<TooltipIcon
+				tooltipText="Post install commands like `npx prisma migrate dev --init something` "
+				direction="top"
+				icon={Information}
+				class="h-4 w-4"
+			/>
+		</div>
+		<TextArea bind:value={postInstall} />
 	</div>
 </Tile>

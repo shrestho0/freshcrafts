@@ -1,4 +1,29 @@
 <script lang="ts">
+/**
+ *
+ *
+ *
+ *
+ *
+ * FIXME: This is same as initial setup
+ * FIXME: Make sure to check stuff
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import type { Project, ProjectDeployment } from '@/types/entities.js';
 import { ProjectSetupCommand, ProjectType } from '@/types/enums';
@@ -16,31 +41,31 @@ import {
 } from 'carbon-components-svelte';
 import { GitBranch, Github, Slash } from 'lucide-svelte';
 import { onMount } from 'svelte';
-import FileTree from '../FileTree.svelte';
-import BuildSettingsInputs from '../BuildSettingsInputs.svelte';
 import CommonErrorBox from '@/components/CommonErrorBox.svelte';
 import ExpandableSection from '@/components/ExpandableSection.svelte';
 import CommonLoadingBox from '@/components/CommonLoadingBox.svelte';
-import EnvVarsInputs from '../EnvVarsInputs.svelte';
 import { enhance } from '$app/forms';
 import type { ActionResult } from '@sveltejs/kit';
 import { toast } from 'svelte-sonner';
 import { invalidateAll } from '$app/navigation';
+import BuildSettingsInputs from '../BuildSettingsInputs.svelte';
+import EnvVarsInputs from '../EnvVarsInputs.svelte';
+import FileTree from '../FileTree.svelte';
 export let data;
 const projectX: Project = data?.project;
 const deploymentX: ProjectDeployment = data?.deployment;
 const projectSetup = {
-	projectName: '',
+	projectName: projectX?.uniqueName,
 	projectNameStatus: 'initially_idle',
 	projectNameErrorMessage: '',
-	envFileContent: '',
+	envFileContent: data?.envFileContent ?? '',
 	envKV: [],
 	options: ['From .env file', 'Key-Value Pairs'],
 	selectedOptionIdx: 0,
 	buildCommand: 'npm run build',
 	installCommand: 'npm install',
-	postInstall: '',
-	outputDir: './build',
+	postInstall: data?.deployment?.depCommands?.postInstall,
+	outputDir: deploymentX?.src?.buildDirPath,
 	projectRootSelectionStatus: 'initially_idle',
 	projectRootSelectionErrorMessage: '',
 	projectSourceTreeActiveId: 0,
@@ -48,7 +73,7 @@ const projectSetup = {
 	projectSourceTreeTotalLevels: 0,
 	projectSourceTreeFinalIotaVal: 0,
 	projectSourceList: [],
-	selectedFileRelativeUrl: ''
+	selectedFileRelativeUrl: deploymentX?.src?.rootDirPath
 } as {
 	projectName: string;
 	projectNameStatus: 'initially_idle' | 'checking' | 'invalid' | 'ok';
@@ -111,49 +136,8 @@ onMount(async () => {
 	await listSourceFile();
 });
 
-let timer: NodeJS.Timeout;
-let _projectName = '';
-const handleNameInput = (e: KeyboardEvent) => {
-	const v = (e.target as HTMLInputElement).value;
-	debouncedNameSearch(v);
-};
-const debouncedNameSearch = (v: string | null) => {
-	projectSetup.projectNameStatus = 'checking';
-	clearTimeout(timer);
-	timer = setTimeout(async () => {
-		// check project name and do stuff
-		// _projectName = v;
-		if (!v) {
-			projectSetup.projectNameStatus = 'initially_idle';
-			return;
-		}
-		const res = await fetch('', {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify({
-				command: ProjectSetupCommand.CHECK_UNIQUE_NAME,
-				data: v.trim()
-			})
-		})
-			.then((res) => res.json())
-			.catch((e) => console.error(e));
-		if (res?.success) {
-			projectSetup.projectNameStatus = 'ok';
-			projectSetup.projectName = v;
-		} else {
-			projectSetup.projectNameStatus = 'invalid';
-			projectSetup.projectNameErrorMessage = res?.message || 'Invalid project name';
-		}
-
-		console.warn('res', res);
-	}, 750);
-};
-
 let confirmationModalOpen = false;
 $: checkAndSubmitButtonDisabled = (() => {
-	if (projectSetup.projectNameStatus !== 'ok') return true;
 	if (!projectSetup.buildCommand) return true;
 	if (!projectSetup.installCommand) return true;
 	if (!projectSetup.outputDir) return true;
@@ -261,7 +245,7 @@ function backToProjectSpecificPage() {
 </script>
 
 <Tile light class="px-0 mx-0 pt-0 mt-0">
-	<h1 class="text-3xl py-2">Initial Setup</h1>
+	<h1 class="text-3xl py-2">Re-Deploy</h1>
 	<div class="flex items-center">
 		<p>
 			Project Source:
@@ -301,27 +285,7 @@ function backToProjectSpecificPage() {
 
 <section class="">
 	<!-- <Tile> -->
-	<div>Project Name</div>
-	<TextInput on:keyup={handleNameInput} placeholder="anonymous-monkey"></TextInput>
-
-	<div class="mb-3">
-		{#if projectSetup.projectNameStatus != 'initially_idle'}
-			<InlineLoading
-				status={projectSetup.projectNameStatus === 'checking'
-					? 'active'
-					: projectSetup.projectNameStatus === 'ok'
-						? 'finished'
-						: projectSetup.projectNameStatus === 'invalid'
-							? 'error'
-							: 'inactive'}
-				description={projectSetup.projectNameStatus === 'checking'
-					? 'Checking...'
-					: projectSetup.projectNameStatus === 'ok'
-						? 'Available'
-						: projectSetup.projectNameErrorMessage}
-			/>
-		{/if}
-	</div>
+	<div>Project Name: {data.project.uniqueName}</div>
 
 	<div class="mb-3 select-none">
 		<ExpandableSection bind:open={expandables.select_project_root} title="Select Project Root">
@@ -377,14 +341,13 @@ function backToProjectSpecificPage() {
 	{/if}
 
 	<div class="dep grid grid-cols-3 gap-2">
-		<button
+		<a
+			href="/projects/{projectX?.id}"
 			class="py-4 col-span-1 my-6 w-full bx--btn--danger-tertiary
-			disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
-			disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
-			disabled:border-[var(--cds-disabled-02)]
-			"
-			disabled={actionLoading}
-			on:click={deleteIncompleteProject}>Cancel Project</button
+                    disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
+                    disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
+                    disabled:border-[var(--cds-disabled-02)]
+                    ">Back to Project</a
 		>
 		<button
 			disabled={checkAndSubmitButtonDisabled || actionLoading}
@@ -392,10 +355,10 @@ function backToProjectSpecificPage() {
 				confirmationModalOpen = true;
 			}}
 			class="py-4 col-span-2 my-6 w-full bx--btn--primary
-			disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
-			disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
-			disabled:cursor-not-allowed
-			">Check & Deploy</button
+                    disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
+                    disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
+                    disabled:cursor-not-allowed
+                    ">Check & Deploy</button
 		>
 	</div>
 </section>
@@ -410,21 +373,21 @@ function backToProjectSpecificPage() {
 			<div class="flex flex-col gap-2">
 				<div
 					class="flex items
-					justify-between"
+                            justify-between"
 				>
 					<p>Project Name</p>
 					<p>{projectSetup.projectName}</p>
 				</div>
 				<div
 					class="flex items
-					justify-between"
+                            justify-between"
 				>
 					<p>Build Command</p>
 					<p>{projectSetup.buildCommand}</p>
 				</div>
 				<div
 					class="flex items
-					justify-between"
+                            justify-between"
 				>
 					<p>Install Command</p>
 					<p>{projectSetup.installCommand}</p>
@@ -432,21 +395,21 @@ function backToProjectSpecificPage() {
 
 				<div
 					class="flex items
-					justify-between"
+                            justify-between"
 				>
 					<p>Output Directory</p>
 					<p>{projectSetup.outputDir}</p>
 				</div>
 				<div
 					class="flex items
-					justify-between"
+                            justify-between"
 				>
 					<p>Project Root</p>
 					<p>./{projectSetup.selectedFileRelativeUrl}</p>
 				</div>
 				<div
 					class="flex items
-					justify-between"
+                            justify-between"
 				>
 					<p>Environment Variables</p>
 				</div>
