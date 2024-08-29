@@ -1,7 +1,10 @@
 
 server {
     listen 80;
-    server_name {NGINX_SERVER_NAME} ;
+    server_name {NGINX_SERVER_NAME} www.{NGINX_SERVER_NAME};
+    
+    client_max_body_size 100M;
+
 
     location / {
                 
@@ -10,7 +13,6 @@ server {
         proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
         proxy_set_header x-forwarded-proto $scheme;
 
-        client_max_body_size 100M;
 
         proxy_pass http://localhost:10001;
     }
