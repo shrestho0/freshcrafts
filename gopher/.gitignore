@@ -3,3 +3,7 @@
 SERVICE_NAME=GOPHER
 DESCRIPTION=FreshCrafts Watchdog Service
 .env
+
+watchdog
+
+./watchdog
