@@ -332,9 +332,16 @@ class BarelyWorkingSetupWizard:
         s = EnvSetup()
         s.setup_env()
 
+    def build(self):
+        self.build_services()
+
     def uninstall(self):
+        console.print("Uninstalling FreshCrafts", style="blue")
+        console.print("NOT IMPLEMENTED YET", style="red")
         pass
+    
     def version(self):
+        console.print("FreshCrafts setup wizard version 0.1", style="blue")
         pass
     
     def stop_service(self):
@@ -368,6 +375,10 @@ class BarelyWorkingSetupWizard:
             "--update": {
                 "description": "Update software from source",
                 "function": self.update
+            },
+            "--build": {
+                "description": "Build services",
+                "function": self.build
             },
             "--uninstall": {
                 "description": "Uninstall freshcrafts",
