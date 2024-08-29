@@ -94,7 +94,7 @@ onDestroy(() => {
 								? 'magenta'
 								: proj.status == ProjectStatus.PROCESSING_DEPLOYMENT
 									? 'cool-gray'
-									: 'info'}
+									: 'high-contrast'}
 						size="sm"
 					>
 						{toTitleCase(proj.status)}

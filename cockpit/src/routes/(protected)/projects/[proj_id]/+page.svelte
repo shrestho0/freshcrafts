@@ -10,7 +10,6 @@ import { Check, ServerCog, ServerCrash, X } from 'lucide-svelte';
 import DeploymentProcessing from './DeploymentProcessing.svelte';
 import { Button } from 'carbon-components-svelte';
 import { source } from 'sveltekit-sse';
-import { page } from '$app/stores';
 import { browser } from '$app/environment';
 import InitialDeploymentFailure from './InitialDeploymentFailure.svelte';
 
