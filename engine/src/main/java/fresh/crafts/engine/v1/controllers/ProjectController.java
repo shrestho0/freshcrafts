@@ -3,6 +3,10 @@ package fresh.crafts.engine.v1.controllers;
 import java.util.HashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,8 +21,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 import fresh.crafts.engine.v1.dtos.CreateProjectRequestDto;
+import fresh.crafts.engine.v1.models.AIChatHistory;
+import fresh.crafts.engine.v1.models.Project;
 import fresh.crafts.engine.v1.models.ProjectDeployment;
 import fresh.crafts.engine.v1.services.ProjectService;
+import fresh.crafts.engine.v1.utils.enums.CommonSortField;
 
 @RestController
 @RequestMapping(value = "/api/v1/projects", consumes = "application/json", produces = "application/json")
@@ -26,6 +33,22 @@ public class ProjectController {
 
     @Autowired
     private ProjectService projectService;
+
+    // get chat history
+    @GetMapping("")
+    public Page<Project> getChatHistory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "id") CommonSortField orderBy,
+            @RequestParam(defaultValue = "DESC") Sort.Direction sort) {
+
+        // no search on notifications, cause, that's the plan
+
+        Pageable pageable = PageRequest.of(page, pageSize, sort, orderBy.getFieldName());
+
+        return projectService.getProjectsPaginated(pageable);
+
+    }
 
     @PostMapping("/init")
     public ResponseEntity<CommonResponseDto> initProject(
@@ -93,4 +116,5 @@ public class ProjectController {
         CommonResponseDto res = projectService.updatePartialProjectDeployment(id, pd);
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
+
 }

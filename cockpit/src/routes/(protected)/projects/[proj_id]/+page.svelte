@@ -6,12 +6,13 @@ import type { EngineCommonResponseDto } from '@/types/dtos';
 import type { Project, ProjectDeployment } from '@/types/entities';
 import { ProjectStatus } from '@/types/enums';
 import { onMount } from 'svelte';
-import { Check, ServerCog } from 'lucide-svelte';
+import { Check, ServerCog, ServerCrash, X } from 'lucide-svelte';
 import DeploymentProcessing from './DeploymentProcessing.svelte';
 import { Button } from 'carbon-components-svelte';
 import { source } from 'sveltekit-sse';
 import { page } from '$app/stores';
 import { browser } from '$app/environment';
+import InitialDeploymentFailure from './InitialDeploymentFailure.svelte';
 
 export let data: EngineCommonResponseDto<
 	Project,
@@ -46,12 +47,10 @@ if (browser) {
 		// messages.push(message);
 
 		messages = [...messages, message];
-		invalidateAll();
+		setTimeout(() => {
+			invalidateAll();
+		}, 500);
 	});
-	// console.log('Value', $value);
-	// setTimeout(() => {
-	// 	invalidateAll();
-	// }, 1000);
 }
 
 let interval;
@@ -82,19 +81,10 @@ onMount(() => {
 		<PreDebug data={data?.payload2} title="Active Deployment" />
 	{:else if project.status === ProjectStatus.INACTIVE}
 		{#if project.totalVersions == 0}
-			<CommonErrorBox error_msg="Initial deployment failed">
-				<div class="flex gap-3 py-4">
-					<a href="./{project.id}/re-deploy" class="flex flex-col gap-2">
-						<ServerCog />
-						<p>Re-deploy</p>
-					</a>
-				</div>
-			</CommonErrorBox>
-
 			<!-- processing list -->
 			<!-- <DeploymentProcessing bind:messages /> -->
 
-			Initial deployment failed
+			<InitialDeploymentFailure {project} {currentDeployment} />
 		{/if}
 		<!-- failed deployment-->
 		<Check size="24" />

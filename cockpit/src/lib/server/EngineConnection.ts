@@ -540,6 +540,21 @@ export class EngineConnection {
 		url.searchParams.append('sort', data.sort);
 		return this.customFetch<EnginePaginatedDto<AIChatHistory>>(url.toString());
 	}
+
+
+	async getProjectsPaginated(data: {
+		page: number,
+		pageSize: number,
+		sort: 'ASC' | 'DESC',
+	}) {
+		const url = new URL(BackendEndpoints.PROJECTS_ALL);
+		url.searchParams.append('page', data.page.toString());
+		url.searchParams.append('pageSize', data.pageSize.toString());
+		url.searchParams.append('sort', data.sort);
+		return this.customFetch<EnginePaginatedDto<Project>>(url.toString());
+	}
+
+
 	async deleteAIChatHistory(id: string) {
 		return this.customFetch(BackendEndpoints.API_CHAT_HISTORY_BY_ID.replace(':id', id), {
 			method: 'DELETE',

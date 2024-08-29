@@ -36,6 +36,8 @@ public class Project {
 
     ProjectGithubRepo githubRepo;
 
+    String updatedAt;
+
     // ProjectDomain domain;
     String domain;
 

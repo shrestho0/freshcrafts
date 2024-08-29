@@ -30,6 +30,7 @@ const _endpoints = {
 	NOTIFICATIONS: '/notifications',
 	NOTIFICATION_BY_ID: '/notifications/:id',
 
+	PROJECTS_ALL: '/projects',
 	PROJECTS_INIT: '/projects/init',
 	PROJECT_DEPLOY_BY_ID: '/projects/deploy/:id', // POST to deploy
 	PROJECT_BY_ID: '/projects/:id',

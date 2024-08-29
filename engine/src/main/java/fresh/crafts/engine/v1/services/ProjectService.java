@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.google.gson.Gson;
@@ -16,6 +18,7 @@ import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
 import fresh.crafts.engine.v1.entities.GithubRepoDetailed;
 import fresh.crafts.engine.v1.entities.KEventPayloadInterface;
 import fresh.crafts.engine.v1.entities.ProjectGithubRepo;
+import fresh.crafts.engine.v1.models.AIChatHistory;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.models.Project;
 import fresh.crafts.engine.v1.models.ProjectDeployment;
@@ -357,6 +360,10 @@ public class ProjectService {
         kevent.setEventSource(KEventProducers.ENGINE);
         kevent.setEventDestination(KEventProducers.DEP_WIZ);
         return kevent;
+    }
+
+    public Page<Project> getProjectsPaginated(Pageable pageable) {
+        return projectRepository.findAll(pageable);
     }
 
 }
