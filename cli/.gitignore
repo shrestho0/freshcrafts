@@ -8,3 +8,5 @@ fc_temp/
 *.swp
 
 __pycache__
+
+*.log

@@ -125,6 +125,10 @@ SYSTEM_DEPS = [
             "package": "npm",
             "checker_command": "npm -v",
         },
+        {
+            "package": "go",
+            "checker_command": "go version",            
+        }
 ]
 
 # FC_SERVICES_ENV_LOCATIONS = {

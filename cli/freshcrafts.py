@@ -374,6 +374,16 @@ class BarelyWorkingSetupWizard:
         for service in services:
             self.sysd_util.disable_service(service)
         pass
+    
+    def restart_service(self):
+        # service names space separated from sys.argv
+        services = sys.argv[2:]
+        if len(services) == 0:
+            console.print("No services provided to restart", style="red")
+        for service in services:
+            self.sysd_util.restart_service(service)
+        pass
+
 
     def options(self):
         return {
@@ -396,6 +406,10 @@ class BarelyWorkingSetupWizard:
             "--uninstall": {
                 "description": "Uninstall freshcrafts",
                 "function": self.uninstall
+            },
+            "--restart": {
+                "description": "Restart services (eg. --restart cockpit engine dep_wizard), like env changed",
+                "function": self.restart_service 
             },
             "--stop": {
                 "description": "Stop services (eg. --stop cockpit engine dep_wizard)",

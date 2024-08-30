@@ -82,6 +82,12 @@ class SystemDUtil:
         os.system("sudo systemctl daemon-reload ")
         console.log("Services reloaded", style="bold green")        
 
+    def restart_services(self, service):
+        # restart the service
+        console.log("Restarting service...", service, style="bold green")
+        os.system(f"sudo systemctl restart {service}.service")
+        console.log("Service restarted", service, style="bold green")
+                
 
 
     def generate_service_files(self):
