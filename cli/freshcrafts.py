@@ -17,6 +17,9 @@ progress = Progress(transient=True,)
  
 
 class BarelyWorkingSetupWizard:    
+    """
+    Installer for FreshCrafts
+    """
     
     def __init__(self):
         # check_root_permission(console)
@@ -145,9 +148,10 @@ class BarelyWorkingSetupWizard:
         for k,v in self.sysd_util.service_data.items():
             src_dir = v.get("SRC_DIR")
             isCockpit = v.get("COCKPIT")
+            isGopher = v.get("GOPHER")
             if os.path.exists(src_dir):
                 console.log(f"✔ {k} source directory exists.", style="green")
-                res,returnCode = self.build_service(src_dir, isCockpit)
+                res,returnCode = self.build_service(src_dir, isCockpit=isCockpit, isGopher= isGopher)
                 if not res:
                     console.log(f"👹 {k} build failed with exitcode {returnCode}", style="red")
                     x*=0
@@ -165,15 +169,22 @@ class BarelyWorkingSetupWizard:
             console.print("Build successful", style="green")
 
                 # self.build_service(k, v)
-    def delete_old_builds(self, src_dir, isCockpit):
-        delete_command = f"sudo rm -rf {src_dir}/target && sudo rm -rf {src_dir}/build"
+    def delete_old_builds(self, src_dir, isCockpit=False, isGopher=False):
+        if isCockpit:
+            delete_command = f"sudo rm -rf {src_dir}/build"
+        elif isGopher:
+            delete_command = f"sudo rm -rf {src_dir}/watchdog"
+        else:
+            delete_command = f"sudo rm -rf {src_dir}/target"
+        
         result = subprocess.run(delete_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         return result.returncode==0, result.returncode
         
-    def build_service(self, src_dir, isCockpit):
+    def build_service(self, src_dir, isCockpit=False, isGopher=False):
         # TODO: delete old builds
         console.log("Deleting old builds", style="blue")
-        res,returnCode = self.delete_old_builds(src_dir, isCockpit)
+        res,returnCode = self.delete_old_builds(src_dir, isCockpit, isGopher)
+        
         if not res:
             console.log(f"👹 {src_dir} failed removing old builds with exitcode {returnCode}", style="red")
             return False, returnCode
@@ -185,6 +196,8 @@ class BarelyWorkingSetupWizard:
         console.print(str(which_java.stdout.decode("utf-8")), str(which_java.stderr.decode("utf-8")), f"\n{which_java.returncode=}")
         if isCockpit:
             build_command = " /usr/bin/npm install && /usr/bin/npm run build"
+        elif isGopher:
+            build_command = "go build -o watchdog"
         else:
             os.environ["JAVA_HOME"] = JAVA_17_DIR
             build_command = "sudo mvn clean -X && mvn package"

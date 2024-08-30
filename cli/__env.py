@@ -70,6 +70,7 @@ FC_SERVICES_INFO = {
     },
     
     "gopher": {
+        "GOPHER": True,
         "ENV_FILE": "../gopher/.env",
         "SRC_DIR": "../gopher",
         "SYSTEMD_SERVICE_NAME": "fc_gopher",
