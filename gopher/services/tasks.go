@@ -119,11 +119,23 @@ func checkServices() {
 	serId := "services"
 
 	dependencyTestResult := models.DependencyTestResult{
-		PrimaryKafka: utils.CheckKafkaRunning(),
+		Timestamp:         utils.GetUlid(),
+		PrimaryKafka:      utils.CheckKafkaRunning(),
+		PrimaryMongo:      utils.CheckPrimaryMongoRunning(),
+		SecondaryMongo:    utils.CheckSecondaryMongoRunning(),
+		SecondaryMysql:    utils.CheckSecondaryMysqlRunning(),
+		SecondaryPostgres: utils.CheckSecondaryPostgresRunning(),
 	}
 
 	serviceTestResult := models.ServiceTestResult{
-		Engine: true,
+		Timestamp: utils.GetUlid(),
+		// check systemd service status for these
+		Engine:         utils.CheckEngineRunning(),
+		Cockpit:        utils.CheckCockpitRunning(),
+		Depwiz:         utils.CheckDepwizRunning(),
+		WizardMongo:    utils.CheckWizardMongoRunning(),
+		WizardPostgres: utils.CheckWizardPostgresRunning(),
+		WizardMysql:    utils.CheckWizardMysqlRunning(),
 	}
 
 	// update

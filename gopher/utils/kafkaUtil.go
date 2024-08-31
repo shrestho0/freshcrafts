@@ -1,14 +1,12 @@
 package utils
 
 import (
-	"log"
 	"time"
 
 	"github.com/IBM/sarama"
 )
 
-func CheckKafkaRunning() bool {
-	broker := "localhost:9092"
+func IsKafkaConnectionOk(broker string) bool {
 
 	// Create a new Sarama configuration
 	config := sarama.NewConfig()
@@ -23,20 +21,15 @@ func CheckKafkaRunning() bool {
 	// Open the connection
 	err := brokerConnection.Open(config)
 	if err != nil {
-		log.Printf("Failed to connect to Kafka broker: %v", err)
+		// log.Printf("Failed to connect to Kafka broker: %v", err)
+		return false
 	}
 
 	// Check if the broker is connected
 	connected, err := brokerConnection.Connected()
 	if err != nil {
-		log.Printf("Failed to check if Kafka broker is connected: %v", err)
-	}
-
-	if connected {
-		log.Println("Kafka is running")
-
-	} else {
-		log.Println("Kafka is not running")
+		// log.Printf("Failed to check if Kafka broker is connected: %v", err)
+		return false
 	}
 
 	// Close the connection

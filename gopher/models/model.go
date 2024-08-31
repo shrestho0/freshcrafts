@@ -18,23 +18,21 @@ type (
 	}
 
 	DependencyTestResult struct {
-		Timestamp string `json:"timestamp"`
-
-		PrimaryKafka      bool `json:"primary_kafka"`
-		PrimaryMongo      bool `json:"primary_mongo"`
-		SecondaryMongo    bool `json:"secondary_mongo"`
-		SecondaryMysql    bool `json:"secondary_mysql"`
-		SecondaryPostgres bool `json:"secondary_postgres"`
+		Timestamp         string `bson:"timestamp"`
+		PrimaryKafka      bool   `bson:"primary_kafka"`
+		PrimaryMongo      bool   `bson:"primary_mongo"`
+		SecondaryMongo    bool   `bson:"secondary_mongo"`
+		SecondaryMysql    bool   `bson:"secondary_mysql"`
+		SecondaryPostgres bool   `bson:"secondary_postgres"`
 	}
 
 	ServiceTestResult struct {
-		Timestamp string `json:"timestamp"`
-
-		Engine         bool `json:"engine"`
-		Cockpit        bool `json:"cockpit"`
-		Depwiz         bool `json:"depwiz"`
-		WizardMongo    bool `json:"wizard_mongo"`
-		WizardPostgres bool `json:"wizard_postgres"`
-		WizardMysql    bool `json:"wizard_mysql"`
+		Timestamp      string `bson:"timestamp"`
+		Engine         bool   `bson:"engine"`
+		Cockpit        bool   `bson:"cockpit"`
+		Depwiz         bool   `bson:"depwiz"`
+		WizardMongo    bool   `bson:"wizard_mongo"`
+		WizardPostgres bool   `bson:"wizard_postgres"`
+		WizardMysql    bool   `bson:"wizard_mysql"`
 	}
 )
