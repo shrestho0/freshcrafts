@@ -18,7 +18,7 @@ import (
 func GetEnv(key string) string {
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Can't get the env files")
+		log.Println("Can't get the env files")
 	}
 	return os.Getenv(key)
 }
@@ -29,7 +29,7 @@ func GetUlid() string {
 	// Generate a ULID
 	id, err := ulid.New(ulid.Timestamp(time.Now()), entropy)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return id.String()
 }
@@ -54,18 +54,18 @@ func ToBsonSlice(results []models.SiteTestResult) []interface{} {
 func RequestGet(url string) ([]byte, int, error) {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		log.Printf("client: could not create request: %s\n", err)
+		// log.Printf("client: could not create request: %s\n", err)
 		return nil, 690, err
 	}
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
-		log.Printf("client: could not create request: %s\n", err)
+		// log.Printf("client: could not create request: %s\n", err)
 		return nil, 691, err
 	}
 	defer res.Body.Close()
 	resBody, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Printf("client: could not create request: %s\n", err)
+		// log.Printf("client: could not create request: %s\n", err)
 		return nil, 692, err
 	}
 	return resBody, res.StatusCode, nil

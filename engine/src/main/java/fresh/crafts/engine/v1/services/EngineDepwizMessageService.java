@@ -157,7 +157,7 @@ public class EngineDepwizMessageService {
             String resultContent = null;
             // HttpGet httpGet = new HttpGet(url);
             HttpPatch httpPatch = new HttpPatch(url);
-            httpPatch.addHeader("Authorization", "Bearer " + envProps.getCockpitAuthorzationToken());
+            httpPatch.addHeader("Authorization", "Bearer " + envProps.getCockpitAuthorizationToken());
             httpPatch.addHeader("Content-Type", "application/json");
 
             httpPatch.setEntity(new StringEntity(json.toString()));

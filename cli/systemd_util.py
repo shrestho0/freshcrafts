@@ -4,6 +4,7 @@
 """
 
 import os
+import subprocess
 from __env import FC_SERVICES_INFO,LOG_DIR, SYSTEMD_SERVICE_DIRECTORY,TEMP_DIR
 from rich.console import Console
 
@@ -16,6 +17,7 @@ class SystemDUtil:
         self.log_dir = self.ensure_directory(LOG_DIR)
         self.temp_dir = self.ensure_directory(TEMP_DIR)
         self.systemd_dir = SYSTEMD_SERVICE_DIRECTORY
+        self.installer_log = self.ensure_file(self.log_dir + "/installer.log")
         self.temp_service_files = []
         
     def with_abs_path(self, FC_SERVICES_INFO):
@@ -56,45 +58,58 @@ class SystemDUtil:
     def enable_services(self):
         console.log("Enabling services...", style="bold green")
         for k,v in self.service_data.items():
-            service_name = v.get("SYSTEMD_SERVICE_NAME")
-            os.system(f"sudo systemctl enable {service_name}.service")
-            console.log("Service enabled", service_name, style="bold green")
+            # service_name = v.get("SYSTEMD_SERVICE_NAME")
+            service_name = f"{k}"
+            # os.system(f"sudo systemctl enable {service_name}.service")
+            # console.log("Service enabled", service_name, style="bold green")
+            self.perform_service_action_on_service("enable", service_name, self.is_service_not_enabled, "Enabling")
 
     
     def start_services(self):
         console.log("Starting services...", style="bold green")
         for k,v in self.service_data.items():
-            service_name = v.get("SYSTEMD_SERVICE_NAME")
-            os.system(f"sudo systemctl start {service_name}.service")
-            console.log("Service started", service_name, style="bold green")
+            # service_name = v.get("SYSTEMD_SERVICE_NAME")
+            # service_name = f"fc_{k}"
+            service_name = f"{k}"
+            # os.system(f"sudo systemctl start {service_name}.service")
+            self.perform_service_action_on_service("start", service_name, self.is_service_not_running, "Starting")
+            
+            # console.log("Service started", service_name, style="bold green")
 
     def stop_and_disable_services(self):
         console.log("Stopping and disabling services...", style="bold green")
         for k,v in self.service_data.items():
-            service_name = v.get("SYSTEMD_SERVICE_NAME")
-            os.system(f"sudo systemctl stop {service_name}.service")
-            os.system(f"sudo systemctl disable {service_name}.service")
-            console.log("Service stopped and disabled", service_name, style="bold green")
-
+            # service_name = v.get("SYSTEMD_SERVICE_NAME")
+            # service_name = f"fc_{k}"
+            service_name = f"{k}"
+            self.stop_service(service_name)
+            self.disable_service(service_name)
+            # os.system(f"sudo systemctl stop {service_name}.service")
+            # os.system(f"sudo systemctl disable {service_name}.service")
+            # console.log("Service stopped and disabled", service_name, style="bold green")
+        console.log("Services stopped and disabled", style="bold green")
         
-    def reload_services(self):
-        console.log("Reloading services...", style="bold green")
-        os.system("sudo systemctl daemon-reload ")
-        console.log("Services reloaded", style="bold green")        
+    def deamon_reload(self):      
+        self.perform_service_action_on_service("sudo systemctl daemon-reload", "", lambda x: True, "Reloading", raw=True)
 
-    def restart_services(self, service):
-        # restart the service
-        console.log("Restarting service...", service, style="bold green")
-        os.system(f"sudo systemctl restart {service}.service")
-        console.log("Service restarted", service, style="bold green")
+    def restart_service(self, service):
+        # # restart the service
+        # console.log("Restarting service...", service, style="bold green")
+        # os.system(f"sudo systemctl restart {service}.service")
+        # console.log("Service restarted", service, style="bold green")
+        # check function handles the negative case
+        self.perform_service_action_on_service("restart", service, lambda x: True, "Restarting")
                 
-
+    def restart_nginx(self):
+        self.perform_service_action_on_service(action="sudo systemctl restart nginx", fc_service_name=None, check_function=lambda x: True, action_name="Restarting", raw=True)
 
     def generate_service_files(self):
 
 
         for k,v in self.service_data.items():
-            service_name = v.get("SYSTEMD_SERVICE_NAME")
+            # service_name = v.get("SYSTEMD_SERVICE_NAME")
+            # service_name = f"fc_{k}"
+            service_name = f"{k}"
 
             # access_log_file = self.log_dir+"/"+service_name + "_access.log"
             access_log, error_log =  self.ensure_service_logs(service_name)
@@ -179,46 +194,102 @@ class SystemDUtil:
         return os.path.abspath(relative_path)
 
     def check_file_exists(self, file_path):
+        if not file_path:
+            raise Exception("File path not provided")
         return os.path.exists(file_path)
     
 
-    def ensure_log_file(self, log_file):
-        if self.check_file_exists(log_file):
-            console.log("Log file exists", log_file, style="bold green")
-        else:
-            console.log("Log file does not exist, creating...", log_file, style="bold green")
-            with open(log_file, "w") as f:
+    def ensure_file(self, f):
+        if not f:
+            raise Exception("File path not provided")
+        
+        if not self.check_file_exists(f):
+            console.log("Log file does not exist, creating...", {f}, style="bold green")
+            with open(f, "w") as f:
                 f.write("")
-
+        return f
+    
     def ensure_directory(self, directory):
         directory = self.get_absolute_path(directory)
 
         if not os.path.exists(directory):
             os.makedirs(directory)
         return directory
+    
 
     def ensure_service_logs(self, service_name):
         access_log = f"{self.log_dir}/{service_name}_access.log"
         error_log = f"{self.log_dir}/{service_name}_error.log"
 
-        self.ensure_log_file(access_log)
-        self.ensure_log_file(error_log)
+        self.ensure_file(access_log)
+        self.ensure_file(error_log)
 
         return access_log, error_log
     
-    def stop_service(self,service_name):
-        # check if service exists
-        if os.system(f"systemctl status fc_{service_name}.service") == 0:
-            os.system(f"sudo systemctl stop fc_{service_name}.service")
-            console.log("Service stopped", service_name, style="bold green")
-        # if exists, stop it
-    def disable_service(self,service_name):
-        # check if service exists
-        if os.system(f"systemctl status fc_{service_name}.service") == 0:
-            os.system(f"sudo systemctl disable fc_{service_name}.service")
-            console.log("Service disabled", service_name, style="bold green")
-        # if exists, stop it
+    
+    # def stop_service(self,service_name):
+    #     # check if service exists
+    #     if os.system(f"systemctl status fc_{service_name}.service") == 0:
+    #         os.system(f"sudo systemctl stop fc_{service_name}.service")
+    #         console.log("Service stopped", service_name, style="bold green")
+    #     # if exists, stop it
 
+    def is_service_running(self, service_name):
+        # Check if the service is active (running)
+        result = subprocess.run(["systemctl", "is-active", service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.returncode == 0
+
+    def is_service_enabled(self, service_name):
+        # Check if the service is enabled
+        result = subprocess.run(["systemctl", "is-enabled", service_name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.returncode == 0
+
+    def is_service_not_running(self, service_name):
+        return not self.is_service_running(service_name)
+    def is_service_not_enabled(self, service_name):
+        return not self.is_service_enabled(service_name)
+ 
+    def stop_service(self, service_name):
+        self.perform_service_action_on_service("stop", service_name, self.is_service_running, "Stopping")
+
+    def disable_service(self, service_name):
+        self.perform_service_action_on_service("disable", service_name, self.is_service_enabled, "Disabling")
+       
+
+
+
+    def perform_service_action_on_service(self, action, fc_service_name, check_function, action_name, raw=False):
+
+        if fc_service_name: fc_service_name = f"fc_{fc_service_name}"
+
+        # Check if the service meets the condition for the action
+        if not check_function(fc_service_name):
+            console.log(f"Service {fc_service_name} is already in the desired state for {action_name}.", style="bold yellow")
+            with open(self.installer_log, "a") as f:
+                f.write(f"Service {fc_service_name} is already in the desired state for {action_name}.\n")
+                f.write("------------------------------------------------\n\n")
+            return
+
+        try:
+            with open(self.installer_log, "a") as f:
+                f.write(f"{action_name} systemd service {fc_service_name}\n")
+                f.write("------------------------------------------------\n\n")
+                if raw:
+                    # action = action.split(" ")
+                    subprocess.run(action, check=True, stdout=f, stderr=f, shell=True)
+                else:
+                    subprocess.run(["sudo", "systemctl", action, fc_service_name], check=True, stdout=f, stderr=f)
+                console.log(f"Service {fc_service_name} {action_name.lower()} successfully.", style="bold green")
+        except subprocess.CalledProcessError:
+            console.log(f"Error {action_name.lower()} systemd service {fc_service_name}.", style="bold red")
+            with open(self.installer_log, "a") as f:
+                f.write(f"Error {action_name.lower()} systemd service {fc_service_name}.\n")
+                f.write("------------------------------------------------\n\n")
+        except Exception as e:
+            console.log(f"Unexpected error {action_name.lower()} systemd service {fc_service_name}: {e}", style="bold red")
+            with open(self.installer_log, "a") as f:
+                f.write(f"Unexpected error {action_name.lower()} systemd service {fc_service_name}: {e}\n")
+                f.write("------------------------------------------------\n\n")
 
 
 # for testing

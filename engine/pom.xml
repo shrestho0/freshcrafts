@@ -34,6 +34,11 @@
     <maven.compiler.target>17</maven.compiler.target>
   </properties>
   <dependencies>
+<!-- 
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency> -->
 
     <dependency>
       <groupId>org.springframework.kafka</groupId>
@@ -48,10 +53,7 @@
       <version>8.3.0</version>
     </dependency>
 
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-actuator</artifactId>
-    </dependency>
+
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -71,14 +73,14 @@
       <version>4.4.0</version>
     </dependency>
 
-
+<dependency>
+    <groupId>org.mindrot</groupId>
+    <artifactId>jbcrypt</artifactId>
+    <version>0.4</version>
+</dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
     </dependency>
 
     <dependency>
@@ -121,13 +123,13 @@
   </dependencies>
   <dependencyManagement>
     <dependencies>
-      <dependency>
+      <!-- <dependency>
         <groupId>org.springframework.cloud</groupId>
         <artifactId>spring-cloud-dependencies</artifactId>
         <version>${spring-cloud.version}</version>
         <type>pom</type>
         <scope>import</scope>
-      </dependency>
+      </dependency> -->
     </dependencies>
   </dependencyManagement>
 

@@ -9,7 +9,7 @@ const kafkaClient = new KafkaClient({ kafkaHost: 'localhost:9092' });
 const producer = new Producer(kafkaClient);
 
 let producerReady = false;
-const predefinedTopics = ['ENGINE', 'WIZARD_MYSQL', 'WIZARD_POSTGRES', 'WIZARD_MONGO', 'DEP_WIZ', 'NOTIFICATION']
+const predefinedTopics = ['ENGINE', 'WIZARD_MYSQL', 'WIZARD_POSTGRES', 'WIZARD_MONGO', 'DEP_WIZ', 'NOTIFICATION', "kafka-health-indicator"]
 producer.on('ready', () => {
     console.log('Producer ready');
     producer.createTopics(predefinedTopics, false, (err, data) => {

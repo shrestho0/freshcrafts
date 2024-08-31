@@ -29,7 +29,7 @@ FC_SERVICES_INFO = {
     "wiz_mysql": {
         "ENV_FILE": "../wiz_mysql/src/main/resources/application.properties",
         "SRC_DIR": "../wiz_mysql",
-        "SYSTEMD_SERVICE_NAME": "fc_wiz_mysql",
+        # "SYSTEMD_SERVICE_NAME": "fc_wiz_mysql",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_EXECUTABLE_FILE": "../wiz_mysql/target/wiz_mysql-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
@@ -37,7 +37,7 @@ FC_SERVICES_INFO = {
     "engine": {
         "ENV_FILE": "../engine/src/main/resources/application.properties",
         "SRC_DIR": "../engine",
-        "SYSTEMD_SERVICE_NAME": "fc_engine",
+        # "SYSTEMD_SERVICE_NAME": "fc_engine",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_EXECUTABLE_FILE": "../engine/target/engine-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
@@ -46,7 +46,7 @@ FC_SERVICES_INFO = {
     "wiz_postgres": {
         "ENV_FILE": "../wiz_postgres/src/main/resources/application.properties",
         "SRC_DIR": "../wiz_postgres",
-        "SYSTEMD_SERVICE_NAME": "fc_wiz_postgres",
+        # "SYSTEMD_SERVICE_NAME": "fc_wiz_postgres",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_EXECUTABLE_FILE": "../wiz_postgres/target/wiz_postgres-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
@@ -54,7 +54,7 @@ FC_SERVICES_INFO = {
     "wiz_mongo": {
         "ENV_FILE": "../wiz_mongo/src/main/resources/application.properties",
         "SRC_DIR": "../wiz_mongo",
-        "SYSTEMD_SERVICE_NAME": "fc_wiz_mongo",
+        # "SYSTEMD_SERVICE_NAME": "fc_wiz_mongo",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_EXECUTABLE_FILE": "../wiz_mongo/target/wiz_mongo-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
@@ -63,7 +63,7 @@ FC_SERVICES_INFO = {
     "dep_wizard": {
         "ENV_FILE": "../depwiz/src/main/resources/application.properties",
         "SRC_DIR": "../depwiz",
-        "SYSTEMD_SERVICE_NAME": "fc_depwiz",
+        # "SYSTEMD_SERVICE_NAME": "fc_depwiz",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_EXECUTABLE_FILE": "../depwiz/target/depwiz-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
@@ -73,7 +73,7 @@ FC_SERVICES_INFO = {
         "GOPHER": True,
         "ENV_FILE": "../gopher/.env",
         "SRC_DIR": "../gopher",
-        "SYSTEMD_SERVICE_NAME": "fc_gopher",
+        # "SYSTEMD_SERVICE_NAME": "fc_gopher",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_EXECUTABLE_FILE": "../gopher/watchdog",
         "SYSTEMD_EXEC_COMMAND": " ",
@@ -85,7 +85,7 @@ FC_SERVICES_INFO = {
         "ENV_FILE": "../cockpit/.env",
         "SRC_DIR": "../cockpit",
         "NGINX_CONFIG_TEMPLATE_FILE": "./templates/cocpit_nginx.conf.template",
-        "SYSTEMD_SERVICE_NAME": "fc_cockpit",
+        # "SYSTEMD_SERVICE_NAME": "fc_cockpit",
         "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
         "SYSTEMD_BUILD_DIR": "../cockpit/build",
         "SYSTEMD_EXEC_COMMAND": "/usr/bin/node --env-file=\"{ENV}\" \"{BUILD_DIR}\"", 

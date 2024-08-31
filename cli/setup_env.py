@@ -1,4 +1,4 @@
-#
+
 
 import os
 from time import sleep
@@ -40,6 +40,8 @@ class EnvSetup:
         remove_prefix = lambda x: x.split("_", 1)[1]
         
         for x,val in env_vals.items():
+            if x.startswith("_"):
+                continue
             for k in env_map.keys():
                 if x.startswith(k.upper().replace("_", "")+"_"):
                     env_map[k].append({remove_prefix(x):val})
