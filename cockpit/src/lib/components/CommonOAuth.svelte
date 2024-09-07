@@ -4,9 +4,9 @@ import { invalidateAll } from '$app/navigation';
 import { page } from '$app/stores';
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import type { EngineSystemConfigResponseDto } from '@/types/dtos';
+import X from '@/ui/icons/X.svelte';
 import type { ActionResult } from '@sveltejs/kit';
 import { Button, InlineLoading } from 'carbon-components-svelte';
-import { X } from 'lucide-svelte';
 import { onMount } from 'svelte';
 
 export let removeConnFormEndpoint = '';

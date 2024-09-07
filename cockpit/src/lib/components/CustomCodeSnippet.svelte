@@ -111,8 +111,8 @@ export let ref: any = null;
 
 import { createEventDispatcher, tick, onMount } from 'svelte';
 // import ChevronDown from '../icons/ChevronDown.svelte';
-import { ChevronDown } from 'carbon-icons-svelte';
 import { Button, CodeSnippetSkeleton, CopyButton } from 'carbon-components-svelte';
+import CarbonChevronDown from '@/ui/icons/CarbonChevronDown.svelte';
 
 // import Button from '../Button/Button.svelte';
 // import CopyButton from '../CopyButton/CopyButton.svelte';
@@ -268,7 +268,10 @@ onMount(() => {
 				}}
 			>
 				<span class:bx--snippet-btn--text={true}>{expandText}</span>
-				<ChevronDown class="bx--icon-chevron--down bx--snippet__icon" aria-label={expandText} />
+				<CarbonChevronDown
+					class="bx--icon-chevron--down bx--snippet__icon"
+					aria-label={expandText}
+				/>
 			</Button>
 		{/if}
 	</div>

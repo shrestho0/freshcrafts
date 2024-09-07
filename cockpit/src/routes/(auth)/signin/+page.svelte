@@ -8,31 +8,25 @@ import {
 	PasswordInput,
 	InlineNotification
 } from 'carbon-components-svelte';
-import { ArrowRight, LogoGithub } from 'carbon-icons-svelte';
 import { onMount } from 'svelte';
 import HeaderUnAuthenticated from '@/components/HeaderUnAuthenticated.svelte';
 import { applyAction, enhance } from '$app/forms';
 import { goto, invalidateAll } from '$app/navigation';
 import type { ActionResult } from '@sveltejs/kit';
 import { AuthProviderType } from '@/types/enums';
+import CarbonArrowRight from '@/ui/icons/CarbonArrowRight.svelte';
+import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
 
 export let data;
 
 const { githubLoginUrl, googleLoginUrl } = data;
-
-// let githubUrl = initializeAndReturnGithubUrl();
-// let googleUrl = initializeAndReturnGoogleUrl();
 
 onMount(() => {
 	if (browser) {
 		document.cookie = 'fromPage=login; path=/; max-age=0'; //
 	}
 });
-// onDestroy(() => {
-// 	if (browser) {
-// 		document.cookie = 'fromPage=login; path=/; max-age=0 ';
-// 	}
-// });
+
 let error_message = '';
 
 function enhancedEmailPasswordLogin() {
@@ -79,8 +73,8 @@ function enhancedEmailPasswordLogin() {
 													</div>
 												</div>
 												<div class="login-form">
-													{#if data?.providers?.length > 0}
-														{#if data.providers?.includes(AuthProviderType.EMAIL_PASSWORD)}
+													{#if data?.payload?.length > 0}
+														{#if data.payload?.includes(AuthProviderType.EMAIL_PASSWORD)}
 															<form
 																class="bx--form regular-auth-container"
 																name="loginForm"
@@ -120,7 +114,7 @@ function enhancedEmailPasswordLogin() {
 																			type="submit"
 																			class="w-full flex justify-between items-center max-w-full bx--btn--primary text-left px-4 min-h-[3rem]"
 																			>Sign In
-																			<ArrowRight />
+																			<CarbonArrowRight />
 																		</button>
 																	</Column>
 																</Row>
@@ -128,7 +122,7 @@ function enhancedEmailPasswordLogin() {
 														{/if}
 														<div class="oauth-container oauth-container">
 															<div class=" w-full max-w-full gap-3 flex flex-col">
-																{#if data.providers?.includes(AuthProviderType.OAUTH_GITHUB)}
+																{#if data.payload?.includes(AuthProviderType.OAUTH_GITHUB)}
 																	<button
 																		on:click={() => {
 																			if (githubLoginUrl)
@@ -136,10 +130,10 @@ function enhancedEmailPasswordLogin() {
 																		}}
 																		class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
 																		>Sign in with Github
-																		<LogoGithub class="w-6 h-6" />
+																		<CarbonLogoGithub class="w-6 h-6" />
 																	</button>
 																{/if}
-																{#if data.providers?.includes(AuthProviderType.OAUTH_GOOGLE)}
+																{#if data.payload?.includes(AuthProviderType.OAUTH_GOOGLE)}
 																	<button
 																		class="w-full flex justify-between items-center max-w-full bx--btn--secondary dark:bx--btn--tertiary text-left px-4 min-h-[3rem]"
 																		on:click={() => {
@@ -207,11 +201,11 @@ function enhancedEmailPasswordLogin() {
 	overflow: hidden;
 	max-width: 99rem;
 }
-.heading-container {
+/* .heading-container {
 	padding-bottom: 2rem;
 	margin-bottom: 1rem;
 	border-bottom: 1px solid #e0e0e0;
-}
+} */
 .oauth-container,
 .regular-auth-container {
 	border-top: 1px solid #e0e0e0;
@@ -229,10 +223,10 @@ function enhancedEmailPasswordLogin() {
 	background-position-x: left;
 	background-position-y: bottom;
 }
-.login-form form .bx--btn {
+/* .login-form form .bx--btn {
 	width: 100%;
 	max-width: 100%;
-}
+} */
 @media (min-width: 42rem) {
 	.login-container {
 		margin: auto;

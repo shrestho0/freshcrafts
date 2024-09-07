@@ -12,6 +12,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
 import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.models.Notification;
@@ -38,13 +39,16 @@ public class EngineDepwizMessageService {
     @Autowired
     private NotificationService notificationService;
 
-    public void serve(KEvent kEvent) {
-        System.err.println("[DEBUG]: Engine Depwiz Message Service");
-        CraftUtils.jsonLikePrint(kEvent);
+    @Autowired
+    private EngineMessageService engineMessageService;
 
-        System.err.println("[DEBUG]: Engine Depwiz Message Service: Payload");
-        KEventFeedbackPayload payload = (KEventFeedbackPayload) kEvent.getPayload();
-        CraftUtils.jsonLikePrint(payload);
+    public void serveDeployFeedback(KEvent kEvent, DepWizKEventPayload payload) {
+        // System.err.println("[DEBUG]: Engine Depwiz Message Service");
+        // CraftUtils.jsonLikePrint(kEvent);
+
+        // System.err.println("[DEBUG]: Engine Depwiz Message Service: Payload");
+        // KEventFeedbackPayload payload = (KEventFeedbackPayload) kEvent.getPayload();
+        // CraftUtils.jsonLikePrint(payload);
 
         // save the event
         kEventService.createOrUpdate(kEvent);
@@ -69,11 +73,15 @@ public class EngineDepwizMessageService {
 
             boolean needToSavePD = false;
             boolean needToSaveP = false;
+
             if (payload.getIsPartial()) {
                 System.err.println("[DEBUG]: Partial Event");
                 if (payload.getData().get("partial_feedback") != null) {
-                    String message = pd.getPartialDeploymentMsg() + "\n" + payload.getData().get("partial_feedback");
-                    pd.setPartialDeploymentMsg(message);
+                    // String message = pd.getPartialDeploymentMsg() + "\n" +
+                    // payload.getData().get("partial_feedback");
+                    p.getPartialMessageList().add(payload.getData().get("partial_feedback").toString());
+                    needToSaveP = true;
+                    // pd.setPartialDeploymentMsg(message);
                     notification.setMessage(payload.getData().get("partial_feedback").toString());
 
                     needToSavePD = true;
@@ -93,27 +101,39 @@ public class EngineDepwizMessageService {
                 if (payload.getSuccess()) {
                     // success
 
-                    p.setTotalVersions(p.getTotalVersions());
+                    // on successful deployment
+                    p.setTotalVersions(p.getTotalVersions() + 1); // as succeed, total version should ++
+                    p.setActiveVersion(p.getTotalVersions()); // latest one should be the active version
                     p.setActiveDeploymentId(p.getCurrentDeploymentId()); // set the current deployment id to active
+                    p.setCurrentDeploymentId(null); // set the current deployment id to null
                     p.setStatus(ProjectStatus.ACTIVE);
 
                     p.setPortAssigned(Integer.decode((payload.getData().get("port_assigned")).toString()));
 
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_COMPLETED);
-                    pd.setPartialDeploymentMsg(
-                            pd.getPartialDeploymentMsg() + "\n" + payload.getData().get("partial_feedback"));
+                    pd.setVersion(p.getTotalVersions());
+                    // pd.setPartialDeploymentMsg(
+                    // pd.getPartialDeploymentMsg() + "\n" +
+                    // payload.getData().get("partial_feedback"));
+
+                    p.getPartialMessageList().add(payload.getData().get("partial_feedback").toString());
+                    needToSaveP = true;
+
                     notification.setType(NotificationType.SUCCESS);
                     notification.setMessage(payload.getData().get("partial_feedback").toString());
                 } else {
                     // failure
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_FAILED);
                     p.setStatus(ProjectStatus.INACTIVE);
-                    pd.setPartialDeploymentMsg(
-                            pd.getPartialDeploymentMsg() + "\n" + payload.getData().get("partial_feedback"));
+                    // pd.setPartialDeploymentMsg(
+                    // pd.getPartialDeploymentMsg() + "\n" +
+                    // payload.getData().get("partial_feedback"));
+
+                    p.getPartialMessageList().add(payload.getData().get("partial_feedback").toString());
+
                     pd.setErrorTraceback(payload.getData().get("error_traceback").toString());
                     notification.setType(NotificationType.ERROR);
                     notification.setMessage(payload.getData().get("partial_feedback").toString());
-
                 }
 
                 System.err.println("[DEBUG]: Full Event");
@@ -131,10 +151,13 @@ public class EngineDepwizMessageService {
                 CraftUtils.jsonLikePrint(p_up);
             }
 
-            // save notification
-            notificationService.createOrUpdate(notification);
+            // save notification if not partial
+            if (!payload.getIsPartial()) {
+                notification.setMessage(notification.getMessage() + " [REVALIDATE]");
+                notificationService.createOrUpdate(notification);
+            }
 
-            requestNotificationSSE(notification.toJson(), p.getId());
+            requestProjectIDSSE(notification.toJson(), p.getId());
 
         } catch (Exception e) {
             System.err.println("[DEBUG]: =================== Exceptions >> ===================\n" + e.getMessage()
@@ -142,15 +165,78 @@ public class EngineDepwizMessageService {
         }
     }
 
+    public void serveDeleteFeedback(KEvent kEvent, DepWizKEventPayload payload) {
+        try {
+            HashMap<String, Object> requiredValues = new HashMap<>();
+            requiredValues.put("project_id", payload.getData().get("project_id"));
+            requiredValues.put("isPartial", payload.getIsPartial());
+            requiredValues.put("partial_feedback", payload.getData().get("partial_feedback"));
+            CraftUtils.throwIfRequiredValuesAreNull(requiredValues);
+
+            Project p = projectService.getProjectById(payload.getData().get("project_id").toString());
+
+            CraftUtils.throwIfNull(p, "Error: Project not found");
+
+            // // notification
+            Notification notification = new Notification();
+
+            p.getPartialMessageList().add(payload.getData().get("partial_feedback").toString());
+
+            if (payload.getIsPartial()) {
+                // partial event
+                notification.setType(NotificationType.INFO);
+                projectService.updateProject(p);
+
+            } else {
+
+                // full event
+                if (payload.getSuccess()) {
+                    notification.setType(NotificationType.INFO);
+                    // success
+                    notification.setType(NotificationType.SUCCESS);
+                    // notification.setMessage( ); // do it later
+                    projectService.deleteProjectAndDeployments(p.getId());
+                    notification.setMessage("[REVALIDATE] Project `" + p.getUniqueName() + "` Deleted Successfully");
+                    notification.setActionHints("REDIRECT_PROJECTS_" + p.getId()); //
+                    engineMessageService.requestNotificationSSE(notification.toJson());
+                } else {
+                    // failure
+                    notification.setType(NotificationType.ERROR);
+                    notification.setMessage("[FAILURE] Failed to delete project: " + p.getUniqueName());
+                    notification.setActionHints("REDIRECT_PROJECTS_" + p.getId());
+                    engineMessageService.requestNotificationSSE(notification.toJson());
+
+                }
+
+                notificationService.createOrUpdate(notification);
+                // return;
+
+            }
+
+            requestProjectIDSSE(notification.toJson(), p.getId());
+
+        } catch (Exception e) {
+            System.err.println("[DEBUG]: =================== Exceptions >> ===================\n" + e.getMessage()
+                    + "\n=================== << Exceptions ===================");
+
+        }
+
+    }
+
+    public void serveReDeployFeedback(KEvent kEvent, DepWizKEventPayload payload) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'serveReDeployFeedback'");
+    }
+
     /**
-     * requestNotificationSSE
+     * requestProjectIDSSE
      *
      * @param json
      * @implNote This method is responsible for sending notification to the frontend
      *           via SSE
      */
-    private void requestNotificationSSE(String json, String projectId) {
-        System.err.println("[DEBUG]: EngineMessageService requestNotificationSSE");
+    private void requestProjectIDSSE(String json, String projectId) {
+        System.err.println("[DEBUG]: EngineMessageService requestProjectIDSSE /sse/projects/");
         String url = envProps.getCockpitLocalUrl() + "/sse/projects/" + projectId;
 
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {

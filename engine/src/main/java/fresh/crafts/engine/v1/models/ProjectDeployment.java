@@ -18,14 +18,13 @@ public class ProjectDeployment {
     @Id
     String id;
 
-    Project project;
+    String projectId;
 
     Integer version;
     ProjectDeploymentStatus status;
 
     Boolean isDeployed;
 
-    String partialDeploymentMsg;
     String errorTraceback;
 
     // save other necceassary fields

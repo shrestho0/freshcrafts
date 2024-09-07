@@ -1,10 +1,11 @@
-import { FILE_UPLOAD_DIR } from "$env/static/private";
+import { ENV, FILE_UPLOAD_DIR } from "$env/static/private";
 
 // import * as fsBase from "fs";
 import fs from "fs/promises";
 import path from 'path';
 import AdmZip from 'adm-zip';
 import * as tar from 'tar';
+import type { ProjectDir } from "@/types/entities";
 
 export class FilesHelper {
 
@@ -125,7 +126,7 @@ export class FilesHelper {
             .replace('{AUTORESTART}', 'true')
             .replace('{PORT}', '{PORT}')
             .replace('{HOST}', '0.0.0.0')
-            .replace('{ORIGIN}', `https://${projectDomain}`);
+            .replace('{ORIGIN}', ((ENV == "prod" ? 'https://' : 'http://') + projectDomain));
 
         await fs.writeFile(filePath, content);
 
@@ -227,6 +228,13 @@ export class FilesHelper {
         await fs.rm(projectDir, { recursive: true, force: true });
     }
 
+    getProjectDir(projectId: string): ProjectDir {
+        return {
+            path: `${this.projectDir}/${projectId}`,
+            absPath: path.join(process.cwd(), `${this.projectDir}/${projectId}`)
+        }
+    }
+
 
     // Function to extract .zip files
     private async extractZip(zipFilePath: string, extractDir: string) {
@@ -235,7 +243,7 @@ export class FilesHelper {
             extractDir = extractDir.replace(this.projectCompressedDirName, this.projectSourceDirName)
             const zip = new AdmZip(zipFilePath);
             zip.extractAllTo(extractDir, true);
-            // await this.moveSingleFileToParentDir(extractDir);
+            await this.moveSingleFileToParentDir(extractDir);
             console.log(`.zip files extracted to ${extractDir}`);
             return extractDir;
         } catch (err: any) {
@@ -258,7 +266,7 @@ export class FilesHelper {
                 cwd: extractDir
             });
 
-            // await this.moveSingleFileToParentDir(extractDir);
+            await this.moveSingleFileToParentDir(extractDir);
             console.log(`.tar.gz files extracted to ${extractDir}`);
             return extractDir;
         } catch (err: any) {
@@ -423,6 +431,15 @@ export class FilesHelper {
 
     async readFile(filePath: string) {
         return await fs.readFile(filePath, 'utf-8');
+    }
+
+    async exists(filePath: string) {
+        try {
+            const f = await fs.access(filePath)
+            return true
+        } catch (e: any) {
+            return false
+        }
     }
 
 }

@@ -1,6 +1,5 @@
 import { browser } from '$app/environment';
 import type { EngineCommonResponseDto } from '@/types/dtos';
-import type { HttpMethod } from '@sveltejs/kit';
 import { decodeTime } from 'ulid';
 // Client Side Code Only
 
@@ -10,7 +9,7 @@ export function toTitleCase(str: string) {
 	return str.toLowerCase().replace(/\b\w/g, (s) => s.toUpperCase());
 }
 
-export async function fetchDataSelf(body: any, method: HttpMethod, fallback: any = null) {
+export async function fetchDataSelf(body: any, method: any, fallback: any = null) {
 	if (!browser) return;
 
 	const res: EngineCommonResponseDto = await fetch('', {
@@ -190,3 +189,5 @@ export class EnvVarsUtil {
 
 
 }
+
+// Project Utils

@@ -14,14 +14,14 @@ import {
 	Pagination,
 	ModalFooter,
 	PaginationNav,
-	Tile
+	Tile,
+	SkeletonPlaceholder
 } from 'carbon-components-svelte';
+
 import { afterUpdate, getContext, onMount } from 'svelte';
-import type { ActionResult } from '@sveltejs/kit';
-import { invalidateAll } from '$app/navigation';
 import { toast } from 'svelte-sonner';
-import { enhance } from '$app/forms';
-import { browser } from '$app/environment';
+import { blur, crossfade, draw, fade, fly, slide } from 'svelte/transition';
+import { quintOut } from 'svelte/easing';
 
 let form: HTMLFormElement;
 
@@ -41,8 +41,10 @@ const pageData = {
 let selectedIdx: number | null = null;
 $: selectedItem = selectedIdx == null ? null : pageData.content[selectedIdx];
 let errorMessage: string = '';
+let dataLoading = false;
 
 async function fetchData(p = 1, pageSize = 10) {
+	dataLoading = true;
 	const url = new URL($page.url.href);
 	url.searchParams.set('page', (p - 1).toString());
 	url.searchParams.set('pageSize', pageSize.toString());
@@ -57,6 +59,9 @@ async function fetchData(p = 1, pageSize = 10) {
 	// pageData.page = p;
 	// pageData.pageSize = pageSize;
 	pageData.content = d.content;
+	setTimeout(() => {
+		dataLoading = false;
+	}, 500);
 	console.log('pageDataX', pageData, d);
 }
 
@@ -65,6 +70,7 @@ onMount(async () => {
 });
 
 async function deleteSelected() {
+	dataLoading = true;
 	errorMessage = '';
 	const d = (await fetch('', {
 		method: 'DELETE',
@@ -81,17 +87,31 @@ async function deleteSelected() {
 		toast.error(d?.message ?? 'Failed to delete message');
 	}
 	selectedIdx = null;
+	setTimeout(() => {
+		dataLoading = false;
+	}, 500);
 }
+
+let condition = false;
+setInterval(() => {
+	condition = !condition;
+}, 1000);
 </script>
 
 <div class="py-4">
 	<h2 class="text-xl">Chat History</h2>
 </div>
-
-{#if pageData.content?.length > 0}
+{#if dataLoading}
+	<!-- <div class="bg-red-100 text-red-900 p-2 rounded my-2">{errorMessage}</div> -->
+	<div>
+		{#each Array(5) as i}
+			<SkeletonPlaceholder class="w-full h-14 my-2" />
+		{/each}
+	</div>
+{:else if pageData.content?.length > 0}
 	{#each pageData.content as chat, idx}
-		<ClickableTile
-			class="flex items-center justify-between rounded my-2"
+		<button
+			class=" w-full bx--link flex items-center justify-between rounded my-2 bx--tile bx--tile--clickable"
 			on:click={() => {
 				selectedIdx = idx;
 			}}
@@ -105,10 +125,9 @@ async function deleteSelected() {
 			<div>
 				{humanizedTimeDifference(ulidToDate(chat.id))}
 			</div>
-		</ClickableTile>
+		</button>
 	{/each}
 {/if}
-
 <ComposedModal
 	open={selectedIdx != null}
 	on:close={() => {
@@ -126,7 +145,7 @@ async function deleteSelected() {
 						: 'justify-start'} "
 				>
 					<div
-						class="p-2 bg-gray-300 rounded-lg {message.role === 'user'
+						class="p-2 rounded-lg {message.role === 'user'
 							? ' bg-[var(--cds-interactive-01)] text-white '
 							: ' bg-gray-300 '} break-all"
 					>

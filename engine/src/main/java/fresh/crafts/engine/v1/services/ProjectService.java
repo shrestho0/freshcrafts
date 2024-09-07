@@ -1,6 +1,8 @@
 package fresh.crafts.engine.v1.services;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,8 +65,10 @@ public class ProjectService {
             return res;
         }
         newProject.setId(createProjectDto.getNewProjectId());
-        newProject.setStatus(ProjectStatus.PROCESSING_SETUP);
+        newProject.setStatus(ProjectStatus.AWAIT_INITIAL_SETUP);
         newProject.setType(createProjectDto.getType());
+        newProject.setTotalVersions(0);
+        newProject.setProjectDir(createProjectDto.getProjectDir());
 
         if (createProjectDto.getType() == ProjectType.GITHUB_REPO) {
 
@@ -84,10 +88,11 @@ public class ProjectService {
 
         // create first version of project_deployment
         ProjectDeployment newDeployment = new ProjectDeployment();
-        newDeployment.setVersion(1);
+        newDeployment.setVersion(0);
         newDeployment.setStatus(ProjectDeploymentStatus.PRE_CREATION);
         newDeployment.setIsDeployed(false);
-        newDeployment.setProject(newProject);
+        // newDeployment.setProject(newProject);
+        newDeployment.setProjectId(newProject.getId());
 
         Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
         System.out.println("\n\nCreateProjectDto: ");
@@ -136,11 +141,11 @@ public class ProjectService {
             res.setPayload(p.get());
             res.setSuccess(true);
             res.setStatusCode(200);
-            res.setPayload2(projectDeploymentService.getProjectDeploymentById(p.get().getActiveDeploymentId(), false)); // get
-                                                                                                                        // active
+            res.setPayload2(projectDeploymentService.getProjectDeploymentById(p.get().getActiveDeploymentId())); // get
+                                                                                                                 // active
             // deployment
-            res.setPayload3(projectDeploymentService.getProjectDeploymentById(p.get().getCurrentDeploymentId(), false)); // get
-                                                                                                                         // current
+            res.setPayload3(projectDeploymentService.getProjectDeploymentById(p.get().getCurrentDeploymentId())); // get
+                                                                                                                  // current
             // deployment
             return res;
         }
@@ -163,11 +168,11 @@ public class ProjectService {
         Optional<Project> p = projectRepository.findByUniqueName(id);
         if (p.isPresent()) {
             res.setPayload(p.get());
-            res.setPayload2(projectDeploymentService.getProjectDeploymentById(p.get().getActiveDeploymentId(), false)); // get
-                                                                                                                        // active
+            res.setPayload2(projectDeploymentService.getProjectDeploymentById(p.get().getActiveDeploymentId())); // get
+                                                                                                                 // active
             // deployment
-            res.setPayload3(projectDeploymentService.getProjectDeploymentById(p.get().getCurrentDeploymentId(), false)); // get
-                                                                                                                         // current
+            res.setPayload3(projectDeploymentService.getProjectDeploymentById(p.get().getCurrentDeploymentId())); // get
+                                                                                                                  // current
             // deployment
             res.setMessage(
                     "[DEBUG]: Project found. payload: Project, payload2: Current Deployment, payload3: Active Deployment");
@@ -213,7 +218,7 @@ public class ProjectService {
     /////////////////////// getProjectDeploymentById ///////////////////////
     public CommonResponseDto getProjectDeploymentById(String id) {
         CommonResponseDto res = new CommonResponseDto();
-        ProjectDeployment pd = projectDeploymentService.getProjectDeploymentById(id, true);
+        ProjectDeployment pd = projectDeploymentService.getProjectDeploymentById(id);
         if (pd != null) {
             res.setPayload(pd);
             res.setSuccess(true);
@@ -227,14 +232,14 @@ public class ProjectService {
     }
 
     public ProjectDeployment getProjectDeploymentById2(String id) {
-        return projectDeploymentService.getProjectDeploymentById(id, true);
+        return projectDeploymentService.getProjectDeploymentById(id);
     }
 
     public CommonResponseDto updatePartialProjectDeployment(String id, ProjectDeployment pd) {
         CommonResponseDto res = new CommonResponseDto();
 
         try {
-            ProjectDeployment existingPd = projectDeploymentService.getProjectDeploymentById(id, true);
+            ProjectDeployment existingPd = projectDeploymentService.getProjectDeploymentById(id);
 
             if (existingPd == null) {
                 res.setSuccess(false);
@@ -287,19 +292,18 @@ public class ProjectService {
         return projectRepository.save(p);
     }
 
-    public CommonResponseDto deployProject(String id, HashMap<String, Object> deployInfo) {
+    public CommonResponseDto deployProject(String id, HashMap<String, Object> deployInfo, Boolean reDeploy) {
 
-        Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
+        System.out.println("\n\nDeployInfo: " + id + " " + "reDeploy" + reDeploy);
+        CraftUtils.jsonLikePrint(deployInfo);
 
-        System.out.println("\n\nDeployInfo: " + id);
-        System.out.println(gson.toJson(deployInfo));
         System.out.println("\n\n");
 
         CommonResponseDto res = new CommonResponseDto();
 
         try {
             Project p = projectRepository.findById(id).get();
-            ProjectDeployment pd = projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId(), false);
+            ProjectDeployment pd = projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId());
 
             // if not p.getCurrentDeploymentId() or pd.getStatus() != READY_FOR_DEPLOYMENT,
             // return with success false
@@ -318,8 +322,9 @@ public class ProjectService {
 
             // port will be added by dep_wiz
             p.setStatus(ProjectStatus.PROCESSING_DEPLOYMENT);
-            pd.setStatus(ProjectDeploymentStatus.REQUESTED_DEPLOYMENT);
-            pd.setPartialDeploymentMsg("");
+            pd.setStatus(reDeploy ? ProjectDeploymentStatus.REQUESTED_REDEPLOYMENT
+                    : ProjectDeploymentStatus.REQUESTED_DEPLOYMENT);
+            // pd.setPartialDeploymentMsg("");
             pd.setErrorTraceback("");
 
             // update p && pd
@@ -329,8 +334,9 @@ public class ProjectService {
             // send to dep wiz
             KEvent kevent = generateCommonKEvent();
             DepWizKEventPayload payload = new DepWizKEventPayload();
-            payload.setCommand(DepWizKEventCommands.DEPLOY);
-            payload.setDeployment(projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId(), false));
+
+            payload.setCommand(reDeploy ? DepWizKEventCommands.RE_DEPLOY : DepWizKEventCommands.DEPLOY);
+            payload.setDeployment(projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId()));
             payload.setProject(p);
             kevent.setPayload(payload);
 
@@ -364,6 +370,150 @@ public class ProjectService {
 
     public Page<Project> getProjectsPaginated(Pageable pageable) {
         return projectRepository.findAll(pageable);
+    }
+
+    /**
+     * Delete a project entirely
+     * Also deletes corresponding project_deployment
+     * 
+     * @param respones
+     * @param id
+     */
+
+    // public CommonResponseDto
+    // forceDeleteProjectAndDeploymentsIfAny(CommonResponseDto response, String
+    // projectId) {
+
+    // if (projectId == null) {
+    // response.setSuccess(false);
+    // response.setStatusCode(400);
+    // response.setMessage("Project id can not be null");
+    // return response;
+    // }
+
+    // Optional<Project> proj = projectRepository.findById(projectId);
+    // List<ProjectDeployment> projDeployments =
+    // projectDeploymentService.getDeploymentsByProjectId(projectId);
+
+    // // delete all deployments if any
+    // if (projDeployments != null && projDeployments.size() > 0) {
+    // projectDeploymentService.deleteAllByProjectId(projectId);
+    // }
+
+    // // delete project
+    // if (proj.isPresent()) {
+    // projectRepository.deleteById(projectId);
+    // }
+
+    // // all okay
+    // response.setSuccess(true);
+    // response.setStatusCode(200);
+
+    // return response;
+
+    // }
+
+    public CommonResponseDto requestProjectDelete(CommonResponseDto respones, String id) {
+        // list deployments for this project
+        // delete all
+        // then delete the project
+
+        // if (p.isPresent()) {
+        // Optional<Project> p = projectRepository.findById(id);
+        // // delete all deployments [do it on depwiz event]
+        // // projectDeploymentService.deleteAllProjectDeployments(p.get().getId());
+        // // delete project [do it on depwiz event]
+        // // projectRepository.deleteById(id);
+
+        // // send to dep wiz
+        // KEvent kevent = generateCommonKEvent();
+        // DepWizKEventPayload payload = new DepWizKEventPayload();
+        // payload.setCommand(DepWizKEventCommands.DELETE_DEPLOYMENT);
+
+        // List<ProjectDeployment> deployments =
+        // projectDeploymentService.getDeploymentsByProjectId(id);
+        // if(deployments == null || deployments.size() == 0){
+        // throw
+        // }
+
+        // respones.setSuccess(true);
+        // respones.setStatusCode(200);
+        // respones.setMessage("Project deleted successfully");
+        // } else {
+        // respones.setSuccess(false);
+        // respones.setStatusCode(404);
+        // respones.setMessage("Project not found with id: " + id);
+        // }
+
+        try {
+            Optional<Project> p = projectRepository.findById(id);
+            CraftUtils.throwIfFalseOrNull(p.isPresent(), "Project not found with id: " + id);
+
+            List<ProjectDeployment> deployments = projectDeploymentService.getDeploymentsByProjectId(id);
+
+            // it's ok if no deployments found
+            // files must be deleted
+            // CraftUtils.throwIfFalseOrNull(deployments != null & deployments.size() > 0,
+            // "No deployments found for project with id: " + id);
+
+            // send to dep wiz
+            KEvent kevent = generateCommonKEvent();
+            DepWizKEventPayload payload = new DepWizKEventPayload();
+
+            payload.setCommand(DepWizKEventCommands.DELETE_DEPLOYMENTS);
+            payload.setProject(p.get());
+            payload.setDeploymentList(deployments);
+            kevent.setPayload(payload);
+
+            // set project status
+            p.get().setStatus(ProjectStatus.PROCESSING_DELETION);
+            // removing old messages
+            p.get().setPartialMessageList(new ArrayList<String>());
+            projectRepository.save(p.get());
+            // setting deployments status doesn't matter
+            // as we'll handle those from dep_wiz feedback
+
+            respones.setSuccess(true);
+            respones.setStatusCode(202); // accepted and processing
+            respones.setMessage("Project deletion request is being proceed");
+
+            // save or update event
+            kEventService.createOrUpdate(kevent);
+            // send to dep_wiz
+            messageProducer.sendEvent(kevent);
+
+        } catch (Exception e) {
+            respones.setSuccess(false);
+            // respones.setStatusCode(500);//400 is ok for all sorta errors
+            respones.setMessage("Error: " + e.getMessage());
+        }
+
+        return respones;
+    }
+
+    public List<ProjectDeployment> getDeployments(String id) {
+        return projectDeploymentService.getDeploymentsByProjectId(id);
+    }
+
+    public void deleteProject(String id) {
+        projectRepository.deleteById(id);
+    }
+
+    public void deleteProjectAndDeployments(String id) throws Exception {
+        try {
+            projectRepository.deleteById(id);
+        } catch (Exception e) {
+            System.out.println("Error deleting project with id: " + id);
+            throw e;
+        }
+
+        try {
+            projectDeploymentService.deleteAllByProjectId(id);
+        } catch (Exception e) {
+            System.out.println("Error deleting deployments for project with id: " + id);
+            throw e;
+        }
+
     }
 
 }

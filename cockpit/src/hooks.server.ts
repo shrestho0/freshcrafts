@@ -26,7 +26,11 @@ function verifyRefreshToken(token: string): CustomJwtPayload {
 
 // refresh token util
 async function refreshToken(event: RequestEvent<Partial<Record<string, string>>, string | null>, refreshToken: string, provider: AuthProviderType) {
-	const res = await EngineConnection.getInstance().refreshToken(refreshToken, provider);
+	const res = await EngineConnection.getInstance().refreshToken(refreshToken, provider) as unknown as {
+		success: boolean;
+		tokens: { access: string; refresh: string };
+
+	}
 	if (res.success) {
 		event.cookies.set(AUTH_COOKIE_NAME, JSON.stringify(res?.tokens), {
 			path: '/',
@@ -40,7 +44,7 @@ async function refreshToken(event: RequestEvent<Partial<Record<string, string>>,
 }
 
 // Centralized error handling
-function handleError(e: any, event) {
+function handleError(e: any, event: RequestEvent<Partial<Record<string, string>>, string | null>) {
 	console.log('Error: ', e?.message || e);
 	event.cookies.delete(AUTH_COOKIE_NAME, { path: '/', secure: ENV === "prod", httpOnly: true, });
 	event.cookies.set('flash_message', 'Refresh token expired. Please login again', {
@@ -55,6 +59,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		origin: event.url.origin,
 		host: event.url.host,
 	});
+
 
 	// Handle SSE endpoint authentication
 	if (

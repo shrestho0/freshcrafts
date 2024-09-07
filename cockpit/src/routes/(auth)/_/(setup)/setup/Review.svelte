@@ -1,17 +1,8 @@
 <script lang="ts">
-import type { EngineCommonResponseDto, EngineSystemConfigResponseDto } from '@/types/dtos';
-import type { SetupPageAccountData, SetupPageOauthData } from '@/types/internal';
-import {
-	PasswordInput,
-	Table,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-	TextInput
-} from 'carbon-components-svelte';
-import { TaskComplete } from 'carbon-icons-svelte';
-import { CircleCheckBig, CircleX } from 'lucide-svelte';
+import type { EngineSystemConfigResponseDto } from '@/types/dtos';
+import CircleCheckBig from '@/ui/icons/CircleCheckBig.svelte';
+import CircleX from '@/ui/icons/CircleX.svelte';
+import { Table, TableCell, TableRow } from 'carbon-components-svelte';
 
 export let sysConfig: EngineSystemConfigResponseDto;
 </script>

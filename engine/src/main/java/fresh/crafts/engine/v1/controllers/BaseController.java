@@ -20,4 +20,13 @@ class BaseController {
         return res;
     }
 
+    @GetMapping("/ping")
+    public HashMap<String, Object> ping() {
+        HashMap<String, Object> res = new HashMap<>();
+
+        res.put("success", true);
+        res.put("message", "pong");
+
+        return res;
+    }
 }

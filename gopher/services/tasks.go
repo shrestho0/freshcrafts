@@ -118,8 +118,10 @@ func checkServices() {
 	depId := "dependencies"
 	serId := "services"
 
+	timeStamp := utils.GetUlid()
+
 	dependencyTestResult := models.DependencyTestResult{
-		Timestamp:         utils.GetUlid(),
+		Timestamp:         timeStamp,
 		PrimaryKafka:      utils.CheckKafkaRunning(),
 		PrimaryMongo:      utils.CheckPrimaryMongoRunning(),
 		SecondaryMongo:    utils.CheckSecondaryMongoRunning(),
@@ -127,9 +129,9 @@ func checkServices() {
 		SecondaryPostgres: utils.CheckSecondaryPostgresRunning(),
 	}
 
+	// check systemd service status for these
 	serviceTestResult := models.ServiceTestResult{
-		Timestamp: utils.GetUlid(),
-		// check systemd service status for these
+		Timestamp:      timeStamp,
 		Engine:         utils.CheckEngineRunning(),
 		Cockpit:        utils.CheckCockpitRunning(),
 		Depwiz:         utils.CheckDepwizRunning(),

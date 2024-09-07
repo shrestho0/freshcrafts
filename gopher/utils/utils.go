@@ -10,17 +10,26 @@ import (
 	"time"
 
 	"github.com/go-playground/validator"
-	"github.com/joho/godotenv"
 	"github.com/oklog/ulid/v2"
 	"thisthing.works/watchdog/models"
 )
 
 func GetEnv(key string) string {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Can't get the env files")
+	// err := godotenv.Load()
+	// valos.Getenv(key)
+	// if err != nil {
+	// 	log.Println("Can't get the env files")
+	// }
+	// return os.Getenv(key)
+
+	val, ok := os.LookupEnv(key)
+
+	if !ok {
+		log.Println("Failed to load env var", key)
 	}
-	return os.Getenv(key)
+
+	return val
+
 }
 
 func GetUlid() string {

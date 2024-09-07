@@ -1,7 +1,5 @@
 <script lang="ts">
 import { HeaderSearch } from 'carbon-components-svelte';
-import type { Wind } from 'lucide-svelte';
-import type { KeyboardEventHandler } from 'svelte/elements';
 export let active: boolean;
 // Dummy Data
 const data = [

@@ -54,11 +54,7 @@ export class EngineConnection {
 
 
 	}
-	async getProviders(): Promise<{
-		success: boolean;
-		providers: AuthProviderType[];
-		message: string;
-	}> {
+	async getProviders(): Promise<EngineCommonResponseDto<AuthProviderType[], null>> {
 		const res = await fetch(BackendEndpoints.PROVIDERS, {
 			headers: {
 				'Content-Type': 'application/json'
@@ -73,17 +69,21 @@ export class EngineConnection {
 					message: messages.RESPONSE_ERROR,
 					providers: []
 				};
-			});
+			}) as EngineCommonResponseDto<AuthProviderType[], null>
 
-		if (res.data) {
-			res.providers = res.data as {
-				success: boolean;
-				providers: AuthProviderType[];
-				message: string;
-			};
-			delete res.data;
-		}
-		// console.log("RESRESRES", res)
+		// if (res.payload) {
+		// 	res.providers = res.payload as {
+		// 		success: boolean;
+		// 		providers: AuthProviderType[];
+		// 		message: string;
+		// 	};
+		// 	delete res.payload;
+		// }
+		// // console.log("RESRESRES", res)
+		// return res;
+		// return {
+		// success: boolean;
+		// }
 		return res;
 	}
 
@@ -474,8 +474,25 @@ export class EngineConnection {
 		});
 	}
 
-	async getProject<T>(id: string) {
-		return this.customFetch<T>(BackendEndpoints.PROJECT_BY_ID.replace(':id', id));
+	async getProject(id: string): Promise<{
+		success: boolean,
+		statusCode: number,
+		message?: string,
+
+		project?: Project
+		activeDeployment?: ProjectDeployment
+		currentDeployment?: ProjectDeployment
+
+	}> {
+		const res = await this.customFetch<EngineCommonResponseDto<Project, null, ProjectDeployment | null, ProjectDeployment | null>>(BackendEndpoints.PROJECT_BY_ID.replace(':id', id));
+		return {
+			success: res.success,
+			statusCode: res.statusCode,
+			message: res.message ?? undefined,
+			project: res.payload ?? undefined,
+			activeDeployment: res.payload2 ?? undefined,
+			currentDeployment: res.payload3 ?? undefined
+		}
 	}
 
 	async getProjectByUniqueName(uniqueName: string): Promise<EngineCommonResponseDto<Project, null>> {
@@ -498,8 +515,14 @@ export class EngineConnection {
 	}
 
 	async deleteIncompleteProject(id: string) {
-		return this.customFetch(BackendEndpoints.PROJECT_INCOMPLETE_BY_ID.replace('{id}', id), {
+		return this.customFetch(BackendEndpoints.PROJECT_INCOMPLETE_BY_ID.replace(':id', id), {
 			method: 'DELETE',
+		})
+	}
+
+	async deleteProject(id: string) {
+		return this.customFetch(BackendEndpoints.PROJECT_BY_ID.replace(":id", id), {
+			method: 'DELETE'
 		})
 	}
 
@@ -560,6 +583,18 @@ export class EngineConnection {
 			method: 'DELETE',
 			body: JSON.stringify({ id })
 		})
+	}
+
+
+
+
+
+	////////////// System Specific //////////...
+	async ping() {
+		return this.customFetch(BackendEndpoints.PING)
+	}
+	async getServiceStatus() {
+		return this.customFetch(BackendEndpoints.WATCHDOG_SERVICE_STATUS)
 	}
 
 }	

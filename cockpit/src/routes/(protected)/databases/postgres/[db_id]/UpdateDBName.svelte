@@ -30,7 +30,6 @@ const newDBData = {
 };
 
 export let open: boolean;
-export let db: DBPostgres;
 
 let loading = false;
 

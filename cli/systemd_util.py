@@ -14,11 +14,18 @@ class SystemDUtil:
     def __init__(self) -> None:
         self.service_data = self.with_abs_path(FC_SERVICES_INFO)
         # console.log(self.service_data)
-        self.log_dir = self.ensure_directory(LOG_DIR)
-        self.temp_dir = self.ensure_directory(TEMP_DIR)
+        self.log_dir = self.get_log_dir()
+        self.temp_dir = self.get_temp_dir()
         self.systemd_dir = SYSTEMD_SERVICE_DIRECTORY
         self.installer_log = self.ensure_file(self.log_dir + "/installer.log")
         self.temp_service_files = []
+    
+    def get_log_dir(self):
+        # self.ensure_directory(self.get_absolute_path(os.path.abspath(__file__)+LOG_DIR))
+        # current file dir
+        return self.ensure_directory(os.path.dirname(os.path.abspath(__file__))+"/"+LOG_DIR) 
+    def get_temp_dir(self):
+        return self.ensure_directory(os.path.dirname(os.path.abspath(__file__))+"/"+TEMP_DIR)
         
     def with_abs_path(self, FC_SERVICES_INFO):
         # all path of properties with _FILE or _DIR should be absolute for each service
@@ -117,6 +124,7 @@ class SystemDUtil:
 
 
             isCockpit = v.get("COCKPIT") == True
+            isGopher = v.get("GOPHER") == True
             console.log(k, isCockpit)
             
             service_template = v.get("SYSTEMD_SERVICE_TEMPLATE_FILE")
@@ -129,14 +137,19 @@ class SystemDUtil:
                 file_content = f.read()
                 file_content = file_content.replace("{SERVICE_NAME}", service_name)
 
+                env_file = self.get_absolute_path(v.get("ENV_FILE"))
+                
                 execStart = ""
                 if isCockpit:
                     build_dir = self.get_absolute_path(v.get("SYSTEMD_BUILD_DIR"))
-                    env_file = self.get_absolute_path(v.get("ENV_FILE"))
                     # service_exec_command
                     service_exec_command = service_exec_command.replace("{ENV}", env_file)
                     service_exec_command = service_exec_command.replace("{BUILD_DIR}", build_dir)
                     execStart = service_exec_command
+                elif isGopher:
+                    file_content = file_content.replace("{{SERVICE_ENV_FILE}}", env_file)
+                    execStart = f"{service_executable}"
+                    
                 else:
                     execStart = f"{service_exec_command} {service_executable}"
 
@@ -205,8 +218,8 @@ class SystemDUtil:
         
         if not self.check_file_exists(f):
             console.log("Log file does not exist, creating...", {f}, style="bold green")
-            with open(f, "w") as f:
-                f.write("")
+            with open(f, "w") as fx:
+                fx.write("")
         return f
     
     def ensure_directory(self, directory):

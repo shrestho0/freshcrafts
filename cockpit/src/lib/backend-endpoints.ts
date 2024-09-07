@@ -2,6 +2,10 @@ import { ENGINE_BASE_URL } from '$env/static/private';
 
 // maybe map will be more efficient
 const _endpoints = {
+
+	PING: '/ping',
+	WATCHDOG_SERVICE_STATUS: '/watchdog-service-status',
+
 	PROVIDERS: '/tokens/allowed-providers',
 	REMOVE_OAUTH_PROVIDER: '/tokens/remove-oauth-provider/:provider',
 
@@ -36,7 +40,7 @@ const _endpoints = {
 	PROJECT_BY_ID: '/projects/:id',
 	PROJECT_BY_UNIQUE_NAME: '/projects/:id?isIdUniqueName=true',
 
-	PROJECT_INCOMPLETE_BY_ID: '/projects/incomplete/{id}',
+	PROJECT_INCOMPLETE_BY_ID: '/projects/incomplete/:id',
 
 	PROJECT_DEPLOYMENT_BY_ID: "/projects/deployments/:id", // Get to get, PATCH to partial update
 

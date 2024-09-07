@@ -84,6 +84,12 @@ const navBarLink: MenuWithSubmenuType[] = [
 		title: 'Notifications',
 		href: '/notifications',
 		children: undefined
+	},
+	{
+		serviceType: 'service-status',
+		title: 'Service Status',
+		href: '/service-status',
+		children: undefined
 	}
 ];
 

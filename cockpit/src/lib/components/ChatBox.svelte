@@ -1,15 +1,12 @@
 <script lang="ts">
-import { browser } from '$app/environment';
 import type { EngineCommonResponseDto } from '@/types/dtos';
 import type { AIChatMessage } from '@/types/entities';
 import { AIChatCommands } from '@/types/enums';
 import { Button, InlineLoading, TextArea, TextInput } from 'carbon-components-svelte';
-import { Label } from 'carbon-icons-svelte';
 import { afterUpdate, onMount, setContext } from 'svelte';
 import { slide } from 'svelte/transition';
 import SvelteMarkdown from 'svelte-markdown';
-import { page } from '$app/stores';
-import { invalidateAll } from '$app/navigation';
+import CarbonLabel from '@/ui/icons/CarbonLabel.svelte';
 export let open: boolean;
 let chatStarted = false;
 
@@ -72,17 +69,23 @@ async function getChatMessage() {
 		body: JSON.stringify({ command: AIChatCommands.GET_MESSAGES })
 	})
 		.then((res) => res.json())
-		.catch((e) => console.error(e));
+		.catch((e) => {
+			// console.error(e);
+			return {
+				success: false,
+				message: 'An error occurred while fetching messages.'
+			};
+		});
 
-	if (res.success) {
+	if (res?.success) {
 		messages = res?.payload;
-		// ensureContainerBottom();
 	} else {
 		hasError = true;
 		errorMessage = res?.message ?? 'An error occurred while fetching messages.';
 	}
 	loading = false;
 	loadingMessage = '';
+	showCloseChatOptions = true;
 }
 
 let userMessage = '';
@@ -169,17 +172,7 @@ onMount(() => {
 			>
 		</div>
 
-		{#if hasError}
-			<div class="p-4 w-full flex items-center justify-center gap-2">
-				<Label class="w-5 h-5" />
-				<h2>{errorMessage}</h2>
-			</div>
-		{:else if loading && messages?.length === 0}
-			<div class="p-4 w-full flex items-center justify-center gap-2">
-				<div class="animate-spin w-5 h-5 border-t-2 border-b-2 border-gray-900"></div>
-				<h2>{loadingMessage}</h2>
-			</div>
-		{:else if showCloseChatOptions}
+		{#if showCloseChatOptions}
 			<div class="flex items-center w-full flex-col gap-3 justify-center items-center">
 				<!-- save chat and close-->
 				{#if messages?.length > 1}
@@ -197,6 +190,16 @@ onMount(() => {
 					}}>Continue Chat</Button
 				>
 				<!-- just close it -->
+			</div>
+		{:else if hasError}
+			<div class="p-4 w-full flex items-center justify-center gap-2">
+				<CarbonLabel class="w-5 h-5" />
+				<h2>{errorMessage}</h2>
+			</div>
+		{:else if loading && messages?.length === 0}
+			<div class="p-4 w-full flex items-center justify-center gap-2">
+				<div class="animate-spin w-5 h-5 border-t-2 border-b-2 border-gray-900"></div>
+				<h2>{loadingMessage}</h2>
 			</div>
 		{:else if messages.length > 0}
 			<div class="w-full h-[100%]" style="overflow-y:auto;" bind:this={chatContainer}>
@@ -220,7 +223,7 @@ onMount(() => {
 			</div>
 		{:else}
 			<div class="p-4 w-full flex items-center justify-center gap-2">
-				<Label class="w-5 h-5" />
+				<CarbonLabel class="w-5 h-5" />
 				<h2>No messages yet.</h2>
 			</div>
 		{/if}

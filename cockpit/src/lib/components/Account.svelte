@@ -1,6 +1,5 @@
 <script lang="ts">
 import type { EngineSystemConfigResponseDto } from '@/types/dtos';
-import type { SetupPageAccountData } from '@/types/internal';
 import { Column, PasswordInput, Row, TextInput } from 'carbon-components-svelte';
 
 export let data: Partial<EngineSystemConfigResponseDto> | undefined;

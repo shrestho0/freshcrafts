@@ -24,6 +24,7 @@ import fresh.crafts.engine.v1.dtos.CreateProjectRequestDto;
 import fresh.crafts.engine.v1.models.AIChatHistory;
 import fresh.crafts.engine.v1.models.Project;
 import fresh.crafts.engine.v1.models.ProjectDeployment;
+import java.util.List;
 import fresh.crafts.engine.v1.services.ProjectService;
 import fresh.crafts.engine.v1.utils.enums.CommonSortField;
 
@@ -67,9 +68,13 @@ public class ProjectController {
     @PostMapping("/deploy/{id}")
     public ResponseEntity<CommonResponseDto> deployProject(
             @PathVariable String id,
-            @RequestBody HashMap<String, Object> deployInfo) {
+            @RequestBody HashMap<String, Object> deployInfo,
+            @RequestParam(defaultValue = "false") Boolean reDeploy) {
         // return "deployProjectById";
-        CommonResponseDto res = projectService.deployProject(id, deployInfo);
+
+        System.out.println("deployProjectById" + "deploy pathano hocche:" + id + " " + reDeploy);
+
+        CommonResponseDto res = projectService.deployProject(id, deployInfo, reDeploy);
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
@@ -89,6 +94,44 @@ public class ProjectController {
             projectService.getProjectById(res, id);
         }
 
+        ResponseEntity<CommonResponseDto> response = ResponseEntity.status(res.getStatusCode()).body(res);
+        return response;
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<CommonResponseDto> deleteProjectRequest(
+            @PathVariable String id,
+            @RequestParam(defaultValue = "false") Boolean force) {
+        CommonResponseDto res = new CommonResponseDto();
+
+        // if (force) {
+        // projectService.forceDeleteProjectAndDeploymentsIfAny(res, id);
+        // } else {
+        // projectService.requestProjectDelete(res, id);
+        // }
+
+        projectService.requestProjectDelete(res, id);
+
+        ResponseEntity<CommonResponseDto> response = ResponseEntity.status(res.getStatusCode()).body(res);
+        return response;
+    }
+
+    @GetMapping("/{id}/deployments")
+    public ResponseEntity<CommonResponseDto> getDeploymentsByProjectId(
+            @PathVariable String id) {
+        System.out.println("getDeploymentsByProjectId" + "deployments pathano hocche");
+        // response dto
+        CommonResponseDto res = new CommonResponseDto();
+
+        // get project by id
+        List<ProjectDeployment> deps = projectService.getDeployments(id);
+        res.setPayload(
+                new HashMap<>() {
+                    {
+                        put("total", deps.size());
+                    }
+                });
+        res.setPayload2(deps);
         ResponseEntity<CommonResponseDto> response = ResponseEntity.status(res.getStatusCode()).body(res);
         return response;
     }

@@ -5,8 +5,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import fresh.crafts.engine.v1.controllers.EngineMessageController;
+import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
 import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
 import fresh.crafts.engine.v1.models.KEvent;
+import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 
 /**
  * EngineMessageConsumer
@@ -26,6 +28,11 @@ public class EngineMessageConsumer {
         try {
 
             KEvent kEventFeedback = KEvent.fromJson(message, KEventFeedbackPayload.class);
+
+            // special case
+            if (kEventFeedback.getEventSource() == KEventProducers.DEP_WIZ) {
+                kEventFeedback = KEvent.fromJson(message, DepWizKEventPayload.class);
+            }
 
             // System.err.println("[DEBUG] Parsed KEvent: " + kEventFeedback);
 

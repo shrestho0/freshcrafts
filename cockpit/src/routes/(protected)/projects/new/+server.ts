@@ -110,6 +110,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 						const projectCreationRepoData = {
 							type: ProjectType.GITHUB_REPO,
 							newProjectId: projectId,
+							projectDir: fileHelper.getProjectDir(projectId),
 							file: {
 								name: fileName,
 								path: filePath,
@@ -165,6 +166,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 			const projectCreationRepoData = {
 				type: ProjectType.LOCAL_FILES,
 				newProjectId: projectId,
+				projectDir: fileHelper.getProjectDir(projectId),
 				file: {
 					// name: data?.fileName,
 					// path: data?.fileRelativePath,

@@ -3,6 +3,7 @@ import type { PageServerLoad } from './$types';
 import { EngineConnection } from '@/server/EngineConnection';
 import { AUTH_COOKIE_NAME, AUTH_COOKIE_EXPIRES_IN, ENV } from '$env/static/private';
 import { AuthProviderType } from '@/types/enums';
+import type { EngineCommonResponseDto } from '@/types/dtos';
 export const load: PageServerLoad = async ({ locals }) => {
 	// request server authorized oauth providers and emails associated
 	// check here for that
@@ -26,12 +27,10 @@ export const actions: Actions = {
 
 		// generate token from engine
 		const res = await EngineConnection.getInstance().generateToken(
-			AuthProviderType.EMAIL_PASSWORD,
-			{
-				email: data['x-email'].toString(),
-				password: data['x-password'].toString()
-			}
-		);
+			AuthProviderType.EMAIL_PASSWORD, {
+			email: data['x-email'].toString(),
+			password: data['x-password'].toString()
+		}) as any
 
 		if (res.success == true) {
 			// set tokens in cookie

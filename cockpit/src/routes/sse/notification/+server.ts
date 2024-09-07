@@ -55,46 +55,48 @@ export const PATCH: RequestHandler = async ({ request, fetch }) => {
 		);
 
 		// check if all keys are present
-		if (!data.id || !data.message || !data.actionHints || !data.type)
-			throw new Error('Invalid payload');
+		// if (!data.id || !data.message || !data.type)
+		// 	throw new Error('Invalid payload');
 
-		const [action, locationHint, id] = data?.actionHints?.split('_');
-		console.warn(
-			'[DEBUG]: PATCH Request on Notification SSE\nAction: ',
-			action,
-			'\nLocation Hint: ',
-			locationHint,
-			'\nID: ',
-			id
-		);
+		// const [action, locationHint, id] = data?.actionHints?.split('_');
+		// console.warn(
+		// 	'[DEBUG]: PATCH Request on Notification SSE\nAction: ',
+		// 	action,
+		// 	'\nLocation Hint: ',
+		// 	locationHint,
+		// 	'\nID: ',
+		// 	id
+		// );
 
-		if (!id || !locationHint || !action) throw new Error('Invalid actionUrlHints');
+		// if (!id || !locationHint || !action) throw new Error('Invalid actionUrlHints');
 
-		if (!data.message) throw new Error('Invalid message.');
+		// if (!data.message) throw new Error('Invalid message.');
 
 		// set notification
 		NotificationStore.set(data);
 
 		// Send patch request based on actionHint
-		const url = hintToSSEUrlMap.get(locationHint);
-		if (!url) throw new Error('Unknown locationHint');
-		console.log('${url}/${id}', `${url}/${id}`);
-		const res = await fetch(`${url}/${id}`, {
-			method: 'PATCH',
-			headers: {
-				'Content-Type': 'application/json'
-			},
-			body: JSON.stringify(data)
-		})
-			.then((res) => res.json())
-			.catch((err) => {
-				throw new Error(err);
-			});
-		console.warn(
-			`[DEBUG]: Requested ${locationHint}, and received: `,
-			JSON.stringify(res, null, 2),
-			'\n'
-		);
+		// const url = hintToSSEUrlMap.get(locationHint);
+		// if (!url) throw new Error('Unknown locationHint');
+		// console.log('${url}/${id}', `${url}/${id}`);
+		// const res = await fetch(`${url}/${id}`, {
+		// 	method: 'PATCH',
+		// 	headers: {
+		// 		'Content-Type': 'application/json'
+		// 	},
+		// 	body: JSON.stringify(data)
+		// })
+		// 	.then((res) => res.json())
+		// 	.catch((err) => {
+		// 		throw new Error(err);
+		// 	});
+		// console.warn(
+		// 	`[DEBUG]: Requested ${locationHint}, and received: `,
+		// 	JSON.stringify(res, null, 2),
+		// 	'\n'
+		// );
+
+
 		// NotificationStore.getStore().set(JSON.parse(message))
 		return json({ success: true, message: 'Notification sent' });
 	} catch (err: any) {
@@ -110,5 +112,18 @@ export const DELETE: RequestHandler = async ({ request }) => {
 	NotificationStore.set(undefined);
 	return json({
 		success: true
+	});
+};
+
+
+export const PUT: RequestHandler = async ({ request }) => {
+	let d: any;
+	const unsub = NotificationStore.subscribe((data) => {
+		d = data;
+	});
+
+	return json({
+		success: true,
+		d
 	});
 };

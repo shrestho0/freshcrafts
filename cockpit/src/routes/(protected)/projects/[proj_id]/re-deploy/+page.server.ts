@@ -1,44 +1,31 @@
-import { EngineConnection } from "@/server/EngineConnection";
-import type { Actions, PageServerLoad } from "./$types";
-import { ProjectStatus } from "@/types/enums";
-import { error, redirect } from "@sveltejs/kit";
-import type { EngineCommonResponseDto } from "@/types/dtos";
 import type { Project, ProjectDeployment } from "@/types/entities";
+import type { PageServerLoad } from "./$types";
+import { error } from "@sveltejs/kit";
+import { ProjectStatus } from "@/types/enums";
 import { FilesHelper } from "@/server/FilesHelper";
 
-
-export const load: PageServerLoad = async ({ locals, parent, params }) => {
-    await parent(); // previous stuff should be loaded first
-
-
-    const { proj_id } = params;
-    const proj = await EngineConnection.getInstance().getProject<EngineCommonResponseDto<Project, null, ProjectDeployment>>(proj_id)
-
-    console.warn('proj', proj)
-
-    // check if env file content available
-    console.log('projXXXXXXXXXXXXXXXXXXXXx', proj.payload3?.envFile?.absPath)
-
-
-
-
-    if (proj.success == false) {
-        return error(404, 'Project not found')
+export const load: PageServerLoad = async ({ parent, cookies }) => {
+    const { project, currentDeployment } = await parent() as {
+        project: Project,
+        currentDeployment: ProjectDeployment
     }
 
-    if (proj.payload.status === ProjectStatus.INACTIVE || proj.payload.status === ProjectStatus.ACTIVE) {
-        const envFile = proj.payload3?.envFile?.absPath
-        let envFileContent = '';
-        try {
-            envFileContent = await FilesHelper.getInstance().readFile(envFile);
-        } catch (e: any) { }
-
-        // ok
-        return { project: proj.payload, deployment: proj.payload3, envFileContent }
-    } else {
-        // redirect to the project page
-        return redirect(307, `/projects/${proj_id}`)
+    if (project.status != ProjectStatus.INACTIVE) {
+        // cookies.set
+        return error(403, "Project must be inactive to re-de deploy")
     }
+
+    // send envFileContent along
+    const envFileLoc = currentDeployment?.envFile?.absPath;
+    if (envFileLoc) {
+        const envFileContent = await FilesHelper.getInstance().readFile(envFileLoc);
+        return {
+            envFileContent,
+        }
+
+    }
+
+    // not an error that should be handled gracefully
+    if (!project) return error(403, "project  must be defined ")
 
 };
-

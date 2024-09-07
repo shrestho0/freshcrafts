@@ -3,6 +3,7 @@ package fresh.crafts.engine.v1.dtos;
 import fresh.crafts.engine.v1.entities.GithubRepoDetailed;
 import fresh.crafts.engine.v1.entities.ProjectDeploymentFile;
 import fresh.crafts.engine.v1.entities.ProjectDeploymentSource;
+import fresh.crafts.engine.v1.entities.ProjectDir;
 import fresh.crafts.engine.v1.utils.enums.ProjectType;
 import lombok.Data;
 
@@ -12,6 +13,8 @@ public class CreateProjectRequestDto {
     ProjectType type;
     ProjectDeploymentFile file;
     ProjectDeploymentSource src;
+
+    ProjectDir projectDir;
 
     // id will be generated from cockpit
     public String newProjectId;

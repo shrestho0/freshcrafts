@@ -85,6 +85,7 @@ export type ProjectDeploymentSource = {
 	rootDirAbsPath: string;
 	buildDirPath: string;
 	buildDirAbsPath: string;
+
 }
 
 
@@ -100,6 +101,13 @@ export type Project = {
 	activeDeploymentId: string,
 	portAssigned: number,
 	domain: string
+	projectDir: ProjectDir,
+	partialMessageList: string[],
+}
+
+export type ProjectDir = {
+	path: string,
+	absPath: string,
 }
 
 export type ProjectProdFiles = {
@@ -114,21 +122,25 @@ export type ProjectProdFiles = {
 
 export type ProjectDeployment = {
 	id: string,
-	project?: Project,
+	// project?: Project,
+	projectId: string,
 	version: number,
 	isDeployed: boolean,
 	status: ProjectDeploymentStatus,
-	partialDeploymentMsg: string,
+	// partialDeploymentMsg: string,
 	errorTraceback: string,
 	rawFile: ProjectDeploymentFile,
 	envFile: ProjectDeploymentFile,
 	prodFiles: ProjectProdFiles,
 	src: ProjectDeploymentSource,
-	depCommands: {
-		build: string,
-		install: string,
-		postInstall: string
-	},
+	depCommands: DepPostInstallCommands,
+}
+
+export type DepPostInstallCommands = {
+	build: string,
+	install: string,
+	postInstall: string
+
 }
 
 

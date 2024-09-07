@@ -1,5 +1,5 @@
 <script lang="ts">
-export let data: {} | null;
+export let data: {} | null | undefined;
 export let title: string = '';
 data = structuredClone(data);
 export let classes: string = '';
@@ -10,5 +10,5 @@ export let classes: string = '';
 
 <pre class="border m-8 p-4 bg-gray-50 rounded {classes}">
 <h2 class="debug_title">#Debugging{title ? ': ' + title : ''}</h2>
-{JSON.stringify(data, null, 2)}
+{JSON.stringify(data ?? { no_data: true }, null, 2)}
 </pre>

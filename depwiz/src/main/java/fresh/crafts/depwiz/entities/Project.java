@@ -1,5 +1,7 @@
 package fresh.crafts.depwiz.entities;
 
+import java.util.List;
+
 import fresh.crafts.depwiz.enums.ProjectStatus;
 import fresh.crafts.depwiz.enums.ProjectType;
 import lombok.Data;
@@ -26,6 +28,15 @@ public class Project {
 
     ProjectGithubRepo githubRepo;
 
+    String updatedAt;
+
+    // ProjectDomain domain;
     String domain;
+
+    // partial Messages
+    List<String> partialMessageList;
+
+    // Project Dir
+    ProjectDir projectDir;
 
 }

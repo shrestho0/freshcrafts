@@ -1,9 +1,9 @@
 <script lang="ts">
 import AuthenticatedHeader from '@/components/AuthenticatedHeader.svelte';
 import AuthenticatedSidenav from '@/components/AuthenticatedSidenav.svelte';
-import { Content, Grid, Row, Column, Loading } from 'carbon-components-svelte';
+import { Grid, Row, Column, Loading } from 'carbon-components-svelte';
 import { onMount } from 'svelte';
-export let data;
+import { fade } from 'svelte/transition';
 
 let loading = true;
 let isSideNavOpen = false;
@@ -20,7 +20,8 @@ onMount(() => {
 	<AuthenticatedHeader bind:isSideNavOpen />
 	<AuthenticatedSidenav bind:isSideNavOpen />
 
-	<Content>
+	<!-- <Content> -->
+	<main id="main-content" class="bx--content" style="" in:fade>
 		<Grid>
 			<Row>
 				<Column>
@@ -28,5 +29,6 @@ onMount(() => {
 				</Column>
 			</Row>
 		</Grid>
-	</Content>
+	</main>
+	<!-- </Content> -->
 {/if}

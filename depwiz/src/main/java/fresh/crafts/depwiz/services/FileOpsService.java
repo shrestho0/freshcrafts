@@ -2,8 +2,10 @@ package fresh.crafts.depwiz.services;
 
 import org.springframework.stereotype.Service;
 
+import fresh.crafts.depwiz.entities.Project;
 import fresh.crafts.depwiz.entities.ProjectDeployment;
 import fresh.crafts.depwiz.entities.ProjectDeploymentProdFiles;
+import fresh.crafts.depwiz.utils.CraftUtils;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -34,15 +36,17 @@ public class FileOpsService {
         if (!file.exists()) {
             return true;
         }
-        processBuilder.command("sudo", "rm", "-rf", file.getAbsolutePath());
+        String absPath = file.getAbsolutePath();
+        processBuilder.command("sudo", "rm", "-rf", absPath);
         try {
             Process process = processBuilder.start();
             process.waitFor();
-            if (file.exists()) {
-                return false;
-            } else {
-                return true;
-            }
+
+            // check if file exists
+
+            File fileObj = new File(absPath);
+            return !fileObj.exists();
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;
@@ -59,13 +63,24 @@ public class FileOpsService {
         Boolean ensured = true;
         for (String file : files) {
             File fileObj = new File(projectRoot + "/" + file);
-            if (fileObj.exists()) {
-                if (!deleteForcefully(fileObj)) {
-                    // return false;
-                    ensured = false;
-                }
-            }
+            fileObj.delete();
+
+            // if (fileObj.exists()) {
+            //     fileObj.delete();
+            // }
+
+            // // if (!deleteForcefully(fileObj)) {
+            // // ensured = false;
+            // // return ensured;
+            // // } else {
+            // // ensured = true;
+            // // }
+
+            // if (fileObj.exists()) {
+            // deleteForcefully(fileObj);
+            // }
         }
+
         return ensured;
     }
 
@@ -130,4 +145,26 @@ public class FileOpsService {
 
         return success;
     }
+
+    public Boolean deleteProjectDir(String projectId, String absPath) {
+        // last part of absPath must match projectId
+        // delete project directory
+        String[] absPathParts = absPath.split("/");
+        String lastPart = absPathParts[absPathParts.length - 1];
+
+        System.out.println("\n\nlastPart: ");
+        CraftUtils.jsonLikePrint(lastPart);
+        CraftUtils.jsonLikePrint(absPath);
+        System.out.println("<---\n\n ");
+
+        if (lastPart.equals(projectId)) {
+            File projectDir = new File(absPath);
+            if (projectDir.exists()) {
+                return deleteForcefully(projectDir);
+            }
+        }
+
+        return false;
+    }
+
 }

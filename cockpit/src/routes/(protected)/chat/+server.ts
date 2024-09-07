@@ -105,7 +105,11 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
                 msg = await generateText(msg);
 
-                if (!msg?.choices[0]?.message?.content) throw new Error("Failed to parse AI response ");
+                console.log("AI response", msg);
+
+                if (msg?.error) throw new Error(msg.error.message);
+                else if (msg?.success != undefined && msg.success == false) throw new Error(msg?.message ?? "Failed to generate text...");
+                else if (!msg?.choices[0]?.message?.content) throw new Error("Failed to parse AI response ");
 
                 const recievedMsg: AIChatMessage = {
                     role: "bot",
@@ -176,8 +180,13 @@ async function generateText(content: string) {
         }),
     }).then(res => res.json()).catch(e => {
         console.error(e);
-        throw new Error("Failed to generate text");
+        return {
+            success: false,
+            message: e?.message || "Failed to generate text"
+        }
     });
+
+
 
     // return await openAiClient.chat.completions.create({
     //     model: "gpt-4o-mini",

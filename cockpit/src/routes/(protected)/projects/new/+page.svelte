@@ -9,12 +9,13 @@ import {
 	TileGroup,
 	Loading
 } from 'carbon-components-svelte';
-import { Upload, LogoGithub, Warning } from 'carbon-icons-svelte';
 import FromDevice from './FromDevice.svelte';
 import FromGithub from './FromGithub.svelte';
 import type { EngineSystemConfigResponseDto } from '@/types/dtos';
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import { onMount } from 'svelte';
+import CarbonWarning from '@/ui/icons/CarbonWarning.svelte';
+import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
 
 let loading = true;
 
@@ -44,7 +45,7 @@ onMount(() => {
 	<h1 class="text-2xl">New Project</h1>
 	<p class="text-gray-500">Choose a project source</p>
 	<Tile class="warning my-2 flex gap-2 items-center">
-		<Warning />
+		<CarbonWarning />
 		Currently supporting nodejs projects only
 	</Tile>
 
@@ -64,7 +65,7 @@ onMount(() => {
 			>
 				<div class="w-full flex items-center justify-center gap-3">
 					<h2 class="text-xl">{item.title}</h2>
-					<LogoGithub />
+					<CarbonLogoGithub />
 				</div>
 			</SelectableTile>
 		{/each}
@@ -79,7 +80,7 @@ onMount(() => {
 			<FromGithub />
 		{:else}
 			<Tile class="flex items-center justify-center text-lg gap-2">
-				<Warning class="h-6 w-6" />
+				<CarbonWarning class="h-6 w-6" />
 				Github not enabled. Enable from
 				<a href="/settings" class="text-[var(--cds-link-01)] hover:text-[var(--cds-link-02)]"
 					>settings</a
@@ -87,7 +88,7 @@ onMount(() => {
 			</Tile>
 		{/if}
 	{/if}
-	<PreDebug data={sysConf} />
+	<PreDebug {data} />
 
 	<!-- {#if items[selected].value === 'fromDevice'}
 	<FromDevice />

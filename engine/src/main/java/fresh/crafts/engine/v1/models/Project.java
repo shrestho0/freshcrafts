@@ -4,12 +4,16 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import fresh.crafts.engine.v1.entities.ProjectDir;
 import fresh.crafts.engine.v1.entities.ProjectDomain;
 import fresh.crafts.engine.v1.entities.ProjectGithubRepo;
 import fresh.crafts.engine.v1.utils.UlidGenerator;
 import fresh.crafts.engine.v1.utils.enums.ProjectStatus;
 import fresh.crafts.engine.v1.utils.enums.ProjectType;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Document(collection = "Projects")
@@ -40,6 +44,12 @@ public class Project {
 
     // ProjectDomain domain;
     String domain;
+
+    // Project Dir
+    ProjectDir projectDir;
+
+    // partial Messages
+    List<String> partialMessageList = new ArrayList<String>();
 
     public Project() {
         this.id = UlidGenerator.generate();

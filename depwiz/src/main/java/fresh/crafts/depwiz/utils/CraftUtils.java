@@ -6,7 +6,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import fresh.crafts.depwiz.entities.KEvent;
+import fresh.crafts.depwiz.entities.KEventDepWizardPayload;
 import fresh.crafts.depwiz.entities.KEventFeedbackPayload;
+import fresh.crafts.depwiz.enums.DepWizKEventCommands;
 import fresh.crafts.depwiz.enums.KEventProducers;
 
 public class CraftUtils {
@@ -35,13 +37,15 @@ public class CraftUtils {
 
     }
 
-    public static KEvent generateFeedbackKEvent(KEvent event) {
+    public static KEvent generateFeedbackKEvent(KEvent event, DepWizKEventCommands command) {
         KEvent feedbackKEvent = new KEvent();
 
         feedbackKEvent.setEventDestination(KEventProducers.ENGINE);
         feedbackKEvent.setEventSource(KEventProducers.DEP_WIZ);
 
-        KEventFeedbackPayload feedbackPayload = new KEventFeedbackPayload();
+        // KEventFeedbackPayload feedbackPayload = new KEventFeedbackPayload();
+        KEventDepWizardPayload feedbackPayload = new KEventDepWizardPayload();
+        feedbackPayload.setCommand(command);
         // setting request<-event id
         feedbackPayload.setRequestEventId(event.getId());
 

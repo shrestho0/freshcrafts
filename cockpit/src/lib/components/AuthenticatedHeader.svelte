@@ -6,60 +6,55 @@ import {
 	HeaderGlobalAction,
 	SkipToContent
 } from 'carbon-components-svelte';
-import Logout from 'carbon-icons-svelte/lib/Logout.svelte';
 import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
 import HeaderSearchThingy from './HeaderSearchThingy.svelte';
-import { Chat, Notification as NotificationIcon, NotificationNew } from 'carbon-icons-svelte';
 import { source } from 'sveltekit-sse';
 import { browser } from '$app/environment';
-import { Circle } from 'lucide-svelte';
 import type { SystemwideNotification } from '@/types/entities';
 import { page } from '$app/stores';
-import { invalidate, invalidateAll } from '$app/navigation';
-import { hintToWebUrlMap } from '@/utils/utils';
+import { invalidateAll } from '$app/navigation';
 import ChatBox from './ChatBox.svelte';
+import Circle from '@/ui/icons/Circle.svelte';
+import CarbonLogout from '@/ui/icons/CarbonLogout.svelte';
+import CarbonNotificationNew from '@/ui/icons/CarbonNotificationNew.svelte';
+import CarbonNotification from '@/ui/icons/CarbonNotification.svelte';
+import CarbonChat from '@/ui/icons/CarbonChat.svelte';
+import NotificationSseFrontendLogicHandler from './NotificationSSEFrontendLogicHandler.svelte';
 
 export let isSideNavOpen: boolean;
 
 const pathname: string = $page.url.pathname;
 
-const notificationStuff = {
+let notificationStuff = {
 	hasNew: false,
 	open: true,
 	notifications: []
 } as { hasNew: boolean; open: boolean; notifications: SystemwideNotification[] };
 
-const notiSSEUrl = `/sse/notification`;
+// const notiSSEUrl = `/sse/notification`;
+// let value = source(notiSSEUrl).select('message');
+// if (browser && value) {
+// 	value.subscribe((data: string) => {
+// 		console.log(data);
+// 		if (data) {
+// 			const notification: SystemwideNotification = JSON.parse(data);
+// 			console.log('Notification', notification);
+// 			// if (!notification.markedAsRead) {
+// 			notificationStuff.notifications.push(notification);
+// 			notificationStuff.hasNew = true;
 
-let value = source(notiSSEUrl).select('message');
-
-if (browser && value) {
-	value.subscribe((data: string) => {
-		console.log(data);
-		if (data) {
-			const notification: SystemwideNotification = JSON.parse(data);
-			if (!notification.markedAsRead) {
-				notificationStuff.notifications.push(notification);
-				notificationStuff.hasNew = true;
-				// invalidateAggregationPages(notification?.actionHints);
-
-				// handle thing, reload new data on notification
-				// try {
-				// 	const [action, locationHint, id] = notification?.actionHints?.split('_');
-				// 	const path = pathname.replace(/\/$/, '');
-
-				// 	if (locationHint && hintToWebUrlMap.get(locationHint) == path) {
-				// 		console.log('Invalidating', locationHint, path);
-				// 		invalidateAll();
-				// 		// window.location.reload();
-				// 	}
-				// } catch (e) {
-				// 	console.error(e);
-				// }
-			}
-		}
-	});
-}
+// 			if (notification.actionHints?.startsWith('REDIRECT_PROJECTS_')) {
+// 				const [_, proj_id] = notification.actionHints.split('_');
+// 				if (proj_id) {
+// 					console.log('proj_id', proj_id);
+// 				}
+// 				if (pathname.startsWith('/projects')) {
+// 					console.log('pathname', pathname);
+// 				}
+// 			}
+// 		}
+// 	});
+// }
 
 async function handleLogout() {
 	const bres = await fetch('/logout', {
@@ -116,6 +111,8 @@ function handleGlobalKeyEvents(event: KeyboardEvent) {
 }
 </script>
 
+<NotificationSseFrontendLogicHandler bind:notificationStuff />
+
 <svelte:window on:keydown={handleGlobalKeyEvents} />
 
 <!-- <Header platformName="FreshCrafts" href="/" persistentHamburgerMenu bind:isSideNavOpen> -->
@@ -141,9 +138,9 @@ function handleGlobalKeyEvents(event: KeyboardEvent) {
 		>
 			{#if notificationStuff.hasNew}
 				<!-- <NotificationNew class="w-5 h-5" /> -->
-				<NotificationNew height="20" width="20" />
+				<CarbonNotificationNew height="20" width="20" />
 			{:else}
-				<NotificationIcon height="20" width="20" />
+				<CarbonNotification height="20" width="20" />
 			{/if}
 		</button>
 
@@ -153,13 +150,13 @@ function handleGlobalKeyEvents(event: KeyboardEvent) {
 				gloaballyActiveables.chat = !gloaballyActiveables.chat;
 			}}
 		>
-			<Chat height="20" width="20" />
+			<CarbonChat height="20" width="20" />
 		</button>
 
 		<HeaderGlobalAction
 			iconDescription="Logout"
 			tooltipAlignment="end"
-			icon={Logout}
+			icon={CarbonLogout}
 			on:click={handleLogout}
 		/>
 	</HeaderUtilities>

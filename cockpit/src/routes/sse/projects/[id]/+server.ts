@@ -6,6 +6,7 @@ import { produce } from 'sveltekit-sse';
 const ProjectNotificationStore = writable<string>();
 
 export function POST() {
+
     return produce(async function start({ emit }) {
         const unsubscribe = ProjectNotificationStore.subscribe(async (data) => {
             if (data) {
@@ -30,18 +31,19 @@ export const PUT: RequestHandler = async ({ request }) => {
     });
 };
 
-export const PATCH: RequestHandler = async ({ request }) => {
+export const PATCH: RequestHandler = async ({ request, params }) => {
+    console.log('patch on', params)
     try {
         const data = (await request.json()) as SystemwideNotification;
 
-        console.log('[DEBUG]: PATCH Request on databases/mysql/[id] SSE\nData: ', data, '\n');
+        console.log('[DEBUG]: PATCH Request on sse/projects/[id] SSE\nData: ', data, '\n');
         ProjectNotificationStore.set(data.message);
         return json({
             success: true,
             message: 'Event sent'
         });
     } catch (e: any) {
-        console.warn('[ERROR]: PATCH Request on databases/mysql/[id] SSE');
+        console.warn('[ERROR]: PATCH Request on sse/projects/[id] SSE');
         return json({
             success: false,
             message: e?.message ?? 'An error occurred'

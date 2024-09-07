@@ -3,7 +3,6 @@ import { enhance } from '$app/forms';
 import { invalidateAll } from '$app/navigation';
 import type { EngineMySQLUpdateError } from '@/types/dtos';
 import type { DBMysql } from '@/types/entities';
-import { DBMysqlStatus } from '@/types/enums';
 
 import type { ActionResult } from '@sveltejs/kit';
 import {
@@ -30,7 +29,6 @@ const newDBData = {
 };
 
 export let open: boolean;
-export let db: DBMysql;
 
 let loading = false;
 

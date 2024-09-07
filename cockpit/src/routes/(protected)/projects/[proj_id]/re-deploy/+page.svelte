@@ -1,434 +1,164 @@
 <script lang="ts">
-/**
- *
- *
- *
- *
- *
- * FIXME: This is same as initial setup
- * FIXME: Make sure to check stuff
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- */
-
-import PreDebug from '@/components/dev/PreDebug.svelte';
-import type { Project, ProjectDeployment } from '@/types/entities.js';
-import { ProjectSetupCommand, ProjectType } from '@/types/enums';
-import { EnvVarsUtil, toTitleCase } from '@/utils/utils';
-import {
-	Button,
-	ComposedModal,
-	InlineLoading,
-	ModalBody,
-	ModalFooter,
-	ModalHeader,
-	TextArea,
-	TextInput,
-	Tile
-} from 'carbon-components-svelte';
-import { GitBranch, Github, Slash } from 'lucide-svelte';
-import { onMount } from 'svelte';
-import CommonErrorBox from '@/components/CommonErrorBox.svelte';
-import ExpandableSection from '@/components/ExpandableSection.svelte';
-import CommonLoadingBox from '@/components/CommonLoadingBox.svelte';
-import { enhance } from '$app/forms';
-import type { ActionResult } from '@sveltejs/kit';
-import { toast } from 'svelte-sonner';
-import { invalidateAll } from '$app/navigation';
-import BuildSettingsInputs from '../BuildSettingsInputs.svelte';
-import EnvVarsInputs from '../EnvVarsInputs.svelte';
-import FileTree from '../FileTree.svelte';
 export let data;
-const projectX: Project = data?.project;
-const deploymentX: ProjectDeployment = data?.deployment;
-const projectSetup = {
-	projectName: projectX?.uniqueName,
-	projectNameStatus: 'initially_idle',
-	projectNameErrorMessage: '',
-	envFileContent: data?.envFileContent ?? '',
-	envKV: [],
-	options: ['From .env file', 'Key-Value Pairs'],
-	selectedOptionIdx: 0,
-	buildCommand: 'npm run build',
-	installCommand: 'npm install',
-	postInstall: data?.deployment?.depCommands?.postInstall,
-	outputDir: deploymentX?.src?.buildDirPath,
-	projectRootSelectionStatus: 'initially_idle',
-	projectRootSelectionErrorMessage: '',
-	projectSourceTreeActiveId: 0,
-	projectSourceTreeSelectedIds: 0,
-	projectSourceTreeTotalLevels: 0,
-	projectSourceTreeFinalIotaVal: 0,
-	projectSourceList: [],
-	selectedFileRelativeUrl: deploymentX?.src?.rootDirPath
-} as {
-	projectName: string;
-	projectNameStatus: 'initially_idle' | 'checking' | 'invalid' | 'ok';
-	projectNameErrorMessage: string;
-	envFileContent: string;
-	envKV: { key: string; value: string }[];
-	options: string[];
-	selectedOptionIdx: number;
-	buildCommand: string;
-	installCommand: string;
-	postInstall: string;
-	outputDir: string;
-	projectRootSelectionStatus: 'initially_idle' | 'checking' | 'success' | 'error';
-	projectRootSelectionErrorMessage: string;
-	projectSourceList: any[];
-	projectSourceTreeActiveId: any;
-	projectSourceTreeSelectedIds: any;
-	projectSourceTreeTotalLevels: number;
-	projectSourceTreeFinalIotaVal: number;
-	selectedFileRelativeUrl: string;
+import CommonWarningBox from '@/components/project-specifics/ProjectSpecificWarningBox.svelte';
+import PreDebug from '@/components/dev/PreDebug.svelte';
+import ProjectName from '@/components/project-specifics/ProjectName.svelte';
+import type { Project, ProjectDeployment } from '@/types/entities.js';
+import { InternalDeploymentActions, ProjectStatus } from '@/types/enums';
+import CarbonArrowLeft from '@/ui/icons/CarbonArrowLeft.svelte';
+import ProjectFileSelection from '@/components/project-specifics/ProjectFileSelection.svelte';
+import ProjectBuildAndOutput from '@/components/project-specifics/ProjectBuildAndOutput.svelte';
+import ProjectEnvVars from '@/components/project-specifics/ProjectEnvVars.svelte';
+import { InlineLoading, TextInput } from 'carbon-components-svelte';
+import ActionsButtons from '@/components/project-specifics/ActionsButtons.svelte';
+import { browser } from '$app/environment';
+import DepInfo from '@/components/project-specifics/DepInfo.svelte';
+import DeploymentProcessing from '../DeploymentProcessing.svelte';
 
-	// runCommand: string;
-};
-
-const expandables = {
-	env_vars: true,
-	build_output: true,
-	select_project_root: true
-};
-
-async function listSourceFile() {
-	projectSetup.projectRootSelectionStatus = 'checking';
-	const res = await fetch('', {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			command: ProjectSetupCommand.LIST_SOURCE_FILES,
-			data: deploymentX?.src
-		})
-	})
-		.then((res) => res.json())
-		.catch((e) => console.error(e));
-
-	if (res?.success) {
-		projectSetup.projectSourceList = res?.files;
-		projectSetup.projectRootSelectionStatus = 'success';
-		projectSetup.projectSourceTreeTotalLevels = res?.total_levels;
-		projectSetup.projectSourceTreeFinalIotaVal = res?.iota;
-	} else {
-		console.error(res?.message);
-		projectSetup.projectRootSelectionErrorMessage = res?.message || 'Error fetching source files';
-		projectSetup.projectRootSelectionStatus = 'error';
-		projectSetup.projectNameErrorMessage = res?.message || 'Error fetching source files';
-	}
-}
-
-onMount(async () => {
-	await listSourceFile();
-});
-
-let confirmationModalOpen = false;
-$: checkAndSubmitButtonDisabled = (() => {
-	if (!projectSetup.buildCommand) return true;
-	if (!projectSetup.installCommand) return true;
-	if (!projectSetup.outputDir) return true;
-	if (!projectSetup.selectedFileRelativeUrl) return true;
-	return false;
-})();
+const project: Project = data.project!;
+const currentDeployment: ProjectDeployment = data.currentDeployment!;
 
 let actionLoading = false;
 let loadingMessage = '';
 let successMessage = '';
 let errorMessage = '';
 
-async function deployProject() {
-	let envContentFinal = '';
-	actionLoading = true;
-	confirmationModalOpen = false;
-	loadingMessage = 'Requested incomplete deployment creation.';
-	if (projectSetup.selectedOptionIdx === 0) {
-		envContentFinal = projectSetup.envFileContent;
-	} else {
-		envContentFinal = EnvVarsUtil.kvToContent(projectSetup.envKV);
-	}
+let setup = {
+	// Name related
+	// projectNameStatus: 'initially_idle',
+	projectName: project.uniqueName!,
+	// projectNameErrorMessage: '',
 
-	console.log(projectSetup.projectName);
+	// files related
+	filesLoading: true,
+	projectSourceList: [],
+	projectRootSelectionStatus: 'initially_idle',
+	selectedFileRelativeUrl: currentDeployment?.src?.rootDirPath,
+	projectRootSelectionErrorMessage: '',
 
-	const res = await fetch('', {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			command: ProjectSetupCommand.DEPLOY_PROJECT,
-			data: {
-				projectName: projectSetup.projectName,
-				buildCommand: projectSetup.buildCommand,
-				installCommand: projectSetup.installCommand,
-				postInstall: projectSetup.postInstall,
-				outputDir: projectSetup.outputDir,
-				selectedFileRelativeUrl: projectSetup.selectedFileRelativeUrl,
-				envFileContent: envContentFinal,
-				deployment: deploymentX,
-				projectId: projectX?.id
-			}
-		})
-	})
-		.then((res) => res.json())
-		.catch((e) => console.error(e));
+	// build related
+	buildCommand: currentDeployment?.depCommands?.build ?? '',
+	installCommand: currentDeployment?.depCommands?.install ?? '',
+	postInstall: currentDeployment?.depCommands?.postInstall ?? '',
+	outputDir: currentDeployment.src.buildDirPath,
 
-	console.log('create project res', res);
-	actionLoading = false;
-	loadingMessage = '';
-	if (res?.success) {
-		successMessage = res?.message;
-		console.log('Project created successfully');
-		backToProjectSpecificPage();
-	} else {
-		errorMessage = res?.message;
-		console.error(res?.message);
-	}
-}
+	// env related
+	envFileContent: data.envFileContent ?? '',
+	envKV: [],
+	options: ['From .env file', 'Key-Value Pairs'],
+	selectedOptionIdx: 0
+} as {
+	projectName: string;
+	// projectNameStatus: 'initially_idle' | 'checking' | 'invalid' | 'ok';
+	// projectNameErrorMessage: string;
 
-async function deleteIncompleteProject() {
-	actionLoading = true;
-	loadingMessage = 'Requested incomplete deployment delete';
+	filesLoading: boolean;
+	projectSourceList: any[];
+	projectRootSelectionStatus: 'initially_idle' | 'checking' | 'success' | 'error';
+	selectedFileRelativeUrl: string;
+	projectRootSelectionErrorMessage: string;
+	// projectSourceTreeActiveId: any;
+	// projectSourceTreeSelectedIds: any;
+	// projectSourceTreeTotalLevels: number;
+	// projectSourceTreeFinalIotaVal: number;
 
-	const res = await fetch('', {
-		method: 'PATCH',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			command: ProjectSetupCommand.DELETE_INCOMPLETE_PROJECT,
-			data: {
-				projectId: projectX?.id,
-				deploymentId: deploymentX.id,
-				rawFileAbsPath: deploymentX.rawFile.absPath,
-				srcFileAbsPath: deploymentX.src.filesDirAbsPath
-			}
-		})
-	})
-		.then((res) => res.json())
-		.catch((e) => console.error(e));
+	buildCommand: string;
+	installCommand: string;
+	postInstall: string;
+	outputDir: string;
 
-	actionLoading = false;
-	loadingMessage = '';
-	if (res?.success) {
-		successMessage = res?.message + ' Page will be redirected soon.';
-		backToProjectCreationPage();
-	} else {
-		errorMessage = res?.message;
-	}
-}
+	envFileContent: string;
+	envKV: { key: string; value: string }[];
+	options: string[];
+	selectedOptionIdx: number;
+};
 
-function backToProjectCreationPage() {
-	setTimeout(() => {
-		window.location.href = '/projects/new';
-	}, 1000);
-}
+$: submitBtnDisabled = (() => {
+	if (!browser) return true;
 
-function backToProjectSpecificPage() {
-	setTimeout(() => {
-		window.location.href = '';
-	}, 1000);
-}
+	// if (setup.projectNameStatus !== 'ok') return true;
+	if (!setup.projectName) return true;
+	// if (!setup.buildCommand) return true;
+	if (!setup.installCommand) return true;
+	if (!setup.outputDir) return true;
+	if (!setup.selectedFileRelativeUrl) return true;
+	return false;
+})();
 </script>
 
-<Tile light class="px-0 mx-0 pt-0 mt-0">
-	<h1 class="text-3xl py-2">Re-Deploy</h1>
-	<div class="flex items-center">
-		<p>
-			Project Source:
-			<span class="">
-				{toTitleCase(projectX?.type?.replace('_', ' ') || '')}
-			</span>
-		</p>
-
-		<span class="px-2">/</span>
-		<p>
-			Deployment Version: <span class="">{(projectX?.totalVersions || 0) + 1}</span>
-		</p>
-	</div>
-	{#if projectX?.type == ProjectType.GITHUB_REPO}
-		<p class="flex items-center py-2">
-			<Github class="h-5 w-5  " />
-			<a
-				href="https://github.com/{projectX?.githubRepo?.fullName}"
-				target="_blank"
-				class="hover:text-blue-500"
-			>
-				{projectX?.githubRepo?.fullName}
-			</a>
-			<span class="px-2">/</span>
-			<GitBranch class="h-6 w-6  p-1" />
-			<a
-				href="https://github.com/{projectX?.githubRepo?.fullName}/tree/{projectX?.githubRepo
-					?.defaultBranch}"
-				target="_blank"
-				class="hover:text-blue-500"
-			>
-				{projectX?.githubRepo?.defaultBranch}
-			</a>
-		</p>
-	{/if}
-</Tile>
-
-<section class="">
-	<!-- <Tile> -->
-	<div>Project Name: {data.project.uniqueName}</div>
-
-	<div class="mb-3 select-none">
-		<ExpandableSection bind:open={expandables.select_project_root} title="Select Project Root">
-			<Tile>
-				{#if projectSetup.projectRootSelectionStatus === 'checking'}
-					<CommonLoadingBox message="Loading project" />
-				{:else if projectSetup.projectRootSelectionStatus === 'error'}
-					<CommonErrorBox error_msg={projectSetup.projectRootSelectionErrorMessage} />
-				{:else if projectSetup.projectRootSelectionStatus === 'success'}
-					<!-- {projectSetup.projectSourceTreeFinalIotaVal} -->
-					<!-- {projectSetup.projectSourceTreeTotalLevels} -->
-					<FileTree
-						bind:items={projectSetup.projectSourceList}
-						bind:selectedFileRelativeUrl={projectSetup.selectedFileRelativeUrl}
-					/>
-				{:else}
-					<div>&nbsp;</div>
-				{/if}
-			</Tile>
-		</ExpandableSection>
-	</div>
-
-	<div class="mb-3">
-		<ExpandableSection bind:open={expandables.build_output} title="Build and output settings">
-			<BuildSettingsInputs
-				bind:buildCommand={projectSetup.buildCommand}
-				bind:outputDir={projectSetup.outputDir}
-				bind:installCommand={projectSetup.installCommand}
-				bind:postInstall={projectSetup.postInstall}
-			/>
-		</ExpandableSection>
-	</div>
-
-	<div class="mb-3">
-		<ExpandableSection bind:open={expandables.env_vars} title="Environment Variables">
-			<Tile>
-				<EnvVarsInputs
-					bind:options={projectSetup.options}
-					bind:selectedOptionIdx={projectSetup.selectedOptionIdx}
-					bind:envFileContent={projectSetup.envFileContent}
-					bind:envKV={projectSetup.envKV}
-				/>
-			</Tile>
-		</ExpandableSection>
-	</div>
-
-	{#if actionLoading}
-		<InlineLoading description={actionLoading ? loadingMessage : ''} />
-	{:else if successMessage}
-		<InlineLoading status="finished" description={successMessage} />
-	{:else if errorMessage}
-		<InlineLoading status="error" description={successMessage} />
-	{/if}
-
-	<div class="dep grid grid-cols-3 gap-2">
-		<a
-			href="/projects/{projectX?.id}"
-			class="py-4 col-span-1 my-6 w-full bx--btn--danger-tertiary
-                    disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
-                    disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
-                    disabled:border-[var(--cds-disabled-02)]
-                    ">Back to Project</a
-		>
-		<button
-			disabled={checkAndSubmitButtonDisabled || actionLoading}
-			on:click={() => {
-				confirmationModalOpen = true;
-			}}
-			class="py-4 col-span-2 my-6 w-full bx--btn--primary
-                    disabled:bg-[var(--cds-disabled-02)] disabled:text-[var(--cds-disabled-03)]
-                    disabled:hover:bg-[var(--cds-disabled-02)] disabled:hover:text-[var(--cds-disabled-03)]
-                    disabled:cursor-not-allowed
-                    ">Check & Deploy</button
-		>
-	</div>
-</section>
-
-<ComposedModal bind:open={confirmationModalOpen} preventCloseOnClickOutside>
-	<ModalHeader title="Confirm Deployment" closeClass="hidden" />
-	<ModalBody>
-		<div class="flex flex-col gap-3">
-			<p class="text-lg">
-				You are about to deploy a new version of the project. Please confirm the details below.
-			</p>
-			<div class="flex flex-col gap-2">
-				<div
-					class="flex items
-                            justify-between"
-				>
-					<p>Project Name</p>
-					<p>{projectSetup.projectName}</p>
-				</div>
-				<div
-					class="flex items
-                            justify-between"
-				>
-					<p>Build Command</p>
-					<p>{projectSetup.buildCommand}</p>
-				</div>
-				<div
-					class="flex items
-                            justify-between"
-				>
-					<p>Install Command</p>
-					<p>{projectSetup.installCommand}</p>
-				</div>
-
-				<div
-					class="flex items
-                            justify-between"
-				>
-					<p>Output Directory</p>
-					<p>{projectSetup.outputDir}</p>
-				</div>
-				<div
-					class="flex items
-                            justify-between"
-				>
-					<p>Project Root</p>
-					<p>./{projectSetup.selectedFileRelativeUrl}</p>
-				</div>
-				<div
-					class="flex items
-                            justify-between"
-				>
-					<p>Environment Variables</p>
-				</div>
-				<div class="w-full {projectSetup.envFileContent ? 'h-60 overflow-y-scroll' : ''}">
-					<p>{projectSetup.envFileContent}</p>
-				</div>
+{#if project.status != ProjectStatus.INACTIVE}
+	<CommonWarningBox
+		msg="Re-deploy is only possible for inactive projects with failed current deployments"
+		actionUrl="/projects/{project.id}"
+		actionText="Back to project page"
+		iconLeft={CarbonArrowLeft}
+	/>
+{:else}
+	<section class=" flex flex-col gap-3">
+		<!-- <h3>{project.uniqueName}</h3> -->
+		<div class="grid grid-cols-2">
+			<div class="projectInfo">
+				<h2 class="text-lg py-2">Project Info</h2>
+				<DepInfo {project} {currentDeployment} activeDeployment={undefined} />
+			</div>
+			<div class="last-status">
+				<h2 class="text-lg py-2">Last deployment processing status</h2>
+				<DeploymentProcessing messages={project?.partialMessageList ?? []} sse={false} />
 			</div>
 		</div>
-	</ModalBody>
-	<ModalFooter>
-		<button
-			class="bx--btn bx--btn--secondary"
-			on:click={() => {
-				confirmationModalOpen = false;
-			}}
-		>
-			Back to initial setup
-		</button>
-		<button class="bx--btn bx--btn--primary" on:click={deployProject}> Deploy </button>
-	</ModalFooter>
-</ComposedModal>
+
+		<ProjectFileSelection
+			bind:filesLoading={setup.filesLoading}
+			bind:projectSourceList={setup.projectSourceList}
+			bind:projectRootSelectionStatus={setup.projectRootSelectionStatus}
+			bind:selectedFileRelativeUrl={setup.selectedFileRelativeUrl}
+			bind:projectRootSelectionErrorMessage={setup.projectRootSelectionErrorMessage}
+			dep={currentDeployment}
+		/>
+
+		<ProjectBuildAndOutput
+			bind:buildCommand={setup.buildCommand}
+			bind:installCommand={setup.installCommand}
+			bind:postInstall={setup.postInstall}
+			bind:outputDir={setup.outputDir}
+		/>
+
+		<ProjectEnvVars
+			bind:options={setup.options}
+			bind:selectedOptionIdx={setup.selectedOptionIdx}
+			bind:envFileContent={setup.envFileContent}
+			bind:envKV={setup.envKV}
+		/>
+
+		<ActionsButtons
+			action={InternalDeploymentActions.RE_DEPLOY}
+			bind:loadingMessage
+			bind:successMessage
+			bind:errorMessage
+			bind:actionLoading
+			bind:submitBtnDisabled
+			projectX={project}
+			{currentDeployment}
+			activeDeployment={undefined}
+			bind:setup
+		/>
+	</section>
+{/if}
+
+<pre>
+    TODO: Set redeploy true flag
+	Note:
+    Re-deploy
+
+
+    
+    when it can be re-deployed:
+    
+    in case of failure
+    
+    if a project is okay, it can be updated not re-deployed
+</pre>
+
+<PreDebug data={project} title="Project" />
+<PreDebug data={currentDeployment} title="Current Deployment" />
 <PreDebug {data} />

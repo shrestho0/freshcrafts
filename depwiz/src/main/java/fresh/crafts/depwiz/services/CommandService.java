@@ -15,6 +15,8 @@ import fresh.crafts.depwiz.entities.ProjectDeployment;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.List;
+import java.util.ArrayList;
 
 // Note: Refactor required
 @Service
@@ -237,6 +239,130 @@ public class CommandService {
         processBuilder.command("pm2", "start", ecoSystemFileAbsPath);
         CommandServiceResult result = runIt(processBuilder);
         return result;
+    }
+
+    public CommandServiceResult savePM2() {
+        // pm2 save
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("pm2", "save");
+        CommandServiceResult result = runIt(processBuilder);
+        return result;
+    }
+
+    public CommandServiceResult enableNginxSite(String nginxConfFileAbsPath) {
+        // move nginx conf file to /etc/nginx/sites-available
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("sudo", "mv", nginxConfFileAbsPath, "/etc/nginx/sites-available");
+        CommandServiceResult result = runIt(processBuilder);
+        if (result.getExitCode() != 0) {
+            result.setShortError("Failed to move nginx conf file");
+            return result;
+        }
+
+        // create symlink
+        String fileName = new File(nginxConfFileAbsPath).getName();
+        processBuilder.command("sudo", "ln", "-s", "/etc/nginx/sites-available/" + fileName,
+                "/etc/nginx/sites-enabled/" + fileName);
+        CommandServiceResult result2 = runIt(processBuilder);
+
+        if (result2.getExitCode() != 0) {
+            result2.setShortError("Failed to create symlink");
+            return result2;
+        }
+
+        // reload nginx
+        processBuilder.command("sudo", "systemctl", "reload", "nginx");
+        CommandServiceResult result3 = runIt(processBuilder);
+
+        if (result3.getExitCode() != 0) {
+            result3.setShortError("Failed to reload nginx");
+            return result3;
+        }
+
+        CommandServiceResult result4 = new CommandServiceResult();
+        result4.setExitCode(0);
+        result4.setOutput("Nginx site enabled successfully");
+        return result4;
+
+    }
+
+    public List<CommandServiceResult> disableNginxSite(String id) {
+
+        List<CommandServiceResult> results = new ArrayList<CommandServiceResult>();
+
+        // delete enabled symlink
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("sudo", "rm", "/etc/nginx/sites-enabled/" + id + ".conf");
+
+        CommandServiceResult result = runIt(processBuilder);
+        if (result.getExitCode() != 0) {
+            result.setShortError("Failed to remove symlink");
+            // return result;
+            results.add(result);
+        }
+
+        // remove conf file
+        processBuilder.command("sudo", "rm", "/etc/nginx/sites-available/" + id + ".conf");
+        CommandServiceResult result1 = runIt(processBuilder);
+        if (result1.getExitCode() != 0) {
+            result1.setShortError("Failed to remove conf file");
+            // return result1;
+            results.add(result1);
+        }
+
+        // reload nginx
+        processBuilder.command("sudo", "systemctl", "reload", "nginx");
+        CommandServiceResult result2 = runIt(processBuilder);
+
+        if (result2.getExitCode() != 0) {
+            result2.setShortError("Failed to reload nginx");
+            // return result2;
+            results.add(result2);
+        }
+
+        CommandServiceResult result3 = new CommandServiceResult();
+        result3.setExitCode(0);
+        result3.setOutput("Nginx site disabled successfully");
+        // return result3;
+        results.add(result3);
+
+        return results;
+    }
+
+    public List<CommandServiceResult> stopAndDeletePM2(String ecoSystemFileAbsPath) {
+        List<CommandServiceResult> results = new ArrayList<CommandServiceResult>();
+
+        // stop pm2
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command("pm2", "stop", ecoSystemFileAbsPath);
+        CommandServiceResult result = runIt(processBuilder);
+        if (result.getExitCode() != 0) {
+            result.setShortError("Failed to stop pm2");
+            results.add(result);
+        }
+
+        // delete pm2
+        processBuilder.command("pm2", "delete", ecoSystemFileAbsPath);
+        CommandServiceResult result1 = runIt(processBuilder);
+        if (result1.getExitCode() != 0) {
+            result1.setShortError("Failed to delete pm2");
+            results.add(result1);
+        }
+
+        // pm2 save
+        processBuilder.command("pm2", "save");
+        CommandServiceResult result2 = runIt(processBuilder);
+        if (result2.getExitCode() != 0) {
+            result2.setShortError("Failed to save pm2");
+            results.add(result2);
+        }
+
+        CommandServiceResult result3 = new CommandServiceResult();
+        result3.setExitCode(0);
+        result3.setOutput("PM2 stopped and deleted successfully");
+        results.add(result3);
+
+        return results;
     }
 
 }

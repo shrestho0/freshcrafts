@@ -13,12 +13,12 @@ import {
 	PUBLIC_GITHUB_OAUTH_CALLBACK_URL,
 	PUBLIC_GOOGLE_OAUTH_CALLBACK_URL
 } from '$env/static/public';
-import { LogoGithub } from 'carbon-icons-svelte';
 import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
 import Review from './Review.svelte';
 import { enhance } from '$app/forms';
 import type { ActionResult } from '@sveltejs/kit';
 import { browser } from '$app/environment';
+import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
 const steps = [
 	{
 		key: 'welcome',
@@ -191,7 +191,7 @@ function enhanceUserPassSubmission() {
 								{#key sysConf}
 									<CommonOAuth
 										connTitle="Github"
-										icon={LogoGithub}
+										icon={CarbonLogoGithub}
 										url={data?.githubAppInstallUrl}
 										removeConnFormEndpoint="?/removeGithub"
 										connEnabled={sysConf.systemUserOauthGithubEnabled}
@@ -265,4 +265,5 @@ function enhanceUserPassSubmission() {
 		</div>
 	</div>
 </div>
-<PreDebug classes="bg-black text-white" {data}></PreDebug>
+
+<!-- <PreDebug classes="bg-black text-white" {data}></PreDebug> -->

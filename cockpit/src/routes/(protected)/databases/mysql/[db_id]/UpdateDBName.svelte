@@ -30,7 +30,6 @@ const newDBData = {
 };
 
 export let open: boolean;
-export let db: DBMysql;
 
 let loading = false;
 

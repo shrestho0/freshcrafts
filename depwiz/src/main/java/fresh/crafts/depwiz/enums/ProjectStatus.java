@@ -2,6 +2,8 @@ package fresh.crafts.depwiz.enums;
 
 public enum ProjectStatus {
 
+    AWAIT_INITIAL_SETUP,
+
     PROCESSING_SETUP,
     PROCESSING_DEPLOYMENT,
     PROCESSING_UPDATE,

@@ -40,37 +40,46 @@ public class TokensService {
         CommonResponseDto response = new CommonResponseDto();
         response.setStatusCode(400);
 
-        System.out.println("[DEBUG] TokensService - getAllowedAuthProviders + blacklistedTokenRepository"
-                + blacklistedTokenRepository);
+        try {
 
-        SystemConfig systemConfig = systemConfigService.getOnly().orElse(null);
+            System.out.println("[DEBUG] TokensService - getAllowedAuthProviders + blacklistedTokenRepository"
+                    + blacklistedTokenRepository);
 
-        // System.err.println("[DEBUG] Get Provider Service:");
-        // System.err.println("[DEBUG] systemConfig: " + systemConfig);
+            SystemConfig systemConfig = systemConfigService.getOnly().orElse(null);
 
-        List<AuthProviderType> allowedProviders = new ArrayList<>();
+            // System.err.println("[DEBUG] Get Provider Service:");
+            // System.err.println("[DEBUG] systemConfig: " + systemConfig);
 
-        if (systemConfig != null && systemConfig.getSystemUserSetupComplete()) {
+            List<AuthProviderType> allowedProviders = new ArrayList<>();
 
-            if (systemConfig.getSystemUserEmail() != null && systemConfig.getSystemUserEmail().length() > 4
-                    && systemConfig.getSystemUserPasswordHash() != null) {
-                allowedProviders.add(AuthProviderType.EMAIL_PASSWORD);
+            if (systemConfig != null && systemConfig.getSystemUserSetupComplete()) {
+
+                if (systemConfig.getSystemUserEmail() != null &&
+                        systemConfig.getSystemUserEmail().length() > 4
+                        && systemConfig.getSystemUserPasswordHash() != null) {
+                    allowedProviders.add(AuthProviderType.EMAIL_PASSWORD);
+                }
+
+                if (systemConfig.getSystemUserOauthGithubEnabled() != null
+                        && systemConfig.getSystemUserOauthGithubEnabled()) {
+                    allowedProviders.add(AuthProviderType.OAUTH_GITHUB);
+                }
+
+                if (systemConfig.getSystemUserOauthGoogleEnabled() != null
+                        && systemConfig.getSystemUserOauthGoogleEnabled()) {
+                    allowedProviders.add(AuthProviderType.OAUTH_GOOGLE);
+                }
+
+                response.setSuccess(true);
+                response.setPayload(allowedProviders);
+            } else {
+                response.setSuccess(false);
+                response.setMessage("User setup incomplete!");
+
             }
-            if (systemConfig.getSystemUserOauthGithubEnabled()) {
-                allowedProviders.add(AuthProviderType.OAUTH_GITHUB);
-            }
-            if (systemConfig.getSystemUserOauthGoogleEnabled()) {
-                allowedProviders.add(AuthProviderType.OAUTH_GOOGLE);
-            }
-
-            response.setSuccess(true);
-            // FIXME: Use setPayload as setData is depricated
-            // FIXME: Also change on the cockpit
-            response.setData(allowedProviders);
-        } else {
+        } catch (Exception e) {
             response.setSuccess(false);
-            response.setMessage("User setup incomplete!");
-
+            response.setMessage("Error: " + e.getMessage());
         }
 
         // System.err.println("[DEBUG] TokensController - authProviders: " + response);

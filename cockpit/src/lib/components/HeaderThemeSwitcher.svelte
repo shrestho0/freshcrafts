@@ -1,14 +1,15 @@
 <script lang="ts">
 import { browser } from '$app/environment';
+import CarbonAsleepFilled from '@/ui/icons/CarbonAsleepFilled.svelte';
+import CarbonBrightnessContrast from '@/ui/icons/CarbonBrightnessContrast.svelte';
 import { HeaderGlobalAction, SkeletonPlaceholder } from 'carbon-components-svelte';
-import { BrightnessContrast, AsleepFilled } from 'carbon-icons-svelte';
 import { onMount } from 'svelte';
 
 let loading = true;
 let selectedTheme: string;
 let themeIcon: any;
 
-$: themeIcon = selectedTheme === 'g100' ? BrightnessContrast : AsleepFilled;
+$: themeIcon = selectedTheme === 'g100' ? CarbonBrightnessContrast : CarbonAsleepFilled;
 
 onMount(() => {
 	if (!selectedTheme) {

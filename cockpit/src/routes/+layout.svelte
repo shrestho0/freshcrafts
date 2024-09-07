@@ -27,10 +27,10 @@ import { Toaster, toast } from 'svelte-sonner';
 		}
 	}}
 />
-
+<!-- 
 <style>
 html[theme='g100'] > .custom-toast {
 	background-color: var(----cds-interactive-01) !important;
 	font-size: 30px;
 }
-</style>
+</style> -->

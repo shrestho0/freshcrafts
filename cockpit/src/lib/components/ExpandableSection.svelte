@@ -1,6 +1,7 @@
 <script lang="ts">
+import CarbonChevronDown from '@/ui/icons/CarbonChevronDown.svelte';
+import CarbonChevronUp from '@/ui/icons/CarbonChevronUp.svelte';
 import { ClickableTile } from 'carbon-components-svelte';
-import { ChevronDown, ChevronUp } from 'carbon-icons-svelte';
 export let open = false;
 export let title = '';
 export let classes = '';
@@ -16,9 +17,9 @@ export let classes = '';
 		{title}
 	</slot>
 	{#if open}
-		<ChevronUp />
+		<CarbonChevronUp />
 	{:else}
-		<ChevronDown />
+		<CarbonChevronDown />
 	{/if}
 </ClickableTile>
 {#if open}

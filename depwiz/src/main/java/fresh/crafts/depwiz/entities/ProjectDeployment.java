@@ -8,14 +8,15 @@ public class ProjectDeployment {
 
     String id;
 
-    Project project;
+    String projectId;
 
     Integer version;
     ProjectDeploymentStatus status;
 
     Boolean isDeployed;
 
-    String partialDeploymentMsg;
+    // String partialDeploymentMsg;
+    String errorTraceback;
 
     // save other necceassary fields
     // for:

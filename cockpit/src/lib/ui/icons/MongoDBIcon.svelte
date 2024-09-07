@@ -2,7 +2,7 @@
 export let classes = '';
 </script>
 
-<svg viewBox="0 0 128 128" class={classes}>
+<svg viewBox="0 0 128 128" class={classes} {...$$restProps}>
 	<path
 		fill-rule="evenodd"
 		clip-rule="evenodd"

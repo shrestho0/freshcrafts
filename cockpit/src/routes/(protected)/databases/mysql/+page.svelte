@@ -21,7 +21,6 @@ import {
 import { page } from '$app/stores';
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import { onMount } from 'svelte';
-import { KeyIcon, Settings2 } from 'lucide-svelte';
 import {
 	delay,
 	fetchDataSelf,

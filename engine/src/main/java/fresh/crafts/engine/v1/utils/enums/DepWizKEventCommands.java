@@ -1,8 +1,11 @@
 package fresh.crafts.engine.v1.utils.enums;
 
 public enum DepWizKEventCommands {
-    // engine will send:
     DEPLOY,
-    // wizard_mongo will send:
-    FEEDBACK
+    RE_DEPLOY,
+    DELETE_DEPLOYMENTS,
+
+    FEEDBACK_DEPLOYMENT,
+    FEEDBACK_RE_DEPLOYMENT,
+    FEEDBACK_DELETE_DEPLOYMENTS,
 }

@@ -4,18 +4,11 @@ import PreDebug from '@/components/dev/PreDebug.svelte';
 import type { EngineCommonResponseDto, EnginePaginatedDto, Pageable } from '@/types/dtos';
 import type { SystemwideNotification } from '@/types/entities';
 import { humanizedTimeDifference, toTitleCase, ulidToDate } from '@/utils/utils';
-import SvelteMarkdown from 'svelte-markdown';
 import { Tile, Pagination, Tag } from 'carbon-components-svelte';
-import { afterUpdate, getContext, onMount } from 'svelte';
-import type { ActionResult } from '@sveltejs/kit';
-import { invalidateAll } from '$app/navigation';
+import { onMount } from 'svelte';
 import { toast } from 'svelte-sonner';
-import { enhance } from '$app/forms';
-import { browser } from '$app/environment';
-import ExpandableSection from '@/components/ExpandableSection.svelte';
-import { Dot, SquareArrowOutUpRight } from 'lucide-svelte';
-import { CircleSolid } from 'carbon-icons-svelte';
 import { SystemWideNoitficationTypes } from '@/types/enums';
+import SquareArrowOutUpRight from '@/ui/icons/SquareArrowOutUpRight.svelte';
 
 let form: HTMLFormElement;
 
@@ -100,8 +93,14 @@ function generateTagColor(type: SystemWideNoitficationTypes): any {
 
 {#if pageData.content?.length > 0}
 	<!-- on click, mark as read  -->
+	<!-- {#key pageData.content} -->
+	<!-- <div
+			transition:slide={{
+				duration: 3000
+			}}
+		> -->
 	{#each pageData.content as chat, idx}
-		<Tile class="flex items-center justify-between rounded my-2 select-none ">
+		<div class="flex items-center justify-between rounded my-2 select-none bx--tile">
 			<div class="flex items-center gap-2">
 				<!-- icon={!chat.markedAsRead ? CircleSolid : undefined} -->
 				<Tag type={generateTagColor(chat.type)}>{toTitleCase(chat.type)}</Tag>
@@ -111,8 +110,10 @@ function generateTagColor(type: SystemWideNoitficationTypes): any {
 				{humanizedTimeDifference(ulidToDate(chat.id))}
 				<SquareArrowOutUpRight />
 			</div>
-		</Tile>
+		</div>
 	{/each}
+	<!-- </div> -->
+	<!-- {/key} -->
 {/if}
 <!-- 
 <ComposedModal

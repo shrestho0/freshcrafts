@@ -6,6 +6,7 @@ import CommonOAuth from '@/components/CommonOAuth.svelte';
 import PreDebug from '@/components/dev/PreDebug.svelte';
 import ExpandableSection from '@/components/ExpandableSection.svelte';
 import type { EngineCommonResponseDto, EngineSystemConfigResponseDto } from '@/types/dtos.js';
+import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
 import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
 import type { ActionResult } from '@sveltejs/kit';
 import {
@@ -17,7 +18,6 @@ import {
 	TextInput,
 	Tile
 } from 'carbon-components-svelte';
-import { ArrowDown, ChevronDown, ChevronUp, LogoGithub } from 'carbon-icons-svelte';
 import { onMount } from 'svelte';
 import { toast } from 'svelte-sonner';
 export let data: {
@@ -174,7 +174,7 @@ function enhancedAzureApiKeySave() {
 			<div class="w-full flex flex-col gap-3 items-center">
 				<CommonOAuth
 					connTitle="Github"
-					icon={LogoGithub}
+					icon={CarbonLogoGithub}
 					url={data?.githubAppInstallUrl}
 					removeConnFormEndpoint="?/removeGithub"
 					connEnabled={data?.sysConf?.systemUserOauthGithubEnabled}

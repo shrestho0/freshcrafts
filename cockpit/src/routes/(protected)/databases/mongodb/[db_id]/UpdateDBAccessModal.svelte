@@ -29,7 +29,6 @@ const newDBData = {
 };
 
 export let open: boolean;
-export let db: DBMongo;
 
 let loading = false;
 

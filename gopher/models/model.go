@@ -2,19 +2,19 @@ package models
 
 type (
 	Site struct {
-		Domain string `json:"domain"`
+		Domain string `bson:"domain"`
 	}
 
 	SiteTestResult struct {
-		Domain     string `json:"domain" validate:"required"`
-		Working    bool   `json:"working" `
-		StatusCode int    `json:"statusCode" validate:"required"`
-		Timestamp  string `json:"timestamp" validate:"required"`
+		Domain     string `bson:"domain"`
+		Working    bool   `bson:"working" `
+		StatusCode int    `bson:"statusCode"`
+		Timestamp  string `bson:"timestamp"`
 	}
 
 	SitePostResponse struct {
-		Status int    `json:"status"`
-		Msg    string `json:"msg"`
+		Status int    `bson:"status"`
+		Msg    string `bson:"msg"`
 	}
 
 	DependencyTestResult struct {

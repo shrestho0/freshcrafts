@@ -633,7 +633,8 @@ public class EngineMessageService {
      * @implNote This method is responsible for sending notification to the frontend
      *           via SSE
      */
-    private void requestNotificationSSE(String json) {
+
+    public void requestNotificationSSE(String json) {
         System.err.println("[DEBUG]: EngineMessageService requestNotificationSSE");
         String url = envProps.getCockpitLocalUrl() + "/sse/notification";
 

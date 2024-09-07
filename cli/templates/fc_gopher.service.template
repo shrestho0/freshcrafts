@@ -1,0 +1,21 @@
+
+[Unit]
+Description = {SERVICE_NAME}
+
+[Service]
+SuccessExitStatus=143
+
+Type           = simple
+User           = root
+Group          = root
+LimitNOFILE    = 4096
+Restart        = always
+RestartSec     = 10s
+StandardOutput = append:{{SERVICE_OUTPUT_LOG}}
+StandardError  = append:{{SERVICE_ERROR_LOG}}
+ExecStart      = {{SERVICE_EXEC_START_COMMAND}}
+EnvironmentFile= {{SERVICE_ENV_FILE}}
+
+
+[Install]
+WantedBy = multi-user.target

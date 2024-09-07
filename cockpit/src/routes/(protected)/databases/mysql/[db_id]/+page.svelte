@@ -14,8 +14,6 @@ import {
 	RadioButtonGroup,
 	RadioButton
 } from 'carbon-components-svelte';
-import { ApiKey, Edit, Delete } from 'carbon-icons-svelte';
-import { OctagonAlert, OctagonX } from 'lucide-svelte';
 import { source } from 'sveltekit-sse';
 import UpdateDbModal from './UpdateDBAccessModal.svelte';
 import UpdateDbName from './UpdateDBName.svelte';
@@ -29,6 +27,11 @@ import {
 	getMySQLConnectionHost,
 	getMySQLConnectionPort
 } from '@/utils/db-stuff';
+import OctagonX from '@/ui/icons/OctagonX.svelte';
+import OctagonAlert from '@/ui/icons/OctagonAlert.svelte';
+import CarbonApiKey from '@/ui/icons/CarbonApiKey.svelte';
+import CarbonEdit from '@/ui/icons/CarbonEdit.svelte';
+import CarbonDelete from '@/ui/icons/CarbonDelete.svelte';
 
 export let data: EngineCommonResponseDto<DBMysql, EngineMySQLGetOneError>;
 
@@ -159,7 +162,7 @@ const connectionOptions = {
 				<div class="w-full my-4">
 					<Button
 						class="w-full"
-						icon={ApiKey}
+						icon={CarbonApiKey}
 						kind="secondary"
 						on:click={() => {
 							updateDBAccessModalOpen = true;
@@ -167,7 +170,7 @@ const connectionOptions = {
 					>
 					<Button
 						class="w-full"
-						icon={Edit}
+						icon={CarbonEdit}
 						kind="secondary"
 						on:click={() => {
 							// updateDBAccessModalOpen = true;
@@ -177,7 +180,7 @@ const connectionOptions = {
 
 					<Button
 						class="w-full"
-						icon={Delete}
+						icon={CarbonDelete}
 						kind="danger"
 						on:click={() => {
 							deleteModalOpen = true;
@@ -273,7 +276,7 @@ const connectionOptions = {
 <PreDebug {data} />
 
 {#if data?.payload}
-	<UpdateDbModal bind:open={updateDBAccessModalOpen} bind:db={data.payload} />
+	<UpdateDbModal bind:open={updateDBAccessModalOpen} />
 	<DeleteDbModal bind:open={deleteModalOpen} bind:db={data.payload} />
-	<UpdateDbName bind:open={updateDBNameModalOpen} bind:db={data.payload} />
+	<UpdateDbName bind:open={updateDBNameModalOpen} />
 {/if}

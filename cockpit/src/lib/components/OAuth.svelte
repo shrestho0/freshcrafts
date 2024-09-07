@@ -5,12 +5,14 @@ Refactor Required
 -->
 
 <script lang="ts">
-import { LogoGithub, Unlink } from 'carbon-icons-svelte';
 import { Button, InlineLoading, Loading } from 'carbon-components-svelte';
-import { CircleCheckBig, CircleX, UnlinkIcon } from 'lucide-svelte';
 import type { SetupPageOauthData } from '@/types/internal';
 import { AuthProviderType } from '@/types/enums';
 import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
+import CircleX from '@/ui/icons/CircleX.svelte';
+import CircleCheckBig from '@/ui/icons/CircleCheckBig.svelte';
+import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
+import CarbonUnlink from '@/ui/icons/CarbonUnlink.svelte';
 export let data: SetupPageOauthData;
 
 export let connectionCallback: ({
@@ -148,7 +150,7 @@ console.log('fromPage', fromPage);
 				disabled={data.githubStatus === 'connected'}
 			>
 				<div class="inline-flex items-center pr-3">
-					<LogoGithub class=" col-span-1 min-w-6 min-h-6" />
+					<CarbonLogoGithub class=" col-span-1 min-w-6 min-h-6" />
 				</div>
 				<p class="flex items-center justify-center gap-2">
 					{#if data.githubStatus === 'loading'}
@@ -170,7 +172,7 @@ console.log('fromPage', fromPage);
 					kind="secondary"
 					iconDescription="Disconnect"
 					tooltipPosition="right"
-					icon={Unlink}
+					icon={CarbonUnlink}
 					on:click={() => disconnectionCallback({ provider: AuthProviderType.OAUTH_GITHUB })}
 				/>
 			{/if}
@@ -205,7 +207,7 @@ console.log('fromPage', fromPage);
 					kind="secondary"
 					iconDescription="Disconnect"
 					tooltipPosition="right"
-					icon={Unlink}
+					icon={CarbonUnlink}
 					on:click={() => disconnectionCallback({ provider: AuthProviderType.OAUTH_GOOGLE })}
 				/>
 			{/if}
