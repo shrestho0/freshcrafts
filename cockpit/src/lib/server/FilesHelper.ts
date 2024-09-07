@@ -3,9 +3,10 @@ import { ENV, FILE_UPLOAD_DIR } from "$env/static/private";
 // import * as fsBase from "fs";
 import fs from "fs/promises";
 import path from 'path';
-import AdmZip from 'adm-zip';
-import * as tar from 'tar';
+// import AdmZip from 'adm-zip';
+// import * as tar from 'tar';
 import type { ProjectDir } from "@/types/entities";
+import { exec } from 'child_process';
 
 export class FilesHelper {
 
@@ -238,11 +239,17 @@ export class FilesHelper {
 
     // Function to extract .zip files
     private async extractZip(zipFilePath: string, extractDir: string) {
+        // throw new Error("Await Refactor");
         try {
 
             extractDir = extractDir.replace(this.projectCompressedDirName, this.projectSourceDirName)
-            const zip = new AdmZip(zipFilePath);
-            zip.extractAllTo(extractDir, true);
+            // FIXME: Unzip using system command
+            // const zip = new AdmZip(zipFilePath); 
+            // zip.extractAllTo(extractDir, true);
+
+            await this._extractArchive(zipFilePath, extractDir);
+
+
             await this.moveSingleFileToParentDir(extractDir);
             console.log(`.zip files extracted to ${extractDir}`);
             return extractDir;
@@ -252,8 +259,64 @@ export class FilesHelper {
         return null;
     }
 
+
+    // private _extractZip(zipFilePath: string, extractDir: string) {
+    //     return new Promise((resolve, reject) => {
+
+    //         const zipPath = path.resolve(zipFilePath);
+    //         const extractPath = path.resolve(extractDir);
+
+    //         exec(`unzip -o ${zipPath} -d ${extractPath}`, (err, stdout: any, stderr: any) => {
+    //             if (err) {
+    //                 reject(`Error extracting zip file: ${err.message}`);
+    //             } else if (stderr) {
+    //                 reject(`Standard Error: ${stderr}`);
+    //             } else {
+    //                 resolve(`Extraction complete: ${stdout}`);
+    //             }
+    //         });
+    //     });
+    // }
+
+
+    private _extractArchive(archiveFilePath: string, extractDir: string) {
+        return new Promise((resolve, reject) => {
+            const archivePath = path.resolve(archiveFilePath);
+            const extractPath = path.resolve(extractDir);
+
+            // Determine the appropriate command based on the file extension
+            let command;
+            if (archivePath.endsWith('.zip')) {
+                command = `unzip -o ${archivePath} -d ${extractPath}`;
+            } else if (archivePath.endsWith('.tar')) {
+                command = `tar -xf ${archivePath} -C ${extractPath}`;
+            } else if (archivePath.endsWith('.tar.gz') || archivePath.endsWith('.tgz')) {
+                command = `tar -xzf ${archivePath} -C ${extractPath}`;
+            } else if (archivePath.endsWith('.tar.bz2')) {
+                command = `tar -xjf ${archivePath} -C ${extractPath}`;
+            } else if (archivePath.endsWith('.tar.xz')) {
+                command = `tar -xJf ${archivePath} -C ${extractPath}`;
+            } else {
+                return reject('Unsupported archive format');
+            }
+
+            exec(command, (err, stdout, stderr) => {
+                if (err) {
+                    reject(`Error extracting archive: ${err.message}`);
+                } else if (stderr) {
+                    reject(`Standard Error: ${stderr}`);
+                } else {
+                    resolve(`Extraction complete: ${stdout}`);
+                }
+            });
+        });
+    }
+
+
     // Function to extract .tar.gz files
     private async extractTarGz(tarGzFilePath: string, extractDir: string) {
+        // throw new Error("Await Refactor");
+
         try {
 
             extractDir = extractDir.replace(this.projectCompressedDirName, this.projectSourceDirName)
@@ -261,10 +324,14 @@ export class FilesHelper {
             // fsBase.mkdirSync(extractDir, { recursive: true });
             await fs.mkdir(extractDir, { recursive: true });
             // Extract tar.gz file
-            await tar.extract({
-                file: tarGzFilePath,
-                cwd: extractDir
-            });
+            // FIXME: Untar using system command
+            // await tar.extract({
+            //     file: tarGzFilePath,
+            //     cwd: extractDir
+            // });
+            await this._extractArchive(tarGzFilePath, extractDir);
+
+
 
             await this.moveSingleFileToParentDir(extractDir);
             console.log(`.tar.gz files extracted to ${extractDir}`);
