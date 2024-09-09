@@ -1,19 +1,20 @@
 <script lang="ts">
-import CommonErrorBox from '@/components/CommonErrorBox.svelte';
-import type { Project, ProjectDeployment } from '@/types/entities';
-import { Button, CodeSnippet } from 'carbon-components-svelte';
-import DeploymentProcessing from './DeploymentProcessing.svelte';
-import { InternalDeploymentActions } from '@/types/enums';
-import Rollback from '@/ui/icons/Rollback.svelte';
-import ServerCrash from '@/ui/icons/ServerCrash.svelte';
-import X from '@/ui/icons/X.svelte';
+	import CommonErrorBox from "@/components/CommonErrorBox.svelte";
+	import type { Project, ProjectDeployment } from "@/types/entities";
+	import { Button, CodeSnippet } from "carbon-components-svelte";
 
-export let project: Project;
-export let currentDeployment: ProjectDeployment | undefined;
+	import { InternalDeploymentActions } from "@/types/enums";
+	import Rollback from "@/ui/icons/Rollback.svelte";
+	import ServerCrash from "@/ui/icons/ServerCrash.svelte";
+	import X from "@/ui/icons/X.svelte";
+	import DeploymentProcessingHistory from "./DeploymentProcessingHistory.svelte";
+
+	export let project: Project;
+	export let currentDeployment: ProjectDeployment | undefined;
 </script>
 
 <CommonErrorBox error_msg="Initial deployment failed">
-	<DeploymentProcessing messages={project?.partialMessageList ?? []} sse={false} />
+	<DeploymentProcessingHistory messages={project.partialMessageList ?? []} />
 	<div class="flex gap-3 py-4 w-full justify-center">
 		<div></div>
 

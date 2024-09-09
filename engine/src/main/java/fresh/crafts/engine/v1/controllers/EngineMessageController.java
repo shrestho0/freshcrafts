@@ -4,11 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
 import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
-import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.services.EngineDepwizMessageService;
 import fresh.crafts.engine.v1.services.EngineMessageService;
-import fresh.crafts.engine.v1.services.KEventService;
 import fresh.crafts.engine.v1.utils.CraftUtils;
 import fresh.crafts.engine.v1.utils.enums.DepWizKEventCommands;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
@@ -24,9 +22,9 @@ public class EngineMessageController {
 
     public void handleStuff(KEvent kEvent) {
         System.err.println("[DEBUG]: Engine Message Controller");
-        System.err.println("[DEBUG]: engineMessageService: " + engineMessageService);
-        System.err.println("[DEBUG]: KEvent: " + kEvent);
-
+        System.err.println("[DEBUG] Event Received");
+        CraftUtils.jsonLikePrint(kEvent);
+        System.err.println("[DEBUG] Event Received Finished");
         // // save or update event
         // kEventService.createOrUpdate(kevent);
 
@@ -54,11 +52,13 @@ public class EngineMessageController {
             CraftUtils.jsonLikePrint(payload);
 
             if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_DEPLOYMENT) {
-                engineDepwizMessageService.serveDeployFeedback(kEvent, payload);
+                engineDepwizMessageService.serveFirstDepFeedback(kEvent, payload);
             } else if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_DELETE_DEPLOYMENTS) {
-                engineDepwizMessageService.serveDeleteFeedback(kEvent, payload);
+                engineDepwizMessageService.serveDeleteDepsFeedback(kEvent, payload);
             } else if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_RE_DEPLOYMENT) {
-                engineDepwizMessageService.serveReDeployFeedback(kEvent, payload);
+                engineDepwizMessageService.serveReDepFeedback(kEvent, payload);
+            } else if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_UPDATE_DEPLOYMENT) {
+                engineDepwizMessageService.serveUpdateDepFeedback(kEvent, payload);
             } else {
                 // invalid command
                 System.err.println("[DEBUG]: Invalid command");

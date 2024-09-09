@@ -7,7 +7,6 @@ import com.google.gson.GsonBuilder;
 
 import fresh.crafts.depwiz.entities.KEvent;
 import fresh.crafts.depwiz.entities.KEventDepWizardPayload;
-import fresh.crafts.depwiz.entities.KEventFeedbackPayload;
 import fresh.crafts.depwiz.enums.DepWizKEventCommands;
 import fresh.crafts.depwiz.enums.KEventProducers;
 
@@ -32,9 +31,9 @@ public class CraftUtils {
     }
 
     public static void jsonLikePrint(Object obj) {
-        Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
-        System.err.println("[DEBUG] Parsed KEvent: " + gson.toJson(obj));
-
+        Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().setPrettyPrinting()
+                .create();
+        System.err.println("\n" + gson.toJson(obj) + "\n");
     }
 
     public static KEvent generateFeedbackKEvent(KEvent event, DepWizKEventCommands command) {

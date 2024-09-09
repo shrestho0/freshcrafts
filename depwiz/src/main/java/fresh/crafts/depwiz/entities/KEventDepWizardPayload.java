@@ -12,8 +12,8 @@ public class KEventDepWizardPayload implements KEventPayloadInterface {
     private DepWizKEventCommands command;
 
     private Project project;
-    private ProjectDeployment deployment;
-    private ProjectDeployment deployment2; // maybe for update, check later
+    private ProjectDeployment currentDeployment;
+    private ProjectDeployment activeDeployment; // maybe for update, check later
     private List<ProjectDeployment> deploymentList;
 
     // For feedback

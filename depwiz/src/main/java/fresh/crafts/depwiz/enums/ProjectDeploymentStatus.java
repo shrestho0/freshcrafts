@@ -5,6 +5,8 @@ public enum ProjectDeploymentStatus {
 
     PRE_CREATION,
     READY_FOR_DEPLOYMENT,
+    READY_FOR_UPDATE,
+
     REQUESTED_DEPLOYMENT,
     REQUESTED_REDEPLOYMENT,
 

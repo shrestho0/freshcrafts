@@ -13,7 +13,7 @@ export const GET: RequestHandler = async ({ url, }) => {
         page, pageSize, sort,
     })
 
-    console.log(d);
+    // console.log(d);
     return json(d)
 };
 

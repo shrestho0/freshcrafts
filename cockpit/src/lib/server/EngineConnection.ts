@@ -145,6 +145,28 @@ export class EngineConnection {
 		}
 	}
 
+	async generateEngineTokens(email: any, fetch: any) {
+		const res = await fetch(BackendEndpoints.GENERATE_TOKEN, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({
+				provider: AuthProviderType.OAUTH_GOOGLE,
+				googleEmail: email
+			})
+		})
+			.then((res: { json: () => any; }) => res.json())
+			.catch(() => {
+				return {
+					success: false,
+					message: 'Failed to communicate with `engine`'
+				};
+			});
+
+		return res;
+	}
+
 	async refreshToken(refreshToken: string, provider: AuthProviderType) {
 		return this.customFetch(BackendEndpoints.REFRESH_TOKEN, {
 			method: 'POST',
@@ -502,6 +524,34 @@ export class EngineConnection {
 
 	async deployProject(id: string, data: any) {
 		return this.customFetch(BackendEndpoints.PROJECT_DEPLOY_BY_ID.replace(':id', id), {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async reDeployProject(id: string, data: any) {
+		return this.customFetch(BackendEndpoints.PROJECT_REDEPLOY_BY_ID.replace(':id', id), {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async updateProject(id: string, data: any) {
+		return this.customFetch(BackendEndpoints.PROJECT_UPDATE_BY_ID.replace(':id', id), {
+			method: 'PATCH',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async rollbackProject(id: string, data: any) {
+		return this.customFetch(BackendEndpoints.PROJECT_ROLLBACK_BY_ID.replace(':id', id), {
+			method: 'POST',
+			body: JSON.stringify(data)
+		})
+	}
+
+	async rollforwardProject(id: string, data: any) {
+		return this.customFetch(BackendEndpoints.PROJECT_ROLLFORWARD_BY_ID.replace(':id', id), {
 			method: 'POST',
 			body: JSON.stringify(data)
 		})

@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from "$app/stores";
 	import "@/ui/css/app.css";
 	import { Button, Select, SelectItem } from "carbon-components-svelte";
 	import { onMount } from "svelte";

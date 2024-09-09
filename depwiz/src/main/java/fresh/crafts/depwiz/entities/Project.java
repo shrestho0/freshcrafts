@@ -32,6 +32,7 @@ public class Project {
 
     // ProjectDomain domain;
     String domain;
+    Boolean ssl;
 
     // partial Messages
     List<String> partialMessageList;

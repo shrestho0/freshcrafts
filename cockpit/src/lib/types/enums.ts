@@ -46,12 +46,14 @@ export enum ProjectType {
 	GITHUB_REPO = 'GITHUB_REPO',
 }
 
-export enum ProjectSetupCommand {
+export enum InternalProjectSetupCommand {
 	CHECK_UNIQUE_NAME = 'check-unique-name',
 	LIST_SOURCE_FILES = 'list-source-files',
+	PROJECT_SCREEENSHOT = 'project-screenshot',
 
 	DEPLOY_PROJECT = 'deploy-project',
 	RE_DEPLOY_PROJECT = 're-deploy-project',
+	UPDATE_DEPLOYMENT = 'update-deployment',
 
 	DELETE_INCOMPLETE_PROJECT = 'delete-incomplete-project',
 	DELETE_PROJECT = 'delete-project',
@@ -81,6 +83,7 @@ export enum ProjectDeploymentStatus {
 
 	PRE_CREATION = "PRE_CREATION",
 	READY_FOR_DEPLOYMENT = "READY_FOR_DEPLOYMENT",
+
 	REQUESTED_DEPLOYMENT = "REQUESTED_DEPLOYMENT",
 	REQUESTED_REDEPLOYMENT = "REQUESTED_REDEPLOYMENT",
 	DEPLOYMENT_BEING_PROCESSED = "REQUESTED_DEPLOYMENT",
@@ -89,6 +92,7 @@ export enum ProjectDeploymentStatus {
 	REQUESTED_DELETION = "REQUESTED_DELETION",
 	DELETING_DEPLOYMENT = "DELETING_DEPLOYMENT",
 	COMPLETED_DELETION = "COMPLETED_DELETION",
+
 
 
 }
@@ -104,6 +108,12 @@ export enum AIChatCommands {
 
 
 export enum InternalDeploymentActions {
+
+	UPDATE_DEPLOYMENT = 'update-deployment',
+
+	ROLLBACK_DEPLOYMENT = 'rollback-deployment',
+	ROLLFORWARD_DEPLOYMENT = 'rollforward-deployment',
+
 	INITIAL_SETUP = 'initial-setup',
 	RE_DEPLOY = 're-deploy',
 	MODIFY_ENV = 'modify-env',

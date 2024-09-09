@@ -36,14 +36,14 @@ public class Project {
     // mainly for while deployment is in progress
     String currentDeploymentId;
 
-    Integer portAssigned;
-
     ProjectGithubRepo githubRepo;
 
     String updatedAt;
 
-    // ProjectDomain domain;
+    // Access Stuff;
     String domain;
+    Integer portAssigned;
+    Boolean ssl;
 
     // Project Dir
     ProjectDir projectDir;

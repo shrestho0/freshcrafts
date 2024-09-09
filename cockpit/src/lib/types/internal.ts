@@ -3,6 +3,7 @@
  */
 
 import type { GoogleOAuthLoginCallbackDto } from './dtos';
+import type { ProjectDeployment } from './entities';
 import type { AuthProviderType } from './enums';
 
 export type SetupPageOauthData = {
@@ -73,3 +74,18 @@ export type CustomJwtPayload = {
 	exp: number;
 	sub: 'ACCESS_TOKEN' | 'REFRESH_TOKEN';
 };
+
+export type InternalDeployProjectData = {
+	projectName: string,
+	buildCommand: string,
+	installCommand: string,
+	outputDir: string,
+	selectedFileRelativeUrl: string,
+	envFileContent: string,
+	deployment: ProjectDeployment,
+	projectId: string,
+	postInstall: string,
+	domain: string,
+	ssl: boolean,
+	version: number,
+}

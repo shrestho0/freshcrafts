@@ -32,9 +32,15 @@ public class CraftUtils {
     }
 
     public static void jsonLikePrint(Object obj) {
-        Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
-        System.err.println("[DEBUG] Parsed KEvent: " + gson.toJson(obj));
+        Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().setPrettyPrinting()
+                .create();
+        System.err.println("\n" + gson.toJson(obj) + "\n");
 
+    }
+
+    public static String toJson(Object obj) {
+        Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
+        return gson.toJson(obj);
     }
 
 }

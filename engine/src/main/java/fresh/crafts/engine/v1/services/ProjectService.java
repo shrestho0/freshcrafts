@@ -27,6 +27,7 @@ import fresh.crafts.engine.v1.models.ProjectDeployment;
 import fresh.crafts.engine.v1.repositories.ProjectDeploymentRepository;
 import fresh.crafts.engine.v1.repositories.ProjectRepository;
 import fresh.crafts.engine.v1.utils.CraftUtils;
+import fresh.crafts.engine.v1.utils.UlidGenerator;
 import fresh.crafts.engine.v1.utils.enums.DepWizKEventCommands;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 import fresh.crafts.engine.v1.utils.enums.ProjectDeploymentStatus;
@@ -68,6 +69,7 @@ public class ProjectService {
         newProject.setStatus(ProjectStatus.AWAIT_INITIAL_SETUP);
         newProject.setType(createProjectDto.getType());
         newProject.setTotalVersions(0);
+
         newProject.setProjectDir(createProjectDto.getProjectDir());
 
         if (createProjectDto.getType() == ProjectType.GITHUB_REPO) {
@@ -88,7 +90,8 @@ public class ProjectService {
 
         // create first version of project_deployment
         ProjectDeployment newDeployment = new ProjectDeployment();
-        newDeployment.setVersion(0);
+        newDeployment.setVersion(1);
+        newDeployment.setIteration(1);
         newDeployment.setStatus(ProjectDeploymentStatus.PRE_CREATION);
         newDeployment.setIsDeployed(false);
         // newDeployment.setProject(newProject);
@@ -231,7 +234,7 @@ public class ProjectService {
         return res;
     }
 
-    public ProjectDeployment getProjectDeploymentById2(String id) {
+    public ProjectDeployment getDeploymentById(String id) {
         return projectDeploymentService.getProjectDeploymentById(id);
     }
 
@@ -292,11 +295,10 @@ public class ProjectService {
         return projectRepository.save(p);
     }
 
-    public CommonResponseDto deployProject(String id, HashMap<String, Object> deployInfo, Boolean reDeploy) {
+    public CommonResponseDto deployProject(String id, HashMap<String, Object> deployInfo, boolean isReDeploy) {
 
-        System.out.println("\n\nDeployInfo: " + id + " " + "reDeploy" + reDeploy);
+        System.out.println("\n\nDeployInfo: " + id + " " + "First Deploy");
         CraftUtils.jsonLikePrint(deployInfo);
-
         System.out.println("\n\n");
 
         CommonResponseDto res = new CommonResponseDto();
@@ -311,20 +313,28 @@ public class ProjectService {
             HashMap<String, Object> requiredFields = new HashMap<>();
             requiredFields.put("domain", deployInfo.get("domain"));
             requiredFields.put("uniqueName", deployInfo.get("uniqueName"));
+            requiredFields.put("ssl", deployInfo.get("ssl"));
 
             CraftUtils.throwIfRequiredValuesAreNull(requiredFields);
 
-            if (deployInfo.get("domain") != null)
-                p.setDomain(deployInfo.get("domain").toString());
+            p.setDomain(deployInfo.get("domain").toString());
+            p.setUniqueName(deployInfo.get("uniqueName").toString());
+            p.setSsl((Boolean) deployInfo.get("ssl"));
 
-            if (deployInfo.get("uniqueName") != null)
-                p.setUniqueName(deployInfo.get("uniqueName").toString());
-
+            // message list should be empty at first
+            p.setPartialMessageList(new ArrayList<String>());
             // port will be added by dep_wiz
-            p.setStatus(ProjectStatus.PROCESSING_DEPLOYMENT);
-            pd.setStatus(reDeploy ? ProjectDeploymentStatus.REQUESTED_REDEPLOYMENT
-                    : ProjectDeploymentStatus.REQUESTED_DEPLOYMENT);
+
+            if (isReDeploy) {
+                p.setStatus(ProjectStatus.PROCESSING_REDEPLOYMENT);
+                pd.setStatus(ProjectDeploymentStatus.REQUESTED_REDEPLOYMENT);
+            } else {
+                p.setStatus(ProjectStatus.PROCESSING_DEPLOYMENT);
+                pd.setStatus(ProjectDeploymentStatus.REQUESTED_DEPLOYMENT);
+
+            }
             // pd.setPartialDeploymentMsg("");
+
             pd.setErrorTraceback("");
 
             // update p && pd
@@ -335,8 +345,13 @@ public class ProjectService {
             KEvent kevent = generateCommonKEvent();
             DepWizKEventPayload payload = new DepWizKEventPayload();
 
-            payload.setCommand(reDeploy ? DepWizKEventCommands.RE_DEPLOY : DepWizKEventCommands.DEPLOY);
-            payload.setDeployment(projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId()));
+            if (isReDeploy) {
+                payload.setCommand(DepWizKEventCommands.RE_DEPLOY);
+            } else {
+                payload.setCommand(DepWizKEventCommands.DEPLOY);
+            }
+
+            payload.setCurrentDeployment(projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId()));
             payload.setProject(p);
             kevent.setPayload(payload);
 
@@ -513,6 +528,55 @@ public class ProjectService {
             System.out.println("Error deleting deployments for project with id: " + id);
             throw e;
         }
+
+    }
+
+    public CommonResponseDto updateProjectDeployment(String id, ProjectDeployment currentDeployment) {
+        CommonResponseDto res = new CommonResponseDto();
+
+        System.out.println("updateProject" + "pathano hocche:" + id);
+        CraftUtils.jsonLikePrint(currentDeployment);
+
+        try {
+
+            Project p = projectRepository.findById(id).get();
+
+            // create new deployment currentDeployment
+            currentDeployment.setId(UlidGenerator.generate());
+            currentDeployment.setProjectId(p.getId());
+
+            p.setCurrentDeploymentId(currentDeployment.getId());
+            p.setStatus(ProjectStatus.PROCESSING_UPDATE);
+            p.setPartialMessageList(new ArrayList<String>());
+
+            currentDeployment.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+
+            projectDeploymentService.save(currentDeployment);
+            projectRepository.save(p);
+
+            KEvent kevent = generateCommonKEvent();
+            DepWizKEventPayload payload = new DepWizKEventPayload();
+
+            payload.setCommand(DepWizKEventCommands.UPDATE_DEPLOYMENT);
+            payload.setProject(p);
+            payload.setCurrentDeployment(currentDeployment);
+            payload.setActiveDeployment(projectDeploymentService.getProjectDeploymentById(p.getActiveDeploymentId()));
+
+            kevent.setPayload(payload);
+            kEventService.createOrUpdate(kevent);
+            messageProducer.sendEvent(kevent);
+
+            res.setSuccess(true);
+            res.setStatusCode(202);
+            res.setMessage("Deployment update request is being processed");
+
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400);
+            res.setMessage("Error: " + e.getMessage());
+        }
+
+        return res;
 
     }
 

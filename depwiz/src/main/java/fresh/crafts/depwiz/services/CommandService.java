@@ -1,12 +1,7 @@
 
 package fresh.crafts.depwiz.services;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.File;
 
@@ -21,9 +16,6 @@ import java.util.ArrayList;
 // Note: Refactor required
 @Service
 public class CommandService {
-
-    @Autowired
-    private Environment env;
 
     public CommandServiceResult lsDir(String dir) {
         String command = "ls " + dir;
@@ -286,7 +278,7 @@ public class CommandService {
 
     }
 
-    public List<CommandServiceResult> disableNginxSite(String id) {
+    public CommandServiceResult disableNginxSite(String id) {
 
         List<CommandServiceResult> results = new ArrayList<CommandServiceResult>();
 
@@ -320,16 +312,37 @@ public class CommandService {
             results.add(result2);
         }
 
-        CommandServiceResult result3 = new CommandServiceResult();
-        result3.setExitCode(0);
-        result3.setOutput("Nginx site disabled successfully");
+        CommandServiceResult finalResult = new CommandServiceResult();
+        finalResult.setExitCode(0);
+        finalResult.setOutput("Nginx site disabled successfully");
         // return result3;
-        results.add(result3);
+        // results.add(result3);
 
-        return results;
+        String outputTraceback = "========== NGINX:" + id + "Delete Output ==========";
+        String shortErrorTraceback = "========== NGINX:" + id + " Delete Short Error ==========";
+        String errorTraceback = "========== NGINX Delete:" + id + " Error ==========";
+
+        for (CommandServiceResult res : results) {
+
+            if (res.getOutput() != null)
+                outputTraceback += "\n" + res.getOutput().toString() + "\n";
+
+            if (res.getError() != null)
+                errorTraceback += "\n" + res.getError().toString() + "\n";
+
+            if (res.getShortError() != null)
+                shortErrorTraceback += "\n" + "ExitCode:" + res.getExitCode() + " :: " + res.getShortError() + "\n";
+
+        }
+
+        finalResult.setError(errorTraceback);
+        finalResult.setOutput(outputTraceback);
+        finalResult.setShortError(shortErrorTraceback);
+
+        return finalResult;
     }
 
-    public List<CommandServiceResult> stopAndDeletePM2(String ecoSystemFileAbsPath) {
+    public CommandServiceResult stopAndDeletePM2(String ecoSystemFileAbsPath, String id) {
         List<CommandServiceResult> results = new ArrayList<CommandServiceResult>();
 
         // stop pm2
@@ -357,12 +370,33 @@ public class CommandService {
             results.add(result2);
         }
 
-        CommandServiceResult result3 = new CommandServiceResult();
-        result3.setExitCode(0);
-        result3.setOutput("PM2 stopped and deleted successfully");
-        results.add(result3);
+        CommandServiceResult finalResult = new CommandServiceResult();
+        finalResult.setExitCode(0);
+        finalResult.setOutput("PM2 stopped and deleted successfully");
 
-        return results;
+        String outputTraceback = "========== PM2:" + id + " Delete Output ==========";
+        String shortErrorTraceback = "========== PM2:" + id + " Delete Short Error ==========";
+        String errorTraceback = "========== PM2:" + id + " Delete Error ==========";
+
+        for (CommandServiceResult res : results) {
+
+            if (res.getOutput() != null)
+                outputTraceback += "\n" + res.getOutput().toString() + "\n";
+
+            if (res.getError() != null)
+                errorTraceback += "\n" + res.getError().toString() + "\n";
+
+            if (res.getShortError() != null)
+                shortErrorTraceback += "\n" + "ExitCode:" + res.getExitCode() + " :: " + res.getShortError()
+                        + "\n";
+
+        }
+
+        finalResult.setError(errorTraceback);
+        finalResult.setOutput(outputTraceback);
+        finalResult.setShortError(shortErrorTraceback);
+
+        return finalResult;
     }
 
 }

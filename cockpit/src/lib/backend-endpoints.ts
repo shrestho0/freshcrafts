@@ -36,7 +36,13 @@ const _endpoints = {
 
 	PROJECTS_ALL: '/projects',
 	PROJECTS_INIT: '/projects/init',
+
 	PROJECT_DEPLOY_BY_ID: '/projects/deploy/:id', // POST to deploy
+	PROJECT_REDEPLOY_BY_ID: '/projects/redeploy/:id', // POST to re-deploy
+	PROJECT_UPDATE_BY_ID: '/projects/update/:id', // PATCH to update
+	PROJECT_ROLLBACK_BY_ID: '/projects/rollback/:id', // POST to rollback
+	PROJECT_ROLLFORWARD_BY_ID: '/projects/rollforward/:id', // POST to rollforward
+
 	PROJECT_BY_ID: '/projects/:id',
 	PROJECT_BY_UNIQUE_NAME: '/projects/:id?isIdUniqueName=true',
 

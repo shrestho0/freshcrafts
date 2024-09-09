@@ -5,6 +5,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import fresh.crafts.depwiz.entities.KEvent;
+import fresh.crafts.depwiz.utils.CraftUtils;
 
 @Component
 public class MessageProducer {
@@ -21,8 +22,9 @@ public class MessageProducer {
     }
 
     public void sendEvent(KEvent event) {
-        System.out.println("---------- Sending KEvent ----------");
-        System.out.println(event.toJson());
+        System.out.println("---------- Sending KEvent to " + event.getEventDestination() + " ----------");
+        // System.out.println(event.toJson());
+        CraftUtils.jsonLikePrint(event);
         kafkaTemplate.send(event.getEventDestination().toString(), event.toJson());
         System.out.println("------------ KEvent Sent ------------");
     }

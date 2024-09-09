@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"log"
+	"strconv"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -69,15 +70,37 @@ func checkProjectDomains() {
 	// mo
 
 	var checkedSites []models.SiteTestResult
+
 	for _, site := range sites {
-		_, statusCode, err := utils.RequestGet("https://" + site.Domain)
-		// log.Println("site", site.Domain, "statusCode", statusCode, "err", err, "errNil", err == nil)
-		siteResult := models.SiteTestResult{
-			Domain:     site.Domain,
-			StatusCode: statusCode,
-			Timestamp:  utils.GetUlid(),
-			Working:    (err == nil) && (statusCode >= 200 && statusCode < 500),
+		protocol := "http://"
+
+		if site.SSL {
+			protocol = "https://"
 		}
+
+		_, domainStatusCode, err := utils.RequestGet(protocol + site.Domain) // FIXME: check ssl=true in projects, and also check for port
+		if err != nil {
+			log.Println("Error: DomainRequest", err)
+		}
+
+		_, portStatusCode, err := utils.RequestGet("http://localhost" + strconv.Itoa(site.Port))
+
+		if err != nil {
+			log.Println("Error: PortRequest", err)
+		}
+
+		siteResult := models.SiteTestResult{
+			Domain: site.Domain,
+			Port:   site.Port,
+
+			DomainStatusCode: domainStatusCode,
+			PortStatusCode:   portStatusCode,
+
+			Timestamp:        utils.GetUlid(),
+			Working:          (err == nil) && (domainStatusCode >= 200 && domainStatusCode < 500) && (portStatusCode >= 200 && portStatusCode < 500),
+			PartiallyWorking: (domainStatusCode >= 200 && domainStatusCode < 500) || (portStatusCode >= 200 && portStatusCode < 500),
+		}
+
 		checkedSites = append(checkedSites, siteResult)
 		// log.Println("gg", siteResult)
 	}

@@ -7,8 +7,9 @@ import path from 'path';
 // import * as tar from 'tar';
 import type { ProjectDir } from "@/types/entities";
 import { exec } from 'child_process';
-
+import puppeteer from 'puppeteer';
 export class FilesHelper {
+
 
     private static instance: FilesHelper;
     private basePath = FILE_UPLOAD_DIR
@@ -408,14 +409,31 @@ export class FilesHelper {
                 const stats = await fs.stat(filePath);
                 const isDir = stats.isDirectory();
                 const isFile = stats.isFile();
+                const relativePath = filePath.replace(filesDirAbsPath, '').charAt(0) === '/' ? filePath.replace(filesDirAbsPath, '').slice(1) : filePath.replace(filesDirAbsPath, '');
+
 
                 if (isDir) {
                     const children = await getDirectoryStructure(filePath, level + 1, maxDepth);
                     structure.push({
-                        text: file, children, isDir, disabled: !isDir, isFile, level, id: iota++
+                        text: file,
+                        children,
+                        // isDir, 
+                        disabled: !isDir,
+                        // isFile, 
+                        level,
+                        id: iota++,
+                        relativePath,
                     });
                 } else if (isFile) {
-                    structure.push({ text: file, isDir, isFile, disabled: !isDir, level, id: iota++ });
+                    structure.push({
+                        text: file,
+                        // isFile, 
+                        // isDir, isFile, 
+                        disabled: !isDir,
+                        level,
+                        id: iota++,
+                        relativePath
+                    });
                 }
 
                 if (level > total_levels) {
@@ -499,6 +517,9 @@ export class FilesHelper {
     async readFile(filePath: string) {
         return await fs.readFile(filePath, 'utf-8');
     }
+    async readFileRaw(filePath: string) {
+        return await fs.readFile(filePath);
+    }
 
     async exists(filePath: string) {
         try {
@@ -507,6 +528,19 @@ export class FilesHelper {
         } catch (e: any) {
             return false
         }
+    }
+
+
+    async takeProjectScreenshot(port: any, screenshotPath: string) {
+
+        const browser = await puppeteer.launch();
+        const page = await browser.newPage();
+        const url = `http://localhost:${port}`
+        console.log('url', url)
+        await page.goto(`http://localhost:${port}`);
+        await page.setViewport({ width: 1280, height: 720 });
+        await page.screenshot({ path: screenshotPath });
+        await browser.close();
     }
 
 }

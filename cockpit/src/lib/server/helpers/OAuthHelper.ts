@@ -6,7 +6,6 @@ import {
 
 import { PUBLIC_GITHUB_APP_INSTALLATION_URL, PUBLIC_GITHUB_OAUTH_CALLBACK_URL, PUBLIC_GOOGLE_OAUTH_CALLBACK_URL } from '$env/static/public';
 
-// import { google } from 'googleapis';
 
 
 /*
@@ -32,19 +31,26 @@ export const getGithubLoginUrl = (baseUrl: string, state: string) => {
 };
 
 export function getGooleLoginhUrl(baseUrl: string, state: string) {
-	throw new Error("Await refactoring");
+	// throw new Error("Await refactoring");
 	// // console.log("GOogle Auth Url", googleAuthUrl.href)
 	// FIXME: Uncomment all
+
+
+
 	// const oauth2Client = new google.auth.OAuth2(
 	// 	GOOGLE_CLIENT_ID,
 	// 	GOOGLE_CLIENT_SECRET,
 	// 	baseUrl + PUBLIC_GOOGLE_OAUTH_CALLBACK_URL
 	// );
 
-	// const scopes = [
-	// 	'https://www.googleapis.com/auth/userinfo.email',
-	// 	'https://www.googleapis.com/auth/userinfo.profile'
-	// ];
+	const oauth2Endpoint = `https://accounts.google.com/o/oauth2/v2/auth`
+	const redirectUri = baseUrl + PUBLIC_GOOGLE_OAUTH_CALLBACK_URL
+
+	const scopes = [
+		'https://www.googleapis.com/auth/userinfo.email',
+		'https://www.googleapis.com/auth/userinfo.profile'
+	];
+
 	// const authorizationUrl = oauth2Client.generateAuthUrl({
 	// 	// 'online' (default) or 'offline' (gets refresh_token)
 	// 	access_type: 'offline',
@@ -53,7 +59,22 @@ export function getGooleLoginhUrl(baseUrl: string, state: string) {
 	// 	include_granted_scopes: true,
 	// 	state: state
 	// });
-	// return authorizationUrl.toString();
+
+	const queryParams = new URLSearchParams({
+		client_id: GOOGLE_CLIENT_ID,
+		redirect_uri: redirectUri,
+		response_type: 'code',
+		scope: scopes.join(' '),
+		access_type: 'offline',
+		prompt: 'consent',
+		include_granted_scopes: 'true', // include previously granted scopes
+		state: state // pass any state parameter
+	});
+
+	return oauth2Endpoint + '?' + queryParams.toString();
+
+
+
 }
 
 

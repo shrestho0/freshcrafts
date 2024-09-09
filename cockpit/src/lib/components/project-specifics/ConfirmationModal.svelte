@@ -1,12 +1,17 @@
 <script lang="ts">
-import { ProjectSetupCommand } from '@/types/enums';
-import { EnvVarsUtil } from '@/utils/utils';
-import { ComposedModal, ModalHeader, ModalBody, ModalFooter } from 'carbon-components-svelte';
+	import { InternalProjectSetupCommand } from "@/types/enums";
+	import { EnvVarsUtil } from "@/utils/utils";
+	import {
+		ComposedModal,
+		ModalHeader,
+		ModalBody,
+		ModalFooter,
+	} from "carbon-components-svelte";
 
-export let confirmationModalOpen: boolean;
-export let setup: any;
-// func
-export let deployProject: any;
+	export let confirmationModalOpen: boolean;
+	export let setup: any;
+	// func
+	export let deployProject: any;
 </script>
 
 <ComposedModal bind:open={confirmationModalOpen} preventCloseOnClickOutside>
@@ -14,7 +19,8 @@ export let deployProject: any;
 	<ModalBody>
 		<div class="flex flex-col gap-3">
 			<p class="text-lg">
-				You are about to deploy a new version of the project. Please confirm the details below.
+				You are about to deploy a new version of the project. Please
+				confirm the details below.
 			</p>
 			<div class="flex flex-col gap-2">
 				<div
@@ -67,7 +73,11 @@ export let deployProject: any;
 				>
 					<p>Environment Variables</p>
 				</div>
-				<div class="w-full {setup.envFileContent ? 'h-60 overflow-y-scroll' : ''}">
+				<div
+					class="w-full {setup.envFileContent
+						? 'h-60 overflow-y-scroll'
+						: ''}"
+				>
 					<p>{setup.envFileContent}</p>
 				</div>
 			</div>
@@ -82,6 +92,8 @@ export let deployProject: any;
 		>
 			Back to initial setup
 		</button>
-		<button class="bx--btn bx--btn--primary" on:click={deployProject}> Deploy </button>
+		<button class="bx--btn bx--btn--primary" on:click={deployProject}>
+			Deploy
+		</button>
 	</ModalFooter>
 </ComposedModal>

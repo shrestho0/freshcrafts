@@ -1,29 +1,29 @@
 <script lang="ts">
-import type { Project, ProjectDeployment } from '@/types/entities';
-import { ProjectType } from '@/types/enums';
-import CarbonBranch from '@/ui/icons/CarbonBranch.svelte';
-import CarbonDocumentMultiple1 from '@/ui/icons/CarbonDocumentMultiple1.svelte';
-import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
-import Files from '@/ui/icons/Files.svelte';
-import GitBranch from '@/ui/icons/GitBranch.svelte';
-import Github from '@/ui/icons/Github.svelte';
-import { toTitleCase } from '@/utils/utils';
-import {
-	StructuredList,
-	StructuredListBody,
-	StructuredListCell,
-	StructuredListHead,
-	StructuredListRow,
-	Tag,
-	Tile
-} from 'carbon-components-svelte';
-import ProjectStatusTag from './ProjectStatusTag.svelte';
-import ProjectDeploymentStatusTag from './ProjectDeploymentStatusTag.svelte';
-import SquareArrowOutUpRight from '@/ui/icons/SquareArrowOutUpRight.svelte';
+	import type { Project, ProjectDeployment } from "@/types/entities";
+	import { ProjectType } from "@/types/enums";
+	import CarbonBranch from "@/ui/icons/CarbonBranch.svelte";
+	import CarbonDocumentMultiple1 from "@/ui/icons/CarbonDocumentMultiple1.svelte";
+	import CarbonLogoGithub from "@/ui/icons/CarbonLogoGithub.svelte";
+	import Files from "@/ui/icons/Files.svelte";
+	import GitBranch from "@/ui/icons/GitBranch.svelte";
+	import Github from "@/ui/icons/Github.svelte";
+	import { toTitleCase } from "@/utils/utils";
+	import {
+		StructuredList,
+		StructuredListBody,
+		StructuredListCell,
+		StructuredListHead,
+		StructuredListRow,
+		Tag,
+		Tile,
+	} from "carbon-components-svelte";
+	import ProjectStatusTag from "./ProjectStatusTag.svelte";
+	import ProjectDeploymentStatusTag from "./ProjectDeploymentStatusTag.svelte";
+	import SquareArrowOutUpRight from "@/ui/icons/SquareArrowOutUpRight.svelte";
 
-export let project: Project;
-export let currentDeployment: ProjectDeployment | undefined;
-export let activeDeployment: ProjectDeployment | undefined;
+	export let project: Project;
+	export let currentDeployment: ProjectDeployment | undefined;
+	export let activeDeployment: ProjectDeployment | undefined;
 </script>
 
 <StructuredList class="max-w-xl" condensed>
@@ -61,7 +61,10 @@ export let activeDeployment: ProjectDeployment | undefined;
 					<!-- <pre>/</pre> -->
 					<!-- <div>Deployed: {toTitleCase(currentDeployment?.isDeployed.toString())}</div> -->
 					Version: {currentDeployment?.version}
-					<ProjectDeploymentStatusTag status={currentDeployment.status} />
+					Iterations: {currentDeployment?.iteration}
+					<ProjectDeploymentStatusTag
+						status={currentDeployment.status}
+					/>
 				{:else}
 					No current/processing deployment
 				{/if}
@@ -76,7 +79,10 @@ export let activeDeployment: ProjectDeployment | undefined;
 					<pre>/</pre>
 					<div>Deployed: {toTitleCase(activeDeployment?.isDeployed.toString())}</div> -->
 					Version: {activeDeployment?.version}
-					<ProjectDeploymentStatusTag status={activeDeployment.status} />
+					Iterations: {activeDeployment?.iteration}
+					<ProjectDeploymentStatusTag
+						status={activeDeployment.status}
+					/>
 				{:else}
 					No active deployment
 				{/if}
@@ -89,7 +95,8 @@ export let activeDeployment: ProjectDeployment | undefined;
 				><a
 					href="//{project?.domain}"
 					target="_blank"
-					class=" hover:text-[var(--cds-link-02)] hover:cursor-pointer">{project?.domain}</a
+					class=" hover:text-[var(--cds-link-02)] hover:cursor-pointer"
+					>{project?.domain}</a
 				></StructuredListCell
 			>
 		</StructuredListRow>
@@ -106,7 +113,7 @@ export let activeDeployment: ProjectDeployment | undefined;
 				{:else}
 					<CarbonLogoGithub class="h-5 w-5" />
 				{/if}
-				{toTitleCase(project.type.toString().replace('_', ' '))}
+				{toTitleCase(project.type.toString().replace("_", " "))}
 			</StructuredListCell>
 		</StructuredListRow>
 		{#if project.type === ProjectType.GITHUB_REPO}
@@ -114,7 +121,8 @@ export let activeDeployment: ProjectDeployment | undefined;
 				<StructuredListCell head>Github Info:</StructuredListCell>
 				<StructuredListCell class="flex gap-3">
 					<a
-						href="https://github.com/{project?.githubRepo?.fullName}"
+						href="https://github.com/{project?.githubRepo
+							?.fullName}"
 						target="_blank"
 						class="hover:text-blue-500 flex gap-2"
 					>
@@ -123,7 +131,8 @@ export let activeDeployment: ProjectDeployment | undefined;
 						{project?.githubRepo?.fullName}
 					</a>
 					<a
-						href="https://github.com/{project?.githubRepo?.fullName}/tree/{project?.githubRepo
+						href="https://github.com/{project?.githubRepo
+							?.fullName}/tree/{project?.githubRepo
 							?.defaultBranch}"
 						target="_blank"
 						class="hover:text-blue-500 flex gap-2"

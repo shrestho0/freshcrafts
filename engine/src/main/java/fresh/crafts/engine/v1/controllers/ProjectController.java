@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -21,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 import fresh.crafts.engine.v1.dtos.CreateProjectRequestDto;
-import fresh.crafts.engine.v1.models.AIChatHistory;
 import fresh.crafts.engine.v1.models.Project;
 import fresh.crafts.engine.v1.models.ProjectDeployment;
 import java.util.List;
@@ -68,13 +66,33 @@ public class ProjectController {
     @PostMapping("/deploy/{id}")
     public ResponseEntity<CommonResponseDto> deployProject(
             @PathVariable String id,
-            @RequestBody HashMap<String, Object> deployInfo,
-            @RequestParam(defaultValue = "false") Boolean reDeploy) {
+            @RequestBody HashMap<String, Object> deployInfo) {
         // return "deployProjectById";
 
-        System.out.println("deployProjectById" + "deploy pathano hocche:" + id + " " + reDeploy);
+        System.out.println("deployProjectById" + "deploy pathano hocche:" + id);
 
-        CommonResponseDto res = projectService.deployProject(id, deployInfo, reDeploy);
+        CommonResponseDto res = projectService.deployProject(id, deployInfo, false);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PostMapping("/redeploy/{id}")
+    public ResponseEntity<CommonResponseDto> reDeployProject(
+            @PathVariable String id,
+            @RequestBody HashMap<String, Object> deployInfo) {
+        System.out.println("reDeployProjectById" + "redeploy pathano hocche:" + id);
+
+        CommonResponseDto res = projectService.deployProject(id, deployInfo, true);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<CommonResponseDto> updateProjectDeployment(
+            @PathVariable String id,
+            @RequestBody ProjectDeployment currentDeployment) {
+
+        System.out.println("updateProject" + "redeploy pathano hocche:" + id);
+
+        CommonResponseDto res = projectService.updateProjectDeployment(id, currentDeployment);
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 

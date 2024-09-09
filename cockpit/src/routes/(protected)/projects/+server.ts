@@ -1,9 +1,10 @@
-import { PRIMARY_DOMAIN } from "$env/static/private";
+import { ENV, PRIMARY_DOMAIN } from "$env/static/private";
 import { EngineConnection } from "@/server/EngineConnection";
 import { FilesHelper } from "@/server/FilesHelper";
 import type { EngineCommonResponseDto } from "@/types/dtos";
 import type { Project, ProjectDeployment, ProjectDeploymentSource } from "@/types/entities";
-import { ProjectDeploymentStatus, ProjectSetupCommand } from "@/types/enums";
+import { ProjectDeploymentStatus, InternalProjectSetupCommand } from "@/types/enums";
+import type { InternalDeployProjectData } from "@/types/internal";
 import messages from "@/utils/messages";
 import { error, json, type RequestHandler } from "@sveltejs/kit";
 
@@ -13,12 +14,12 @@ export const GET: RequestHandler = async ({ request, cookies }) => {
 
 export const PATCH: RequestHandler = async ({ request, cookies }) => {
     try {
-        const command = request.headers.get('x-freshcrafts-project-setup-command') as unknown as ProjectSetupCommand
+        const command = request.headers.get('x-freshcrafts-project-setup-command') as unknown as InternalProjectSetupCommand
         const data = await request.json();
         const filesHelper = FilesHelper.getInstance();
 
         switch (command) {
-            case ProjectSetupCommand.CHECK_UNIQUE_NAME:
+            case InternalProjectSetupCommand.CHECK_UNIQUE_NAME:
                 const projName = data.projName;
                 //   only allowed laters, numbers, hyphens of length 5-32
                 const regex = /^[a-z0-9-]{3,32}$/;
@@ -35,79 +36,71 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
 
                 return json({ success: result.success, message, }, { status: result.statusCode });
 
-            case ProjectSetupCommand.LIST_SOURCE_FILES:
+            case InternalProjectSetupCommand.LIST_SOURCE_FILES:
                 const srcX: ProjectDeploymentSource = data.src;
                 console.log('src', srcX)
                 // filesDirAbsPath
                 const fileTreeDetailed = await filesHelper.listFilesRecursive(srcX.filesDirAbsPath);
                 // console.log('fileList', fileTreeDetailed)
                 return json({ success: true, files: fileTreeDetailed.structure, total_levels: fileTreeDetailed.total_levels, iota: fileTreeDetailed.iota });
+            case InternalProjectSetupCommand.PROJECT_SCREEENSHOT:
+                const projectId = data.projectId;
+                // const projectDomain = data.projectDomain;
+                const projectPort = data.projectPort;
 
-            case ProjectSetupCommand.DEPLOY_PROJECT:
-                const d: {
-                    projectName: string,
-                    buildCommand: string,
-                    installCommand: string,
-                    outputDir: string,
-                    selectedFileRelativeUrl: string,
-                    envFileContent: string,
-                    deployment: ProjectDeployment,
-                    projectId: string,
-                    postInstall: string,
-                } = data;
+                console.log('projId', projectId, 'projDomain', projectPort)
 
-                console.log("dddddd", d)
+                const screenshotPath = await filesHelper.getProjectDir(projectId).path + '/screenshot.png';
+                // if (await filesHelper.exists(screenshotPath)) {
 
-                // TODO: send only the abs path
-                // create env file from env content
-                // const envFile = await filesHelper.writeProjectEnvFile(d.projectId, d.envFileContent);
+                // } else {
+                // try to take screenshot and save to the path
 
-                // Env file should be projectRoot/.env
+                // return json({ success: true, path: screenshotPath });
 
-                // whole source should be checked and saved
-                const src = d.deployment.src;
-                // src.rootDirPath should be relative to the filesDirPath
-                src.rootDirPath = filesHelper.joinPath(d.selectedFileRelativeUrl)
-                src.rootDirAbsPath = filesHelper.joinPath(src.filesDirAbsPath, d.selectedFileRelativeUrl)
+                try {
 
-                const envFile = await filesHelper.writeProjectEnvFile(src.filesDirPath, src.rootDirPath, d.envFileContent);
+                    // taking screenshot
+                    await filesHelper.takeProjectScreenshot(projectPort, screenshotPath);
+                    // }
+                    console.log('screenshotPath exists', screenshotPath)
+                    // return file
+                    const f = await filesHelper.readFileRaw(screenshotPath);
+                    // console.log('file', f)
 
-                // src.buildDirPath should be relative to the rootDirPath
-                src.buildDirPath = filesHelper.joinPath(d.outputDir)
-                src.buildDirAbsPath = filesHelper.joinPath(src.rootDirAbsPath, d.outputDir)
-
-                const depCommands = {
-                    build: d.buildCommand,
-                    install: d.installCommand,
-                    postInstall: d.postInstall,
+                    return new Response(f, {
+                        headers: {
+                            'Content-Type': 'image/png',
+                            'Content-Length': f.length.toString(),
+                        },
+                    })
+                } catch (e) {
+                    // console.error('Error in reading screenshot file', e)
+                    return json({ success: false, message: 'Error in reading screenshot file' }, { status: 400 });
                 }
 
-                const domain = `${d.projectName}.${PRIMARY_DOMAIN}`;
-                const prodFiles = await filesHelper.writeProjectEcoSystemFile(
-                    d.projectId,
-                    1, // as initial deployment
-                    d.projectName,
-                    domain,
-                    src.buildDirAbsPath,
-                    envFile.absPath,);
 
-                const depUpdate = await EngineConnection.getInstance().updatePartialProjectDeployment(d.deployment.id, {
-                    src,
-                    envFile,
-                    depCommands,
-                    prodFiles,
-                    status: ProjectDeploymentStatus.READY_FOR_DEPLOYMENT
-                } as Partial<ProjectDeployment>);
+            // if no file for /projects/:id/screenshot.png
 
-                // console.log('depUpdate', depUpdate)
+            // create a new file with the screenshot
 
-                // now create project
+            // return screenshot file path
 
-                // console.log('d', d)
+            case InternalProjectSetupCommand.DEPLOY_PROJECT:
+                const d: InternalDeployProjectData = data;
+                d.domain = `${d.projectName}.${PRIMARY_DOMAIN}`;
+                d.ssl = ENV == "prod"
+                // d.version = 1; // as initial deployment
+
+                // console.log("dddddd", d)
+
+                const depUpdate = await updatePartialDeployment(d.deployment.id!, d);
+                console.log("Update current deployment with data", depUpdate)
 
                 const firstDeploy = await EngineConnection.getInstance().deployProject(d.projectId, {
                     uniqueName: d.projectName,
-                    domain: domain,
+                    domain: d.domain,
+                    ssl: d.ssl
                 } as Partial<Project>
                 ) as EngineCommonResponseDto
 
@@ -115,29 +108,62 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
                 console.log('firstDeploy', firstDeploy)
 
 
-                // console.warn(JSON.stringify({
-                //     src,
-                //     envFile,
-                //     depCommands,
-                // }, null, 2))
-                // // console.warn('newSource', src)
-
-                // // partial update project deployment
-                // // upon result, set 
-                // console.log('depUpdate', depUpdate)
-                // return json(depUpdate);
-
                 return json(firstDeploy);
-            // case ProjectSetupCommand.RE_DEPLOY_PROJECT:
-            //     console.log("Re-deploy project with data", data)
-            //     break
-            case ProjectSetupCommand.DELETE_PROJECT:
-                console.log("Delete project with data", data)
-                const res = await EngineConnection.getInstance().deleteProject(data.projectId);
-                // if(res.success){
-                //     // set will 
-                // }
-                return json(res);
+
+            case InternalProjectSetupCommand.RE_DEPLOY_PROJECT:
+                const rd: InternalDeployProjectData = data;
+                rd.domain = `${rd.projectName}.${PRIMARY_DOMAIN}`;
+                rd.ssl = ENV == "prod"
+
+                const rDepUpdate = await updatePartialDeployment(rd.deployment.id!, rd);
+
+                console.log("Re-deploy project with data", rDepUpdate)
+                const reDeploy = await EngineConnection.getInstance().reDeployProject(rd.projectId, {
+                    uniqueName: rd.projectName,
+                    domain: rd.domain,
+                    ssl: rd.ssl
+                } as Partial<Project>
+                ) as EngineCommonResponseDto
+
+
+                console.log("Re-deploy project with data", reDeploy)
+                return json(reDeploy)
+
+            case InternalProjectSetupCommand.DELETE_PROJECT:
+                return json(await EngineConnection.getInstance().deleteProject(data.projectId));
+            case InternalProjectSetupCommand.UPDATE_DEPLOYMENT:
+                // nothing to change in project itself from here
+                // clone activeDeployment to new currentDeployment
+                // update currentDeployment with new data
+                // request update
+
+                const u = data as InternalDeployProjectData;
+                const processedFilesInfo = await generateUpdatedDepData(u);
+
+                let newCurrentDep = u.deployment;
+
+                newCurrentDep.status = ProjectDeploymentStatus.READY_FOR_DEPLOYMENT;
+                // newCurrentDep.id = undefined;
+                newCurrentDep.iteration = 1;
+                newCurrentDep.version = u.deployment.version;
+                newCurrentDep = {
+                    ...newCurrentDep,
+                    src: processedFilesInfo.src,
+                    envFile: processedFilesInfo.envFile,
+                    depCommands: processedFilesInfo.depCommands,
+                    prodFiles: processedFilesInfo.prodFiles
+                }
+
+                // console.log('dep to update', u)
+                console.log("newCurrentDep", newCurrentDep)
+
+                // create deployment
+
+                const updated = await EngineConnection.getInstance().updateProject(data.projectId, newCurrentDep)
+
+                console.log('update request', updated)
+                return json(updated)
+
             default:
                 throw new Error("Invalid command provided for `x-freshcrafts-project-setup-command`: " + command.toString())
         }
@@ -147,3 +173,51 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
         return json({ success: false, message: e?.message ?? 'Something went wrong' }, { status: 400 });
     }
 };
+
+async function generateUpdatedDepData(d: InternalDeployProjectData) {
+    const filesHelper = FilesHelper.getInstance();
+    const src = d.deployment.src;
+    // src.rootDirPath should be relative to the filesDirPath
+    // src.rootDirPath = filesHelper.joinPath(d.selectedFileRelativeUrl)
+    src.rootDirPath = d.selectedFileRelativeUrl
+    src.rootDirAbsPath = filesHelper.joinPath(src.filesDirAbsPath, d.selectedFileRelativeUrl)
+
+    const envFile = await filesHelper.writeProjectEnvFile(src.filesDirPath, src.rootDirPath, d.envFileContent);
+
+    // src.buildDirPath should be relative to the rootDirPath
+    src.buildDirPath = filesHelper.joinPath(d.outputDir)
+    src.buildDirAbsPath = filesHelper.joinPath(src.rootDirAbsPath, d.outputDir)
+
+    const depCommands = {
+        build: d.buildCommand,
+        install: d.installCommand,
+        postInstall: d.postInstall,
+    }
+
+    const prodFiles = await filesHelper.writeProjectEcoSystemFile(
+        d.projectId,
+        d.version,
+        d.projectName,
+        d.domain,
+        src.buildDirAbsPath,
+        envFile.absPath,);
+
+    return { src, envFile, depCommands, prodFiles }
+}
+
+async function updatePartialDeployment(depId: string, d: InternalDeployProjectData) {
+    const {
+        src,
+        envFile,
+        depCommands,
+        prodFiles
+    } = await generateUpdatedDepData(d);
+
+    return await EngineConnection.getInstance().updatePartialProjectDeployment(depId, {
+        src,
+        envFile,
+        depCommands,
+        prodFiles,
+        status: ProjectDeploymentStatus.READY_FOR_DEPLOYMENT
+    } as Partial<ProjectDeployment>);
+}

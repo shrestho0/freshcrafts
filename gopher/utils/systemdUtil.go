@@ -10,19 +10,20 @@ func CheckSystemdServiceRunning(service string) bool {
 	// manual test systemctl is-active fc_cockpit fc_engine fc_depwiz fc_wiz_postgres fc_wiz_mongo fc_wiz_mysql
 	cmd := exec.Command("systemctl", "is-active", service)
 	out, err := cmd.CombinedOutput()
-	log.Println("out", string(out))
-	if err != nil {
-		if exitError, ok := err.(*exec.ExitError); ok {
-			log.Printf("Command exited with status: %d\n", exitError.ExitCode())
-		} else {
-			log.Println("Error executing command:", err)
-		}
-		log.Printf("[Error] Failed to run `systemctl is-active` for %v\n%v", service, err)
 
-		return false
+	log.Println("out", string(out))
+	log.Println("err", err)
+
+	exitCode := cmd.ProcessState.ExitCode()
+	log.Println("exitCode", exitCode)
+
+	switch exitCode {
+	case 0:
+		fallthrough
+	case 3:
+		return true
+	default:
+		return err == nil // error nil so no error thus success
 	}
 
-	// get exit code
-
-	return true
 }

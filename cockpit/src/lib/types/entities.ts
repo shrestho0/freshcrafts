@@ -121,10 +121,11 @@ export type ProjectProdFiles = {
 }
 
 export type ProjectDeployment = {
-	id: string,
+	id?: string,
 	// project?: Project,
 	projectId: string,
 	version: number,
+	iteration: number,
 	isDeployed: boolean,
 	status: ProjectDeploymentStatus,
 	// partialDeploymentMsg: string,

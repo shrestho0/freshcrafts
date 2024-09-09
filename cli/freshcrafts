@@ -275,7 +275,7 @@ class BarelyWorkingSetupWizard:
             # print(f"Checking {package}...; {checker_command} {required_version=} {required_version_min=}")
 
             try:
-                res = subprocess.run(checker_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                res = subprocess.run(checker_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=os.getcwd())
                 assert res.returncode == 0, f"👹 {package} is not installed"
                 # if required_version:
                 #     assert required_version in res.stdout.decode("utf-8"), f"👹 {package} version is not {required_version}"

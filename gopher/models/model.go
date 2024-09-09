@@ -3,13 +3,18 @@ package models
 type (
 	Site struct {
 		Domain string `bson:"domain"`
+		Port   int    `bson:"portAssigned"`
+		SSL    bool   `bson:"ssl"`
 	}
 
 	SiteTestResult struct {
-		Domain     string `bson:"domain"`
-		Working    bool   `bson:"working" `
-		StatusCode int    `bson:"statusCode"`
-		Timestamp  string `bson:"timestamp"`
+		Domain           string `bson:"domain"`
+		Port             int    `bson:"port"`
+		Working          bool   `bson:"working" `
+		PartiallyWorking bool   `bson:"partiallyWorking"`
+		DomainStatusCode int    `bson:"domainStatusCode"`
+		PortStatusCode   int    `bson:"portStatusCode"`
+		Timestamp        string `bson:"timestamp"`
 	}
 
 	SitePostResponse struct {

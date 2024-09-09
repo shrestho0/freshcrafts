@@ -21,6 +21,8 @@ public class ProjectDeployment {
     String projectId;
 
     Integer version;
+    Integer iteration;
+
     ProjectDeploymentStatus status;
 
     Boolean isDeployed;
