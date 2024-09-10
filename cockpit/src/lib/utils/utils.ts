@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
 import type { EngineCommonResponseDto } from '@/types/dtos';
-import { decodeTime } from 'ulid';
+import { decodeTime } from '@/utils/ulid/';
 // Client Side Code Only
 
 

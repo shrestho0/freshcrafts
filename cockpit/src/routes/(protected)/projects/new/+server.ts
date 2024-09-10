@@ -2,7 +2,7 @@ import { EngineConnection } from '@/server/EngineConnection';
 import { InternalNewProjectType, ProjectType } from '@/types/enums';
 import messages from '@/utils/messages';
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { ulid } from 'ulid';
+import { ulid } from '@/utils/ulid';
 
 import { GithubWebhookHelper } from '@/server/GithubWebhookHelper';
 import { FilesHelper } from '@/server/FilesHelper';

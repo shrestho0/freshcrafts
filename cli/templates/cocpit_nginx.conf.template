@@ -1,7 +1,8 @@
 
 server {
     listen 80;
-    server_name {NGINX_SERVER_NAME} www.{NGINX_SERVER_NAME};
+    
+    server_name {NGINX_SERVER_NAME};
     
     client_max_body_size 100M;
 

@@ -37,6 +37,7 @@
                 console.log("Invalidated");
                 // delete event
             }
+
             try {
                 messages = JSON.parse(message);
                 // if(messages)

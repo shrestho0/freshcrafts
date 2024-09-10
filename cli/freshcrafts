@@ -304,7 +304,7 @@ class BarelyWorkingSetupWizard:
         SYSTEM_DOMAIN = parse_domain_from_env_file(service_env_file)
         
 
-        nginx_server_name = f"{SYSTEM_DOMAIN} www.{SYSTEM_DOMAIN}"
+        nginx_server_name = f"{SYSTEM_DOMAIN}" # www.{NGINX_SERVER_NAME} optional
 
         with open(nginx_template_file, "r") as f:
             nginx_template = f.read()

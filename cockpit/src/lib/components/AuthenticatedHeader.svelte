@@ -1,114 +1,118 @@
 <script lang="ts">
-import { slide } from 'svelte/transition';
-import {
-	Header,
-	HeaderUtilities,
-	HeaderGlobalAction,
-	SkipToContent
-} from 'carbon-components-svelte';
-import HeaderThemeSwitcher from './HeaderThemeSwitcher.svelte';
-import HeaderSearchThingy from './HeaderSearchThingy.svelte';
-import { source } from 'sveltekit-sse';
-import { browser } from '$app/environment';
-import type { SystemwideNotification } from '@/types/entities';
-import { page } from '$app/stores';
-import { invalidateAll } from '$app/navigation';
-import ChatBox from './ChatBox.svelte';
-import Circle from '@/ui/icons/Circle.svelte';
-import CarbonLogout from '@/ui/icons/CarbonLogout.svelte';
-import CarbonNotificationNew from '@/ui/icons/CarbonNotificationNew.svelte';
-import CarbonNotification from '@/ui/icons/CarbonNotification.svelte';
-import CarbonChat from '@/ui/icons/CarbonChat.svelte';
-import NotificationSseFrontendLogicHandler from './NotificationSSEFrontendLogicHandler.svelte';
+	import { slide } from "svelte/transition";
+	import {
+		Header,
+		HeaderUtilities,
+		HeaderGlobalAction,
+		SkipToContent,
+	} from "carbon-components-svelte";
+	import HeaderThemeSwitcher from "./HeaderThemeSwitcher.svelte";
+	import HeaderSearchThingy from "./HeaderSearchThingy.svelte";
 
-export let isSideNavOpen: boolean;
+	import type { SystemwideNotification } from "@/types/entities";
+	import { page } from "$app/stores";
+	import { invalidateAll } from "$app/navigation";
+	import ChatBox from "./ChatBox.svelte";
+	import Circle from "@/ui/icons/Circle.svelte";
+	import CarbonLogout from "@/ui/icons/CarbonLogout.svelte";
+	import CarbonNotificationNew from "@/ui/icons/CarbonNotificationNew.svelte";
+	import CarbonNotification from "@/ui/icons/CarbonNotification.svelte";
+	import CarbonChat from "@/ui/icons/CarbonChat.svelte";
+	import NotificationSseFrontendLogicHandler from "./NotificationSSEFrontendLogicHandler.svelte";
 
-const pathname: string = $page.url.pathname;
+	export let isSideNavOpen: boolean;
 
-let notificationStuff = {
-	hasNew: false,
-	open: true,
-	notifications: []
-} as { hasNew: boolean; open: boolean; notifications: SystemwideNotification[] };
+	const pathname: string = $page.url.pathname;
 
-// const notiSSEUrl = `/sse/notification`;
-// let value = source(notiSSEUrl).select('message');
-// if (browser && value) {
-// 	value.subscribe((data: string) => {
-// 		console.log(data);
-// 		if (data) {
-// 			const notification: SystemwideNotification = JSON.parse(data);
-// 			console.log('Notification', notification);
-// 			// if (!notification.markedAsRead) {
-// 			notificationStuff.notifications.push(notification);
-// 			notificationStuff.hasNew = true;
+	let notificationStuff = {
+		hasNew: false,
+		open: true,
+		notifications: [],
+	} as {
+		hasNew: boolean;
+		open: boolean;
+		notifications: SystemwideNotification[];
+	};
 
-// 			if (notification.actionHints?.startsWith('REDIRECT_PROJECTS_')) {
-// 				const [_, proj_id] = notification.actionHints.split('_');
-// 				if (proj_id) {
-// 					console.log('proj_id', proj_id);
-// 				}
-// 				if (pathname.startsWith('/projects')) {
-// 					console.log('pathname', pathname);
-// 				}
-// 			}
-// 		}
-// 	});
-// }
+	// const notiSSEUrl = `/sse/notification`;
+	// let value = source(notiSSEUrl).select('message');
+	// if (browser && value) {
+	// 	value.subscribe((data: string) => {
+	// 		console.log(data);
+	// 		if (data) {
+	// 			const notification: SystemwideNotification = JSON.parse(data);
+	// 			console.log('Notification', notification);
+	// 			// if (!notification.markedAsRead) {
+	// 			notificationStuff.notifications.push(notification);
+	// 			notificationStuff.hasNew = true;
 
-async function handleLogout() {
-	const bres = await fetch('/logout', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		}
-	}).then((res) => res.json());
-
-	// if (bres?.success) {
-	// toast.success('Logout Successful', { duration: 3000 });
+	// 			if (notification.actionHints?.startsWith('REDIRECT_PROJECTS_')) {
+	// 				const [_, proj_id] = notification.actionHints.split('_');
+	// 				if (proj_id) {
+	// 					console.log('proj_id', proj_id);
+	// 				}
+	// 				if (pathname.startsWith('/projects')) {
+	// 					console.log('pathname', pathname);
+	// 				}
+	// 			}
+	// 		}
+	// 	});
 	// }
 
-	invalidateAll();
+	async function handleLogout() {
+		const bres = await fetch("/logout", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+		}).then((res) => res.json());
 
-	console.log('Backend Response', bres);
-}
+		// if (bres?.success) {
+		// toast.success('Logout Successful', { duration: 3000 });
+		// }
 
-/**
- * TODO: Filter notifications for notifications with same id.
- * Thus we can send same notification in different state, latest one to be shown.
- * But, then, sort against time sent/updated
- * So, we need to keep track of datetime of updated, created will be found from ulid
- * TODO: There shouldn't be any markedAsRead=true message
- */
+		invalidateAll();
 
-const gloaballyActiveables = {
-	search: false,
-	notification: false,
-	chat: false
-};
-function handleGlobalKeyEvents(event: KeyboardEvent) {
-	if (event.altKey) {
-		switch (event.key) {
-			case 'k':
-				gloaballyActiveables.search = !gloaballyActiveables.search;
-				break;
-			case 'n':
-				gloaballyActiveables.notification = !gloaballyActiveables.notification;
-				break;
-			case 'c':
-				gloaballyActiveables.chat = !gloaballyActiveables.chat;
-				break;
-			case 'l':
-				handleLogout();
-				break;
-			default:
-				break;
-		}
+		console.log("Backend Response", bres);
 	}
-	// if (event.key === 'k' && event.altKey) {
-	// 	gloaballyActiveables.search = !gloaballyActiveables.search;
-	// }
-}
+
+	/**
+	 * TODO: Filter notifications for notifications with same id.
+	 * Thus we can send same notification in different state, latest one to be shown.
+	 * But, then, sort against time sent/updated
+	 * So, we need to keep track of datetime of updated, created will be found from ulid
+	 * TODO: There shouldn't be any markedAsRead=true message
+	 */
+
+	const gloaballyActiveables = {
+		search: false,
+		notification: false,
+		chat: false,
+	};
+	function handleGlobalKeyEvents(event: KeyboardEvent) {
+		if (event.altKey) {
+			switch (event.key) {
+				case "k":
+					gloaballyActiveables.search = !gloaballyActiveables.search;
+					break;
+				case "n":
+					gloaballyActiveables.notification =
+						!gloaballyActiveables.notification;
+					break;
+				case "c":
+					gloaballyActiveables.chat = !gloaballyActiveables.chat;
+					break;
+				case "l":
+					handleLogout();
+					break;
+				default:
+					break;
+			}
+		}
+		// if (event.key === 'k' && event.altKey) {
+		// 	gloaballyActiveables.search = !gloaballyActiveables.search;
+		// }
+	}
 </script>
 
 <NotificationSseFrontendLogicHandler bind:notificationStuff />
@@ -132,7 +136,8 @@ function handleGlobalKeyEvents(event: KeyboardEvent) {
 			tabindex="0"
 			class="bx--header-search-button bx--header__action"
 			on:click={() => {
-				gloaballyActiveables.notification = !gloaballyActiveables.notification;
+				gloaballyActiveables.notification =
+					!gloaballyActiveables.notification;
 				notificationStuff.hasNew = false;
 			}}
 		>

@@ -1,6 +1,6 @@
 import { BackendEndpoints } from '@/backend-endpoints.js';
 import { json } from '@sveltejs/kit';
-import { ulid } from 'ulid';
+import { ulid } from '@/utils/ulid';
 
 export const POST = async ({ request }) => {
 	const data = await request.json();

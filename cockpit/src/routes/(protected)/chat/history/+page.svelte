@@ -27,7 +27,25 @@
 	import { blur, crossfade, draw, fade, fly, slide } from "svelte/transition";
 	import { quintOut } from "svelte/easing";
 
+	// import Markdown, { type Plugin } from "svelte-exmarkdown";
+	// import { gfmPlugin } from "svelte-exmarkdown/gfm";
+
+	import { Carta, MarkdownEditor, Markdown } from "carta-md";
+
 	let form: HTMLFormElement;
+
+	import "@cartamd/plugin-code/default.css";
+	import { code } from "@cartamd/plugin-code";
+	import MdCodeBlock from "@/components/MDCodeBlock.svelte";
+
+	const carta = new Carta({
+		extensions: [code()],
+		sanitizer: (html) => html,
+	});
+
+	const svelteMarkdownRenderers = {
+		code: MdCodeBlock,
+	};
 
 	const pageData = {
 		page: 1,
@@ -138,6 +156,7 @@
 	on:close={() => {
 		selectedIdx = null;
 	}}
+	size="lg"
 >
 	<ModalHeader title={"Chat History: " + selectedItem?.chatName} />
 	<ModalBody class="max-h-[500px]" style="overflow-y:auto;">
@@ -155,8 +174,20 @@
 							? ' bg-[var(--cds-interactive-01)] text-white '
 							: ' bg-gray-300 '} break-all"
 					>
-						<SvelteMarkdown source={message.content} />
+						<SvelteMarkdown
+							source={message.content}
+							renderers={svelteMarkdownRenderers}
+						/>
+						<!-- <Markdown
+							theme="github"
+							{carta}
+							value={message.content}
+						/> -->
 						<!-- {message.content} -->
+						<!-- <pre>
+							 {message.content}
+						</pre> -->
+						<!-- <Markdown md={message.content} {plugins} /> -->
 					</div>
 				</div>
 			{/each}
