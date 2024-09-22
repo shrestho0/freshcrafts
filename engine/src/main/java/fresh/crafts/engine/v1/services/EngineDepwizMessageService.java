@@ -13,8 +13,7 @@ import org.apache.hc.core5.http.io.entity.StringEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
-import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
+import fresh.crafts.engine.v1.entities.KEventPayloadDepWiz;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.models.Notification;
 import fresh.crafts.engine.v1.models.Project;
@@ -32,6 +31,9 @@ public class EngineDepwizMessageService {
     private ProjectService projectService;
 
     @Autowired
+    private ProjectDeploymentService projectDeploymentService;
+
+    @Autowired
     private KEventService kEventService;
 
     @Autowired
@@ -43,7 +45,7 @@ public class EngineDepwizMessageService {
     @Autowired
     private EngineMessageService engineMessageService;
 
-    public void serveFirstDepFeedback(KEvent kEvent, DepWizKEventPayload payload) {
+    public void serveFirstDepFeedback(KEvent kEvent, KEventPayloadDepWiz payload) {
 
         // save the event
         kEventService.createOrUpdate(kEvent);
@@ -72,7 +74,6 @@ public class EngineDepwizMessageService {
 
             // first iteration as first successful deployment
             // every update is a new iteration
-            pd.setIteration(pd.getIteration() + 1);
 
             if (payload.getIsPartial()) {
                 System.err.println("[DEBUG]: Partial Event");
@@ -83,12 +84,19 @@ public class EngineDepwizMessageService {
 
             } else {
 
+                pd.setIteration(pd.getIteration() + 1);
+
+                p.setActiveVersion(p.getTotalVersions()); // latest one should be the active version
+
                 if (payload.getSuccess()) {
                     // success
 
                     // on successful deployment
-                    p.setTotalVersions(p.getTotalVersions() + 1); // as succeed, total version should ++
-                    p.setActiveVersion(p.getTotalVersions()); // latest one should be the active version
+                    // p.setTotalVersions(p.getTotalVersions() + 1); // as succeed, total version
+                    // should ++
+
+                    // pd.setVersion(p.getTotalVersions()); // set from service
+
                     p.setActiveDeploymentId(p.getCurrentDeploymentId()); // set the current deployment id to active
                     p.setCurrentDeploymentId(null); // set the current deployment id to null
                     p.setStatus(ProjectStatus.ACTIVE);
@@ -97,7 +105,6 @@ public class EngineDepwizMessageService {
                     p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
 
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_COMPLETED);
-                    pd.setVersion(p.getTotalVersions());
 
                     notification.setType(NotificationType.SUCCESS);
                     notification.setActionHints("GOTO_PROJECTS_" + p.getId());
@@ -108,6 +115,7 @@ public class EngineDepwizMessageService {
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_FAILED);
                     p.setStatus(ProjectStatus.INACTIVE);
                     p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+                    // p.setPortAssigned(null); // should be already null
 
                     pd.setErrorTraceback(payload.getCurrentDeployment().getErrorTraceback());
 
@@ -145,7 +153,7 @@ public class EngineDepwizMessageService {
         }
     }
 
-    public void serveDeleteDepsFeedback(KEvent kEvent, DepWizKEventPayload payload) {
+    public void serveDeleteDepsFeedback(KEvent kEvent, KEventPayloadDepWiz payload) {
         try {
             HashMap<String, Object> requiredValues = new HashMap<>();
             requiredValues.put("project", payload.getProject());
@@ -206,8 +214,8 @@ public class EngineDepwizMessageService {
 
     }
 
-    public void serveReDepFeedback(KEvent kEvent, DepWizKEventPayload payload) {
-        System.err.println("[DEBUG]: EngineDepwizMessageService serveReDepFeedback");
+    public void serveReDeployFeedback(KEvent kEvent, KEventPayloadDepWiz payload) {
+        System.err.println("[DEBUG]: EngineDepwizMessageService serveReDeployFeedback");
         // save the event
         kEventService.createOrUpdate(kEvent);
 
@@ -241,8 +249,11 @@ public class EngineDepwizMessageService {
                     // success
 
                     // on successful deployment
-                    p.setTotalVersions(p.getTotalVersions()); // as succeed, total version should ++
-                    p.setActiveVersion(p.getTotalVersions()); // latest one should be the active version
+                    // p.setTotalVersions(p.getTotalVersions()); // as succeed, total version should
+                    // ++
+                    // p.setActiveVersion(p.getTotalVersions()); // latest one should be the active
+                    // version
+
                     p.setActiveDeploymentId(p.getCurrentDeploymentId()); // set the current deployment id to active
                     p.setCurrentDeploymentId(null); // set the current deployment id to null
                     p.setStatus(ProjectStatus.ACTIVE);
@@ -263,6 +274,8 @@ public class EngineDepwizMessageService {
                     // failure
                     p.setStatus(ProjectStatus.INACTIVE);
                     p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+
+                    p.setPortAssigned(null);
 
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_FAILED); // should be redep failed
                     pd.setErrorTraceback(payload.getCurrentDeployment().getErrorTraceback());
@@ -298,7 +311,7 @@ public class EngineDepwizMessageService {
         }
     }
 
-    public void serveUpdateDepFeedback(KEvent kEvent, DepWizKEventPayload payload) {
+    public void serveUpdateDepFeedback(KEvent kEvent, KEventPayloadDepWiz payload) {
         System.err.println("[DEBUG]: EngineDepwizMessageService serveUpdateDepFeedback");
         // save the event
         kEventService.createOrUpdate(kEvent);
@@ -307,6 +320,9 @@ public class EngineDepwizMessageService {
 
             Project p = projectService.getProjectById(payload.getProject().getId());
             ProjectDeployment pd = projectService.getDeploymentById(payload.getCurrentDeployment().getId());
+
+            // update should not occur if active deployment is not found
+            ProjectDeployment ad = projectService.getDeploymentById(p.getActiveDeploymentId());
 
             CraftUtils.throwIfNull(p, "Error: Project not found");
             CraftUtils.throwIfNull(pd, "Error: Project Deployment not found");
@@ -327,14 +343,21 @@ public class EngineDepwizMessageService {
                 System.out.println("\nPARTIAL MESSAGE: " + payload.getMessage() + "\n");
 
             } else {
-                pd.setIteration(pd.getIteration() + 1);
+                System.out.println("\nFULL MESSAGE: " + "iteration:" + pd.getIteration());
+                // pd.setIteration(pd.getIteration() + 1);
+
+                pd.setIteration(ad.getIteration() + 1);
+
+                // we don't need previous active deployment as current deployment is a copy of
+                // previous one
+                projectDeploymentService.delete(p.getActiveDeploymentId());
 
                 if (payload.getSuccess()) {
                     // success
 
                     // on successful deployment
-                    p.setTotalVersions(p.getTotalVersions()); // as succeed, total version should ++
-                    p.setActiveVersion(p.getTotalVersions()); // latest one should be the active version
+                    // but, no need to change version for update
+                    // only iteration should be updated
 
                     p.setActiveDeploymentId(p.getCurrentDeploymentId()); // set the current deployment id to active
                     p.setCurrentDeploymentId(null); // set the current deployment id to null
@@ -345,7 +368,7 @@ public class EngineDepwizMessageService {
                     p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
 
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_COMPLETED); // actually updated
-                    pd.setVersion(p.getTotalVersions());
+                    // pd.setVersion(p.getTotalVersions()); // update ee version gonna be the same
 
                     notification.setType(NotificationType.SUCCESS);
                     // notification.setMessage(payload.getMessage());
@@ -357,6 +380,9 @@ public class EngineDepwizMessageService {
                     // failure
                     p.setStatus(ProjectStatus.INACTIVE);
                     p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+                    p.setPortAssigned(null);
+
+                    p.setActiveDeploymentId(null); // as no active deployment,
 
                     pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_FAILED);
                     pd.setErrorTraceback(payload.getCurrentDeployment().getErrorTraceback());
@@ -389,6 +415,212 @@ public class EngineDepwizMessageService {
         } catch (Exception e) {
             System.err.println("[DEBUG]: =================== Exceptions >> ===================\n" + e.getMessage()
                     + "\n=================== << Exceptions ===================");
+        }
+
+    }
+
+    public void serveRollforwardFeedback(KEvent kEvent, KEventPayloadDepWiz payload) {
+
+        System.err.println("[DEBUG]: EngineDepwizMessageService serveRollforwardFeedback");
+        kEventService.createOrUpdate(kEvent);
+
+        try {
+            // if partial, do like others,
+            // if full and success, update versions, deps, set active dep, remove current
+            // if fail, user have to redeploy
+
+            Project p = projectService.getProjectById(payload.getProject().getId());
+            ProjectDeployment pd = projectService.getDeploymentById(payload.getCurrentDeployment().getId());
+
+            // update should not occur if active deployment is not found
+            ProjectDeployment ad = projectService.getDeploymentById(p.getActiveDeploymentId());
+
+            CraftUtils.throwIfNull(p, "Error: Project not found");
+            CraftUtils.throwIfNull(pd, "Error: Project Deployment not found");
+
+            // notification
+            Notification notification = new Notification();
+
+            System.err.println("================= PAYLOAD SERVE DEPLOY FEEDBACK =================");
+            CraftUtils.jsonLikePrint(payload);
+            System.err.println("================= PAYLOAD SERVE DEPLOY FEEDBACK ENDS =================");
+
+            if (payload.getIsPartial()) {
+                System.err.println("[DEBUG]: Partial Event");
+
+                p.getPartialMessageList().add(payload.getMessage());
+                // notification.setMessage(payload.getMessage());
+                notification.setType(NotificationType.INFO);
+                // System.out.println("\nPARTIAL MESSAGE: " + payload.getMessage() + "\n");
+
+            } else {
+
+                if (payload.getSuccess()) {
+
+                    // successs
+
+                    // latest version should be active version
+                    p.setActiveVersion(p.getTotalVersions());
+
+                    // current is the new active
+                    p.setActiveDeploymentId(p.getCurrentDeploymentId());
+
+                    p.setCurrentDeploymentId(null);
+                    p.setRollforwardDeploymentId(null);
+
+                    p.setStatus(ProjectStatus.ACTIVE);
+                    p.setPortAssigned(payload.getProject().getPortAssigned());
+                    p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+
+                    pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_COMPLETED);
+                    // pd.setVersion(pd.getVersion()); // already updated before initiating
+                    // rollforward to depwiz
+
+                    notification.setType(NotificationType.SUCCESS);
+
+                    ad.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+
+                } else {
+                    // failure
+
+                    p.setStatus(ProjectStatus.INACTIVE);
+                    p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+                    p.setPortAssigned(null);
+
+                    pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_FAILED);
+                    pd.setErrorTraceback(payload.getCurrentDeployment().getErrorTraceback());
+
+                    notification.setType(NotificationType.ERROR);
+
+                    ad.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+
+                }
+                notificationService.createOrUpdate(notification);
+            }
+
+            // save stuff
+            projectService.updateProjectDeployment(pd);
+            projectService.updateProject(p);
+            projectService.updateProjectDeployment(ad);
+
+            notification.setMessage(CraftUtils.toJson(p.getPartialMessageList()));
+            requestProjectIDSSE(notification.toJson(), p.getId());
+            requestProjectIDSSEDataDelete(p.getId());
+
+        } catch (Exception e) {
+            System.out.println(">>>>>>>>>> Exception: <<<<<<<<<<");
+            System.out.println(e.getMessage());
+        }
+
+    }
+
+    public void serveRollbackFeedback(KEvent kEvent, KEventPayloadDepWiz payload) {
+
+        System.err.println("[DEBUG]: EngineDepwizMessageService serveRollbackFeedback");
+        kEventService.createOrUpdate(kEvent);
+
+        try {
+
+            Project p = projectService.getProjectById(payload.getProject().getId());
+            ProjectDeployment pd = projectService.getDeploymentById(payload.getCurrentDeployment().getId());
+
+            // if exists, previously active dep status should be updated to
+            // "READY_FOR_DEPLOYMENT"
+
+            ProjectDeployment ad = null;
+
+            if (payload.getActiveDeployment() != null) {
+                ad = projectService.getDeploymentById(payload.getActiveDeployment().getId());
+            }
+
+            Project payloadP = payload.getProject();
+            ProjectDeployment payloadPD = payload.getCurrentDeployment();
+
+            // update should not occur if active deployment is not found
+            // ProjectDeployment ad =
+            // projectService.getDeploymentById(p.getActiveDeploymentId());
+
+            CraftUtils.throwIfNull(p, "Error: Project not found");
+            CraftUtils.throwIfNull(pd, "Error: Project Deployment not found");
+
+            // notification
+            Notification notification = new Notification();
+
+            System.err.println("================= PAYLOAD ROLLBACK FEEDBACK =================");
+            CraftUtils.jsonLikePrint(payload);
+            System.err.println("================= PAYLOAD ROLLBACK FEEDBACK ENDS =================");
+
+            if (payload.getIsPartial()) {
+                System.err.println("[DEBUG]: Partial Event");
+
+                p.getPartialMessageList().add(payload.getMessage());
+                // notification.setMessage(payload.getMessage());
+                notification.setType(NotificationType.INFO);
+                // System.out.println("\nPARTIAL MESSAGE: " + payload.getMessage() + "\n");
+
+            } else {
+
+                if (payload.getSuccess()) {
+
+                    // updated prod info
+                    p.setActiveDeploymentId(payloadPD.getId());
+                    p.setPortAssigned(payloadP.getPortAssigned());
+                    p.setActiveVersion(payloadPD.getVersion());
+
+                    // no current deployment
+                    p.setCurrentDeploymentId(null);
+                    p.setRollbackDeploymentId(null);
+
+                    // ensuring statuses and what user gets
+                    p.setStatus(ProjectStatus.ACTIVE);
+                    p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+
+                    pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_COMPLETED);
+                    pd.setVersion(payloadPD.getVersion());
+
+                    // ensuring new port
+
+                    notification.setType(NotificationType.SUCCESS);
+                    notification.setActionHints("GOTO_PROJECTS_" + p.getId());
+
+                } else {
+                    // failure
+
+                    p.setStatus(ProjectStatus.INACTIVE);
+                    p.getPartialMessageList().add(payload.getMessage() + " __REVALIDATE__");
+                    p.setPortAssigned(null);
+
+                    // for some reason, this is null
+                    p.setCurrentDeploymentId(p.getRollbackDeploymentId());
+                    // so, there shouldn't be any active deployment
+                    p.setActiveDeploymentId(null);
+
+                    // FIX ME change to more appropiate here if requires
+                    pd.setStatus(ProjectDeploymentStatus.DEPLOYMENT_FAILED);
+                    pd.setErrorTraceback(payload.getCurrentDeployment().getErrorTraceback());
+
+                    notification.setType(NotificationType.ERROR);
+
+                }
+
+                if (ad != null) {
+                    ad.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+                }
+
+                notificationService.createOrUpdate(notification);
+            }
+
+            // save stuff
+            projectService.updateProjectDeployment(pd);
+            projectService.updateProject(p);
+
+            notification.setMessage(CraftUtils.toJson(p.getPartialMessageList()));
+            requestProjectIDSSE(notification.toJson(), p.getId());
+            requestProjectIDSSEDataDelete(p.getId());
+
+        } catch (Exception e) {
+            System.out.println(">>>>>>>>>> Exception: <<<<<<<<<<");
+            System.out.println(e.getMessage());
         }
 
     }

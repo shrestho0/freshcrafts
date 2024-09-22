@@ -1,6 +1,7 @@
 import { getGithubAppInstallationUrl, getGithubLoginUrl, getGooleLoginhUrl } from '@/server/helpers/OAuthHelper';
 import type { LayoutServerLoad } from './$types';
-import { ulid } from '@/utils/ulid/';
+// import { ulid } from '@/utils/ulid/';
+import { ulid } from 'ulid';
 import { OAUTH_STATE_COOKIE_NAME } from '$env/static/private';
 import { PUBLIC_GITHUB_APP_INSTALLATION_URL, PUBLIC_GITHUB_OAUTH_CALLBACK_URL } from '$env/static/public';
 

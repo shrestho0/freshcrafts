@@ -46,29 +46,6 @@ public class DepwizMessageServiceHelper {
                 this.sendPartialFeedback(feedbackKEvent, "[SUCCESS] Checking files and installing done");
         }
 
-        // public void sendPartialDeploymentFeedback(KEvent fE, KEventDepWizardPayload
-        // rP, String pM) {
-
-        // KEventDepWizardPayload feedbackPayload = (KEventDepWizardPayload)
-        // fE.getPayload();
-
-        // feedbackPayload.setIsPartial(true);
-        // feedbackPayload.setSuccess(true); // doen't matter
-
-        // // success is null for partial feedback
-        // HashMap<String, Object> m = new HashMap<>();
-
-        // feedbackPayload.setCurrentDeployment(rP.getCurrentDeployment());
-        // feedbackPayload.setProject(rP.getProject());
-
-        // // m.put("project_id", requestPayload.getProject().getId());
-        // // // m.put("deployment_id", requestPayload.getDeployment().getId());
-        // // m.put("partial_feedback", partialMsg);
-        // // feedbackPayload.setData(m);
-
-        // messageProducer.sendEvent(fE);
-        // }
-
         public void sendPartialFeedback(KEvent feedbackEvent, String partialMsg) {
                 KEventDepWizardPayload payload = (KEventDepWizardPayload) feedbackEvent.getPayload();
 
@@ -80,28 +57,6 @@ public class DepwizMessageServiceHelper {
 
                 this.sendFeedback(feedbackEvent);
         }
-
-        // public void sendPartialDeletionFeedback(
-        // KEvent feedbackKEvent,
-        // KEventDepWizardPayload requestPayload,
-        // String deploymentId,
-        // String partialMsg
-
-        // ) {
-
-        // KEventDepWizardPayload feedbackPayload = (KEventDepWizardPayload)
-        // feedbackKEvent.getPayload();
-        // feedbackPayload.setIsPartial(true);
-        // // success is null for partial feedback
-        // HashMap<String, Object> m = new HashMap<>();
-
-        // m.put("project_id", requestPayload.getProject().getId());
-        // m.put("deployment_id", deploymentId);
-        // m.put("partial_feedback", partialMsg);
-
-        // feedbackPayload.setData(m);
-        // messageProducer.sendEvent(feedbackKEvent);
-        // }
 
         ////////// install dependencies //////////
         public void doInstallDeps(KEvent feedbackKEvent, KEventDepWizardPayload requestPayload, ProjectDeployment pd)
@@ -130,8 +85,9 @@ public class DepwizMessageServiceHelper {
 
                 this.sendPartialFeedback(feedbackKEvent, "[RUNNING] Building project");
 
+                System.out.println("build started");
                 CommandServiceResult buildResult = commandService.freshBuildProject(pd);
-
+                System.out.println("build completed");
                 // set error traceback if any
                 pd.setErrorTraceback(buildResult.getError());
 
@@ -170,20 +126,36 @@ public class DepwizMessageServiceHelper {
                 this.sendPartialFeedback(feedbackKEvent, "[RUNNING] Binding Setting up application process ");
                 // Find and set port to ecosystem file
 
+                System.out.println("============= Old Port =============");
+                CraftUtils.jsonLikePrint(p.getPortAssigned());
+                System.out.println("-----------------------------------");
                 int frekingPort = systemServices.nextFreePort(50000, 60000);
-                Boolean portSet = fileOpsService.setPortToProdFiles(pd.getProdFiles(),
-                                frekingPort);
+                p.setPortAssigned(frekingPort);
+                System.out.println("============= New Port =============");
+                CraftUtils.jsonLikePrint(p.getPortAssigned());
+                System.out.println("-----------------------------------");
+
+                Boolean portSet = fileOpsService.populateProdFiles(pd.getProdFiles(), p);
+
                 CraftUtils.throwIfFalseOrNull(portSet, "Failed to set port to ecosystem file");
 
-                p.setPortAssigned(frekingPort);
+                // p.setPortAssigned(frekingPort);
 
                 /////////// Run project using pm2
+
+                // add _usable
+                String usableEcoSystemFile = pd.getProdFiles().getEcoSystemFileAbsPath() + "_usable";
+
                 CommandServiceResult pm2StartResult = commandService
-                                .startPM2(pd.getProdFiles().getEcoSystemFileAbsPath());
+                                .startPM2(usableEcoSystemFile);
 
                 // ignore it
                 // CommandServiceResult pm2ListResult = commandService.savePM2();
-                commandService.savePM2();
+                CommandServiceResult pm2SaveResult = commandService.savePM2();
+
+                System.out.println("============= PM2Save =============");
+                CraftUtils.jsonLikePrint(pm2SaveResult);
+                System.out.println("-----------------------------------");
 
                 pd.setErrorTraceback(pm2StartResult.getError());
 
@@ -203,8 +175,13 @@ public class DepwizMessageServiceHelper {
 
                 // move nginx conf file to /etc/nginx/sites-available and create symlink
 
+                String usableNginxConfFile = pd.getProdFiles().getNginxConfFileAbsPath() + "_usable";
+
+                // CommandServiceResult moveNginxConfResult = commandService
+                // .enableNginxSite(pd.getProdFiles().getNginxConfFileAbsPath());
                 CommandServiceResult moveNginxConfResult = commandService
-                                .enableNginxSite(pd.getProdFiles().getNginxConfFileAbsPath());
+                                .enableNginxSite(usableNginxConfFile);
+
                 pd.setErrorTraceback(moveNginxConfResult.getError());
                 CraftUtils.throwIfFalseOrNull(moveNginxConfResult.getExitCode() == 0,
                                 moveNginxConfResult.getShortError() != null ? moveNginxConfResult.getShortError()
@@ -232,9 +209,12 @@ public class DepwizMessageServiceHelper {
                 CraftUtils.jsonLikePrint(deleteNginxConfResult);
 
                 // delete pm2 process
-                CommandServiceResult deletePM2Result = commandService.stopAndDeletePM2(
-                                pd.getProdFiles().getEcoSystemFileAbsPath(), p.getId());
-                CraftUtils.jsonLikePrint(deletePM2Result);
+                if (pd.getProdFiles() != null && pd.getProdFiles().getEcoSystemFileAbsPath() != null) {
+                        CommandServiceResult deletePM2Result = commandService.stopAndDeletePM2(
+                                        pd.getProdFiles().getEcoSystemFileAbsPath(), p.getId());
+
+                        CraftUtils.jsonLikePrint(deletePM2Result);
+                }
         }
 
         public void undeployAndDelete(ProjectDeployment pd, Project p) {
@@ -258,6 +238,7 @@ public class DepwizMessageServiceHelper {
 
                         this.doBuildProject(feedbackKEvent, requestPayload, pd);
                 }
+
                 if (pd.getDepCommands().getPostInstall() != null) {
                         this.doPostInstall(feedbackKEvent, requestPayload, pd);
                 }

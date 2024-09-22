@@ -61,6 +61,12 @@ class SystemDUtil:
             if self.check_file_exists(service_file):
                 console.log("Service file exists", service_file, style="bold green")
 
+    def enable_dev_service(self, service_name):      
+        self.perform_service_action_on_service("enable", service_name, self.is_service_not_enabled, "Enabling")
+        self.deamon_reload()
+
+    def start_dev_service(self, service_name):
+        self.perform_service_action_on_service("start", service_name, self.is_service_not_running, "Starting")
 
     def enable_services(self):
         console.log("Enabling services...", style="bold green")

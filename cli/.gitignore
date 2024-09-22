@@ -10,3 +10,5 @@ fc_temp/
 __pycache__
 
 *.log
+
+docker-compose.yml

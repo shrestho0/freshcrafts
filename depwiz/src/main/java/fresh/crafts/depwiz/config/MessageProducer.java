@@ -23,8 +23,7 @@ public class MessageProducer {
 
     public void sendEvent(KEvent event) {
         System.out.println("---------- Sending KEvent to " + event.getEventDestination() + " ----------");
-        // System.out.println(event.toJson());
-        CraftUtils.jsonLikePrint(event);
+        // CraftUtils.jsonLikePrint(event);
         kafkaTemplate.send(event.getEventDestination().toString(), event.toJson());
         System.out.println("------------ KEvent Sent ------------");
     }

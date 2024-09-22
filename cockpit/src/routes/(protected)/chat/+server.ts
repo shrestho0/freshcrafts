@@ -2,7 +2,8 @@ import { EngineConnection } from "@/server/EngineConnection";
 import type { EngineCommonResponseDto } from "@/types/dtos";
 import type { AIChatMessage } from "@/types/entities";
 import { AIChatCommands } from "@/types/enums";
-import { ulid } from "@/utils/ulid";
+// import { ulid } from "@/utils/ulid";
+import { ulid } from "ulid";
 import { error, json, type RequestHandler } from "@sveltejs/kit";
 // import { AzureOpenAI } from "openai";
 
@@ -20,9 +21,10 @@ let messages: AIChatMessage[] = [];
 let syncedWithEngine = false;// flag
 
 export const PATCH: RequestHandler = async ({ request, locals }) => {
-    const { command, data } = await request.json() as {
+    const { command, data, includeContext } = await request.json() as {
         command: AIChatCommands;
         data: any;
+        includeContext: boolean,
     }
     console.warn(JSON.stringify({ command, data }));
     try {
@@ -83,6 +85,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
                 if (!msg) throw new Error("Message is empty");
 
+
                 const userMsg: AIChatMessage = {
                     role: "user",
                     content: msg,
@@ -103,7 +106,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
                 // messages.push(d);
 
-                msg = await generateText(msg);
+                msg = await generateText(JSON.stringify(messages));
 
                 console.log("AI response", msg);
 
@@ -165,9 +168,20 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 };
 
 
-async function generateText(content: string) {
+async function generateText(content: string | AIChatMessage[], includeContext = false) {
     if (!apiData || !apiData?.azureChatApiEndpoint || !apiData?.azureChatApiKey)
         throw new Error("OpenAI client not initialized");
+
+    let body;
+    if (includeContext) {
+        body = JSON.stringify({
+            messages: content
+        })
+    } else {
+        body = JSON.stringify({
+            messages: [{ role: "user", content: content }],
+        })
+    }
 
     return await fetch(apiData.azureChatApiEndpoint, {
         method: "POST",
@@ -175,9 +189,7 @@ async function generateText(content: string) {
             "Content-Type": "application/json",
             "api-key": apiData.azureChatApiKey,
         },
-        body: JSON.stringify({
-            messages: [{ role: "user", content: content }],
-        }),
+        body,
     }).then(res => res.json()).catch(e => {
         console.error(e);
         return {

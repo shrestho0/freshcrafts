@@ -9,7 +9,7 @@ REQUIRED_OPEN_PORTS=[80,443, 9092,9093, 27017, 17017, 15432, 13306, 10000, 10001
 
 LOG_DIR="../fc_logs/"
 
-ROOT_ENV_FILE = "./.env"
+ROOT_ENV_FILE = "../.env"
 
 
 SYSTEMD_SERVICE_DIRECTORY = "/lib/systemd/system/" # for ubuntu based systems
@@ -17,8 +17,9 @@ SYSTEMD_SERVICE_DIRECTORY = "/lib/systemd/system/" # for ubuntu based systems
 NGINX_DIRECTORY = "/etc/nginx"
 DATA_FILE_LOCATION="./installation-data.json"
 
-DOCKER_COMPOSE_COMMAND="docker compose up -d"
-DOCKER_COMPOSE_FILE="../docker-compose.yml"
+DOCKER_COMPOSE_UP_COMMAND='docker compose -p="freshcrafts-ds" up -d'
+DOCKER_COMPOSE_DOWN_COMMAND='docker compose -p="freshcrafts-ds" down'
+DOCKER_COMPOSE_FILE="./docker-compose.yml"
 
 # LOG_DIR = "../fc_logs/"
 LOG_FILE_NAME = "installer-log"
@@ -70,6 +71,15 @@ FC_SERVICES_INFO = {
         "SYSTEMD_EXECUTABLE_FILE": "../wiz_mongo/target/wiz_mongo-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
     },
+    
+    "redwiz": {
+        "ENV_FILE": "../redwiz/src/main/resources/application.properties",
+        "SRC_DIR": "../redwiz",
+        "SYSTEMD_SERVICE_TEMPLATE_FILE": "./templates/fc_common.service.template",
+        "SYSTEMD_EXECUTABLE_FILE": "../redwiz/target/redwiz-0.0.1-SNAPSHOT.jar",
+        "SYSTEMD_EXEC_COMMAND": "java -jar ",
+    },
+    
     
     "depwiz": {
         "ENV_FILE": "../depwiz/src/main/resources/application.properties",

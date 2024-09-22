@@ -13,6 +13,7 @@ class TestDBServices:
         self.id = self.dbName = self.dbUser = self.dbPassword = "fc_test"+ str(random.randint(1,69))
         self.ENDPOINT = ENDPOINT
         self.IGNORE=IGNORE
+        self.isRedis = "redis" in ENDPOINT
 
 
     def run_tests(self):
@@ -32,6 +33,7 @@ class TestDBServices:
             {"case": 5, "name": "update_db_user_pass", "func": self.test_update_db_user_pass, "validate": True},
             {"case": 6, "name": "update_dball", "func": self.test_update_dball, "validate": True},
             {"case": 7,"name": "delete_db", "func": self.test_delete_db, "validate": True, "inverted": True},
+ 
         ]
 
         with Progress(
@@ -114,6 +116,11 @@ class TestDBServices:
             "dbName": self.dbName,
             "dbUser": self.dbUser,
             "dbPassword": self.dbPassword,
+            
+            # redis vals.
+            "dbPrefix": self.dbName,
+            "username": self.dbUser,
+            "password": self.dbPassword,
         }
         response = requests.post(self.ENDPOINT, json=payload)
 
@@ -142,6 +149,12 @@ class TestDBServices:
         payload = {
             "newUserPassword": self.dbPassword,
         }
+        if self.isRedis:
+            payload = {
+                "username": self.dbUser,
+                "password": self.dbPassword
+            }
+        
         response = requests.patch(self.ENDPOINT + "/" + self.id, json=payload)
         # print(response.json())
         return response.json()["success"], response.json()["message"]
@@ -204,6 +217,12 @@ class TestDBServices:
             return success, msg
         
         try:
+            if self.isRedis:
+                assert response.json()["payload"]["dbPrefix"] == self.dbName, "dbPrefix does not match"
+                assert response.json()["payload"]["username"] == self.dbUser, "username does not match"
+                assert response.json()["payload"]["password"] == self.dbPassword, "password does not match"
+                return True, ""
+            
             assert response.json()["payload"]["dbName"] == self.dbName, "dbName does not match"
             assert response.json()["payload"]["dbUser"] == self.dbUser, "dbUser does not match"
             assert response.json()["payload"]["dbPassword"] == self.dbPassword, "dbPassword does not match"

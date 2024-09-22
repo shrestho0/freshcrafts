@@ -11,6 +11,11 @@ data/uploads
 fc_temp
 *.swp
 
+.env
+.env.*
+!.env.example
+
+
 *.zip
 *.tar.gz
 *.tar

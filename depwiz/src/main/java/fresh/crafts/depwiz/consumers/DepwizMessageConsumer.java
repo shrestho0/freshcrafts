@@ -17,7 +17,7 @@ public class DepwizMessageConsumer {
     @Autowired
     DepwizMessageController controller;
 
-    @KafkaListener(topics = "DEP_WIZ", groupId = "freshCrafts")
+    @KafkaListener(topics = "DEPWIZ", groupId = "freshCrafts")
     public void listen(String message) {
         // System.err.println("[DEBUG] Received message from DEP_WIZ: " + message);
         // System.err.println("[DEBUG] Controller autowired: " + controller);
@@ -29,7 +29,8 @@ public class DepwizMessageConsumer {
             // System.err.println("[DEBUG] Parsed KEvent: " + kEvent);
 
             Gson gson = new GsonBuilder().serializeSpecialFloatingPointValues().serializeNulls().create();
-            System.err.println("[DEBUG] Parsed KEvent: " + gson.toJson(kEvent));
+            // System.err.println("[DEBUG] Parsed KEvent: " + gson.toJson(kEvent));
+            System.out.println("[DEBUG] Event received: from" + kEvent.getEventSource());
 
             if (kEvent == null || kEvent.getId() == null) {
                 System.err.println("[DEBUG] Error: KEvent is null or id invalid. kEvent: " +

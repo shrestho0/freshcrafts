@@ -20,9 +20,9 @@ public class DepwizMessageController {
 
     public void handleStuff(KEvent kEvent) {
         System.err.println("[DEBUG] DepWizardMessageController: Handling stuff");
-        System.err.println("[DEBUG] Event Received");
-        CraftUtils.jsonLikePrint(kEvent);
-        System.err.println("[DEBUG] Event Received Finished");
+        // System.err.println("[DEBUG] Event Received");
+        // CraftUtils.jsonLikePrint(kEvent);
+        // System.err.println("[DEBUG] Event Received Finished");
 
         if (service == null) {
             System.err.println("[DEBUG] Error: DepwizMessageService is null");

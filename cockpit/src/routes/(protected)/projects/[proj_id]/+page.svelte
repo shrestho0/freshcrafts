@@ -39,6 +39,13 @@
 {:else if project.status === ProjectStatus.INACTIVE}
 	<CurrentDeploymentFailure {project} {currentDeployment} />
 {:else if project.status.toString().startsWith("PROCESSING")}
+	<ProjectSpecificWarningBox
+		msg="Deployment processing in progress"
+		actionUrl={`${$page.url}/processing`}
+		actionText="View processing status"
+		iconRight={CarbonArrowRight}
+	/>
+
 	<!-- {#if project.status === ProjectStatus.PROCESSING_DEPLOYMENT} -->
 	<!-- {:else if project.status === ProjectStatus.PROCESSING_DELETION} -->
 	<!-- <DeploymentProcessing sse messages={project.partialMessageList} projectId={project.id} /> -->

@@ -80,7 +80,7 @@
 	 * TODO: Filter notifications for notifications with same id.
 	 * Thus we can send same notification in different state, latest one to be shown.
 	 * But, then, sort against time sent/updated
-	 * So, we need to keep track of datetime of updated, created will be found from ulid
+	 * So, we need to keep track of datetime of updated, created will be found from _ulid
 	 * TODO: There shouldn't be any markedAsRead=true message
 	 */
 

@@ -40,7 +40,7 @@ public class CraftUtils {
         KEvent feedbackKEvent = new KEvent();
 
         feedbackKEvent.setEventDestination(KEventProducers.ENGINE);
-        feedbackKEvent.setEventSource(KEventProducers.DEP_WIZ);
+        feedbackKEvent.setEventSource(KEventProducers.DEPWIZ);
 
         // KEventFeedbackPayload feedbackPayload = new KEventFeedbackPayload();
         KEventDepWizardPayload feedbackPayload = new KEventDepWizardPayload();

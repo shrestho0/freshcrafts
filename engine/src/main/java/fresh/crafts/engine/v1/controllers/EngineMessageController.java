@@ -3,12 +3,12 @@ package fresh.crafts.engine.v1.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
-import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
+import fresh.crafts.engine.v1.entities.KEventPayloadDepWiz;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.services.EngineDepwizMessageService;
 import fresh.crafts.engine.v1.services.EngineMessageService;
 import fresh.crafts.engine.v1.utils.CraftUtils;
-import fresh.crafts.engine.v1.utils.enums.DepWizKEventCommands;
+import fresh.crafts.engine.v1.utils.enums.KEventCommandsDepWiz;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 
 @Controller
@@ -44,21 +44,27 @@ public class EngineMessageController {
             engineMessageService.serveForWizardPostgres(kEvent);
         } else if (kEvent.getEventSource() == KEventProducers.WIZARD_MONGO) {
             engineMessageService.serveForWizardMongo(kEvent);
-        } else if (kEvent.getEventSource() == KEventProducers.DEP_WIZ) {
+        } else if (kEvent.getEventSource() == KEventProducers.REDWIZ) {
+            engineMessageService.serveForRedwiz(kEvent);
+        } else if (kEvent.getEventSource() == KEventProducers.DEPWIZ) {
 
             System.err.println("[DEBUG]: Engine Depwiz Message Service: Payload");
             // for this one, it's won't be common payload rather, the generic kevent itself
-            DepWizKEventPayload payload = (DepWizKEventPayload) kEvent.getPayload();
+            KEventPayloadDepWiz payload = (KEventPayloadDepWiz) kEvent.getPayload();
             CraftUtils.jsonLikePrint(payload);
 
-            if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_DEPLOYMENT) {
+            if (payload.getCommand() == KEventCommandsDepWiz.FEEDBACK_DEPLOYMENT) {
                 engineDepwizMessageService.serveFirstDepFeedback(kEvent, payload);
-            } else if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_DELETE_DEPLOYMENTS) {
+            } else if (payload.getCommand() == KEventCommandsDepWiz.FEEDBACK_DELETE_DEPLOYMENTS) {
                 engineDepwizMessageService.serveDeleteDepsFeedback(kEvent, payload);
-            } else if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_RE_DEPLOYMENT) {
-                engineDepwizMessageService.serveReDepFeedback(kEvent, payload);
-            } else if (payload.getCommand() == DepWizKEventCommands.FEEDBACK_UPDATE_DEPLOYMENT) {
+            } else if (payload.getCommand() == KEventCommandsDepWiz.FEEDBACK_RE_DEPLOYMENT) {
+                engineDepwizMessageService.serveReDeployFeedback(kEvent, payload);
+            } else if (payload.getCommand() == KEventCommandsDepWiz.FEEDBACK_UPDATE_DEPLOYMENT) {
                 engineDepwizMessageService.serveUpdateDepFeedback(kEvent, payload);
+            } else if (payload.getCommand() == KEventCommandsDepWiz.FEEDBACK_ROLLFORWARD) {
+                engineDepwizMessageService.serveRollforwardFeedback(kEvent, payload);
+            } else if (payload.getCommand() == KEventCommandsDepWiz.FEEDBACK_ROLLBACK) {
+                engineDepwizMessageService.serveRollbackFeedback(kEvent, payload);
             } else {
                 // invalid command
                 System.err.println("[DEBUG]: Invalid command");

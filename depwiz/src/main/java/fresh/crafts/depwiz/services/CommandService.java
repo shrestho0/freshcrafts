@@ -4,6 +4,7 @@ package fresh.crafts.depwiz.services;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 
 import fresh.crafts.depwiz.entities.CommandServiceResult;
 import fresh.crafts.depwiz.entities.ProjectDeployment;
@@ -182,45 +183,113 @@ public class CommandService {
 
     }
 
+    // private CommandServiceResult runIt(ProcessBuilder processBuilder) {
+
+    // String commandOutput = "";
+    // String commandError = "";
+
+    // int exitCode = -1;
+    // try {
+    // // start
+    // Process process = processBuilder.start();
+    // exitCode = process.waitFor();
+
+    // // output
+    // BufferedReader reader = new BufferedReader(new
+    // InputStreamReader(process.getInputStream()));
+    // // output stream
+    // String line;
+
+    // while ((line = reader.readLine()) != null) {
+    // commandOutput += line + "\n";
+    // System.out.println("DEBUG_OUT: " + line);
+    // }
+
+    // // error
+    // BufferedReader errorReader = new BufferedReader(new
+    // InputStreamReader(process.getErrorStream()));
+    // String errorLine;
+    // while ((errorLine = errorReader.readLine()) != null) {
+    // commandError += errorLine + "\n";
+    // System.out.println("DEBUG_ERR: " + errorLine);
+    // }
+
+    // commandError += "Exited with code: " + exitCode + "\n";
+
+    // System.out.println("Exit Code: " + exitCode);
+    // // System.out.println("\nCommand Output: " + commandOutput + "\n");
+    // // System.out.println("\nCommand Error: " + commandError + "\n");
+    // } catch (Exception e) {
+    // e.printStackTrace();
+    // }
+
+    // CommandServiceResult result = new CommandServiceResult();
+    // result.setExitCode(exitCode);
+    // result.setOutput(commandOutput);
+    // result.setError(commandError);
+    // result.setCommand(commandError);
+
+    // return result;
+    // }
+
     private CommandServiceResult runIt(ProcessBuilder processBuilder) {
-
-        String commandOutput = "";
-        String commandError = "";
-
+        StringBuilder commandOutput = new StringBuilder();
+        StringBuilder commandError = new StringBuilder();
         int exitCode = -1;
+
         try {
-            // start
             Process process = processBuilder.start();
+
+            // Create threads to handle both stdout and stderr to prevent blocking
+            Thread outputThread = new Thread(() -> {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        commandOutput.append(line).append("\n");
+                        System.out.println("DEBUG_OUT: " + line);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            Thread errorThread = new Thread(() -> {
+                try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+                    String errorLine;
+                    while ((errorLine = errorReader.readLine()) != null) {
+                        commandError.append(errorLine).append("\n");
+                        System.out.println("DEBUG_ERR: " + errorLine);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+
+            // Start both threads
+            outputThread.start();
+            errorThread.start();
+
+            // Wait for the process to finish
             exitCode = process.waitFor();
 
-            // output
-            BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                commandOutput += line + "\n";
-            }
+            // Ensure both threads have finished reading
+            outputThread.join();
+            errorThread.join();
 
-            // error
-            BufferedReader errorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String errorLine;
-            while ((errorLine = errorReader.readLine()) != null) {
-                commandError += errorLine + "\n";
-            }
-
-            commandError += "Exited with code: " + exitCode + "\n";
-
+            commandError.append("Exited with code: ").append(exitCode).append("\n");
             System.out.println("Exit Code: " + exitCode);
-            // System.out.println("\nCommand Output: " + commandOutput + "\n");
-            // System.out.println("\nCommand Error: " + commandError + "\n");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Set result in the CommandServiceResult object
         CommandServiceResult result = new CommandServiceResult();
         result.setExitCode(exitCode);
-        result.setOutput(commandOutput);
-        result.setError(commandError);
-        result.setCommand(commandError);
+        result.setOutput(commandOutput.toString());
+        result.setError(commandError.toString());
+        result.setCommand(commandError.toString()); // If the command is meant to be set here, make sure it's the right
+                                                    // one
 
         return result;
     }
@@ -244,7 +313,7 @@ public class CommandService {
     public CommandServiceResult enableNginxSite(String nginxConfFileAbsPath) {
         // move nginx conf file to /etc/nginx/sites-available
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("sudo", "mv", nginxConfFileAbsPath, "/etc/nginx/sites-available");
+        processBuilder.command("sudo", "cp", "-r", nginxConfFileAbsPath, "/etc/nginx/sites-available");
         CommandServiceResult result = runIt(processBuilder);
         if (result.getExitCode() != 0) {
             result.setShortError("Failed to move nginx conf file");
@@ -253,7 +322,8 @@ public class CommandService {
 
         // create symlink
         String fileName = new File(nginxConfFileAbsPath).getName();
-        processBuilder.command("sudo", "ln", "-s", "/etc/nginx/sites-available/" + fileName,
+        // FIXME: temporarily we are doing it forcefully
+        processBuilder.command("sudo", "ln", "-sf", "/etc/nginx/sites-available/" + fileName,
                 "/etc/nginx/sites-enabled/" + fileName);
         CommandServiceResult result2 = runIt(processBuilder);
 
@@ -284,7 +354,7 @@ public class CommandService {
 
         // delete enabled symlink
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("sudo", "rm", "/etc/nginx/sites-enabled/" + id + ".conf");
+        processBuilder.command("sudo", "rm", "/etc/nginx/sites-enabled/" + id + ".conf" + "_usable");
 
         CommandServiceResult result = runIt(processBuilder);
         if (result.getExitCode() != 0) {
@@ -294,7 +364,7 @@ public class CommandService {
         }
 
         // remove conf file
-        processBuilder.command("sudo", "rm", "/etc/nginx/sites-available/" + id + ".conf");
+        processBuilder.command("sudo", "rm", "/etc/nginx/sites-available/" + id + ".conf" + "_usable");
         CommandServiceResult result1 = runIt(processBuilder);
         if (result1.getExitCode() != 0) {
             result1.setShortError("Failed to remove conf file");
@@ -347,7 +417,7 @@ public class CommandService {
 
         // stop pm2
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command("pm2", "stop", ecoSystemFileAbsPath);
+        processBuilder.command("pm2", "stop", ecoSystemFileAbsPath + "_usable");
         CommandServiceResult result = runIt(processBuilder);
         if (result.getExitCode() != 0) {
             result.setShortError("Failed to stop pm2");
@@ -355,7 +425,7 @@ public class CommandService {
         }
 
         // delete pm2
-        processBuilder.command("pm2", "delete", ecoSystemFileAbsPath);
+        processBuilder.command("pm2", "delete", ecoSystemFileAbsPath + "_usable");
         CommandServiceResult result1 = runIt(processBuilder);
         if (result1.getExitCode() != 0) {
             result1.setShortError("Failed to delete pm2");

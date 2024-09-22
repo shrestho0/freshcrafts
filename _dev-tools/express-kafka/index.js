@@ -9,7 +9,7 @@ const kafkaClient = new KafkaClient({ kafkaHost: 'localhost:9092' });
 const producer = new Producer(kafkaClient);
 
 let producerReady = false;
-const predefinedTopics = ['ENGINE', 'WIZARD_MYSQL', 'WIZARD_POSTGRES', 'WIZARD_MONGO', 'DEP_WIZ', 'NOTIFICATION', "kafka-health-indicator"]
+const predefinedTopics = ['ENGINE', 'WIZARD_MYSQL', 'WIZARD_POSTGRES', 'WIZARD_MONGO', 'DEPWIZ', 'NOTIFICATION', "REDWIZ", "kafka-health-indicator"]
 producer.on('ready', () => {
     console.log('Producer ready');
     producer.createTopics(predefinedTopics, false, (err, data) => {
@@ -59,7 +59,8 @@ const consumer = new Consumer(
 //         <option {{WIZARD_MYSQL}} value="WIZARD_MYSQL">WIZARD_MYSQL</option>
 //         <option {{WIZARD_POSTGRES}} value="WIZARD_POSTGRES">WIZARD_POSTGRES</option>
 //         <option {{WIZARD_MONGO}} value="WIZARD_MONGO">WIZARD_MONGO</option>
-//         <option {{DEP_WIZ}} value="DEP_WIZ">DEP_WIZ</option>
+//         <option {{DEPWIZ}} value="DEPWIZ">DEPWIZ</option>
+//         <option {{REDWIZ}} value="REDWIZ">REDWIZ</option>
 //         </select>
 //         <br>
 //         <textarea rows="10" cols="50" name="message">{{VALUE}}</textarea>

@@ -1,0 +1,69 @@
+# version: '3.8'
+
+# Group: freshcrafts
+
+services:
+
+  # kafka
+  primary-kafka:
+    container_name: primary-kafka
+    image: apache/kafka:3.7.1
+    ports:
+      - 9092:9092
+
+  primary-mongo:
+    container_name: primary-mongo
+    image: 'mongo:latest'
+    ports:
+      - _PRIMARY_MONGO_PORT:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '_PRIMARY_MONGO_USERNAME'
+      MONGO_INITDB_ROOT_PASSWORD: '_PRIMARY_MONGO_PASSWORD'
+    volumes:
+      - ../fc_data/primary/mongodb:/data/db
+
+  # secondary are for end usages
+  secondary-mysql:
+    container_name: secondary-mysql
+    image: 'mysql:latest'
+    ports:
+      - _SECONDARY_MYSQL_PORT:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: '_SECONDARY_MYSQL_PASSWORD'
+    volumes:
+      - ../fc_data/secondary/mysql/:/var/lib/mysql
+
+  secondary-postgres:
+    container_name: secondary-postgres
+    image: 'postgres:latest'
+    ports:
+      - _SECONDARY_POSTGRES_PORT:5432
+    environment:
+      POSTGRES_USER: '_SECONDARY_POSTGRES_USERNAME'
+      POSTGRES_PASSWORD: '_SECONDARY_POSTGRES_PASSWORD'
+
+    volumes:
+      - ../fc_data/secondary/postgresql/data:/var/lib/postgresql/data
+
+  secondary-mongo:
+    container_name: secondary-mongo
+    image: 'mongo:latest'
+    ports:
+      - _SECONDARY_MONGO_PORT:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '_SECONDARY_MONGO_USERNAME'
+      MONGO_INITDB_ROOT_PASSWORD: '_SECONDARY_MONGO_PASSWORD'
+    volumes:
+      - ../fc_data/secondary/mongodb:/data/db
+
+  secondary-redis:
+
+    container_name: secondary-redis
+    image: redis:latest
+    ports:
+      - _SECONDARY_REDIS_PORT:6379
+    volumes:
+      - ./templates/redis.conf:/usr/local/etc/redis/redis.conf.template # Copy redis.conf from your local path
+      - ../fc_data/secondary/redis/data:/data # Persist Redis data to local folder
+    command: >
+      sh -c "sed 's/__password__/_SECONDARY_REDIS_PASSWORD/g' /usr/local/etc/redis/redis.conf.template > /usr/local/etc/redis/redis.conf && redis-server /usr/local/etc/redis/redis.conf"

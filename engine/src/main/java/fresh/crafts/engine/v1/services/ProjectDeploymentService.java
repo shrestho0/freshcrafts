@@ -13,6 +13,13 @@ public class ProjectDeploymentService {
     @Autowired
     private ProjectDeploymentRepository projectDeploymentRepository;
 
+    /**
+     * getProjectDeploymentById
+     * Get deployment by id
+     * 
+     * @param id
+     * @return ProjectDeployment
+     */
     public ProjectDeployment getProjectDeploymentById(String id) {
         if (id == null)
             return null;

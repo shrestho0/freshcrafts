@@ -18,6 +18,17 @@ export enum DBMysqlStatus {
 	UPDATE_FAILED = 'UPDATE_FAILED',
 	PENDING_DELETE = 'PENDING_DELETE'
 }
+
+export enum DBRedisStatus {
+
+	REQUESTED = 'REQUESTED',
+	UPDATE_REQUESTED = 'UPDATE_REQUESTED',
+	OK = 'OK',
+	FAILED = 'FAILED',
+	UPDATE_FAILED = 'UPDATE_FAILED',
+	PENDING_DELETE = 'PENDING_DELETE'
+}
+
 export enum DBPostgresStatus {
 	REQUESTED = 'REQUESTED',
 	UPDATE_REQUESTED = 'UPDATE_REQUESTED',
@@ -39,7 +50,8 @@ export enum InternalNewProjectType {
 	LOCAL_FILE_UPLOAD = 'LOCAL_FILE_UPLOAD',
 	LIST_GITHUB_REPO = 'LIST_GITHUB_REPO',
 	CREATE_PROJECT_FROM_GITHUB = 'CREATE_FROM_GITHUB',
-	CREATE_PROJECT_FROM_LOCAL_FILE = 'CREATE_FROM_FILE'
+	CREATE_PROJECT_FROM_LOCAL_FILE = 'CREATE_FROM_FILE',
+	ROLLFORWARD_FROM_LOCAL_FILE = 'ROLLFORWARD_FROM_LOCAL_FILE'
 }
 export enum ProjectType {
 	LOCAL_FILES = 'LOCAL_FILES',
@@ -54,6 +66,9 @@ export enum InternalProjectSetupCommand {
 	DEPLOY_PROJECT = 'deploy-project',
 	RE_DEPLOY_PROJECT = 're-deploy-project',
 	UPDATE_DEPLOYMENT = 'update-deployment',
+
+	ROLLBACK = 'rollback',
+	ROLLFORWARD = 'rollforward',
 
 	DELETE_INCOMPLETE_PROJECT = 'delete-incomplete-project',
 	DELETE_PROJECT = 'delete-project',
@@ -111,13 +126,21 @@ export enum InternalDeploymentActions {
 
 	UPDATE_DEPLOYMENT = 'update-deployment',
 
-	ROLLBACK_DEPLOYMENT = 'rollback-deployment',
-	ROLLFORWARD_DEPLOYMENT = 'rollforward-deployment',
+	ROLLBACK = 'rollback',
+	ROLLFORWARD = 'rollforward',
 
 	INITIAL_SETUP = 'initial-setup',
 	RE_DEPLOY = 're-deploy',
-	MODIFY_ENV = 'modify-env',
+
+	// MODIFY_ENV = 'modify-env', // update handles this
 	MODIFY_DOMAIN = 'modify-domain',
+	CODE_DOCS = 'code-docs',
+
 	DELETE_PROJECT = 'delete-project',
-	ROLLBACK = "rollback"
+	// ROLLBACK = "rollback"
+}
+
+export enum InternalDocGenerationCommands {
+	GET_DOCS = 'get-docs',
+	GENERATE_DOC = 'generate-doc'
 }

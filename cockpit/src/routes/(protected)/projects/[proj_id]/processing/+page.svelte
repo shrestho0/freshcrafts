@@ -15,7 +15,7 @@
 
     export let data;
 
-    let messages: string[] = [];
+    let messages: string[] = data.project?.partialMessageList || [];
 
     let redirecting = false;
 

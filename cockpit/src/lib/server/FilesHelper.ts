@@ -128,7 +128,8 @@ export class FilesHelper {
             .replace('{AUTORESTART}', 'true')
             .replace('{PORT}', '{PORT}')
             .replace('{HOST}', '0.0.0.0')
-            .replace('{ORIGIN}', ((ENV == "prod" ? 'https://' : 'http://') + projectDomain));
+            .replace('{ORIGIN}', '{PROTOCOL}://{DOMAIN}')
+        // .replace('{ORIGIN}', ((ENV == "prod" ? 'https://' : 'http://') + projectDomain));
 
         await fs.writeFile(filePath, content);
 
@@ -137,9 +138,12 @@ export class FilesHelper {
         // write nginx config file
         const nginxConfFileName = `${projectId}.conf`;
         const nginxConfFilePath = path.join(prodDir, nginxConfFileName);
+
         const nginxConfContent = this.nginxConfigTemplateContent
-            .replace('{SERVER_NAME}', projectDomain)
+            // these will be handled by depwiz
+            .replace('{SERVER_NAME}', '{DOMAIN}')
             .replace('{PORT}', '{PORT}');
+
         await fs.writeFile(nginxConfFilePath, nginxConfContent);
 
         const nginxConfFileAbsPath = path.join(process.cwd(), nginxConfFilePath);
@@ -313,6 +317,21 @@ export class FilesHelper {
         });
     }
 
+    private _catFile(filePath: string) {
+        return new Promise((resolve, reject) => {
+            exec(`cat ${filePath}`, (err, stdout, stderr) => {
+                if (err) {
+                    reject(`Error reading file: ${err.message}`);
+                } else if (stderr) {
+                    reject(`Standard Error: ${stderr}`);
+                } else {
+                    resolve(stdout);
+                }
+            });
+        });
+
+    }
+
 
     // Function to extract .tar.gz files
     private async extractTarGz(tarGzFilePath: string, extractDir: string) {
@@ -417,7 +436,7 @@ export class FilesHelper {
                     structure.push({
                         text: file,
                         children,
-                        // isDir, 
+                        isDir,
                         disabled: !isDir,
                         // isFile, 
                         level,
@@ -427,7 +446,8 @@ export class FilesHelper {
                 } else if (isFile) {
                     structure.push({
                         text: file,
-                        // isFile, 
+                        // isFile,
+                        isDir,
                         // isDir, isFile, 
                         disabled: !isDir,
                         level,
@@ -542,5 +562,147 @@ export class FilesHelper {
         await page.screenshot({ path: screenshotPath });
         await browser.close();
     }
+
+
+    // async generateContextForCodeDoc(dirPath: string, level: number = 10) {
+
+
+
+    //     // // read files and directories
+    //     // // ignore some files and directories
+
+    //     // const files = (await this.listFilesRecursive(dirPath)).structure as unknown as {
+    //     //     text: string,
+    //     //     isDir: boolean,
+    //     //     level: number,
+    //     //     relativePath: string,
+    //     // }
+
+
+    //     // let revisedFileList: string[] = []
+
+    //     // // get files and directories relative paths and save to revisedFileList as src/x, src/y/z, ...
+    //     // // ignore 
+    //     // const ignoreList = this.getIgnoreList();
+    //     // const ignoreExtList = this.getIgnoreExtentionList();
+
+    //     // // do it
+
+
+
+
+    //     // console.log('revisedFileList', revisedFileList)
+
+
+    //     // Read files and directories, ignoring some files and directories
+    //     const files = (await this.listFilesRecursive(dirPath)).structure as unknown as {
+    //         text: string,
+    //         isDir: boolean,
+    //         level: number,
+    //         relativePath: string,
+    //     }[];
+
+    //     let revisedFileList: string[] = [];
+
+    //     // Get ignore lists
+    //     const ignoreList = this.getIgnoreList(); // List of directories or files to ignore
+    //     const ignoreExtList = this.getIgnoreExtentionList(); // List of file extensions to ignore
+
+
+
+
+
+
+    // }
+
+
+
+    async flattenFileTree(files: {
+        text: string,
+        isDir: boolean,
+        level: number,
+        relativePath: string,
+    }[]) {
+
+        const ignoreList = this.getIgnoreList(); // List of directories or files to ignore
+        const ignoreExtList = this.getIgnoreExtentionList(); // List of file extensions to ignore
+
+
+        const flattenList: string[] = [];
+
+        // generate dir/**/file paths from files (dfs)
+        const dfs = (files: any[], xpath: string) => {
+            for (const file of files) {
+
+
+                if (ignoreList.includes(file.text)) {
+                    continue;
+                }
+
+                if (ignoreExtList.includes(path.extname(file.text))) {
+                    continue;
+                }
+
+                // if (file.text?.endsWith('config.js') || file.text?.endsWith('config.cjs')) {
+                //     continue;
+                // }
+
+
+
+                if (file.isDir) {
+                    dfs(file.children, xpath + '/' + file.text);
+                } else {
+                    // remove first '/'
+                    flattenList.push(xpath + '/' + file.text);
+                }
+            }
+        }
+
+        dfs(files, '');
+
+        return flattenList
+    }
+
+
+
+    private getIgnoreList() {
+        return ['node_modules', '.git', '.cache', 'build', 'dist', '.next', '.svelte-kit',
+            'out', '.nuxt', '.output', '.vuepress', '.docusaurus', '.gridsome',
+            'coverage', '.nyc_output', 'logs', 'tmp', 'target',
+            '.vscode', '.idea', '.DS_Store', '_pycache_', 'package-lock.json',
+            'yarn.lock', 'npm-debug.log', 'yarn-error.log', 'yarn-debug.log',
+            '.env', '.npmrc', '.yarnrc', '.yarnrc.yml', '.yarnrc.yaml',
+
+            // some files
+            'app.d.ts', "postcss.config.js", "svelte.config", "tailwind.config.js", "LICENSE",
+            // some more directories
+            'icons', 'public', 'assets', 'static', 'css'
+
+            // more to be added
+        ]
+    }
+
+    private getIgnoreExtentionList() {
+        return [
+            '.css', '.scss', '.sass', '.less', '.html', '.md', '.txt', ".bak",
+            // fonts
+            '.woff', '.woff2', '.ttf', '.eot',
+            // rc files
+            '.lock', '.log', '.tmp', '.swp',
+            '.zip', '.gz', '.tar', '.xz', '.bz2',
+            // images
+            '.jpg', '.jpeg', '.png', '.gif', '.svg', '.ico',
+            // videos
+            '.mp4', '.webm', '.ogg', '.mp3', '.wav', '.flac', '.aac',
+            '.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
+            '.json', '.xml', '.yaml', '.yml', '.csv', '.tsv',
+        ]
+    }
+
+    async writeToFile(filePath: string, content: string) {
+        await fs.writeFile(filePath, content);
+
+    }
+
 
 }

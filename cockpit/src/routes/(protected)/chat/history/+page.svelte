@@ -24,24 +24,10 @@
 
 	import { afterUpdate, getContext, onMount } from "svelte";
 	import { toast } from "svelte-sonner";
-	import { blur, crossfade, draw, fade, fly, slide } from "svelte/transition";
-	import { quintOut } from "svelte/easing";
-
-	// import Markdown, { type Plugin } from "svelte-exmarkdown";
-	// import { gfmPlugin } from "svelte-exmarkdown/gfm";
-
-	import { Carta, MarkdownEditor, Markdown } from "carta-md";
 
 	let form: HTMLFormElement;
 
-	import "@cartamd/plugin-code/default.css";
-	import { code } from "@cartamd/plugin-code";
 	import MdCodeBlock from "@/components/MDCodeBlock.svelte";
-
-	const carta = new Carta({
-		extensions: [code()],
-		sanitizer: (html) => html,
-	});
 
 	const svelteMarkdownRenderers = {
 		code: MdCodeBlock,
@@ -178,16 +164,6 @@
 							source={message.content}
 							renderers={svelteMarkdownRenderers}
 						/>
-						<!-- <Markdown
-							theme="github"
-							{carta}
-							value={message.content}
-						/> -->
-						<!-- {message.content} -->
-						<!-- <pre>
-							 {message.content}
-						</pre> -->
-						<!-- <Markdown md={message.content} {plugins} /> -->
 					</div>
 				</div>
 			{/each}

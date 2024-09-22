@@ -85,6 +85,32 @@ public class ProjectController {
         return ResponseEntity.status(res.getStatusCode()).body(res);
     }
 
+    @PostMapping("/rollforward/{projId}")
+    public ResponseEntity<CommonResponseDto> rollforwardProject(
+            @PathVariable String projId,
+            @RequestParam(defaultValue = "false") Boolean preprocessing,
+            @RequestBody HashMap<String, Object> deployInfo
+
+    ) {
+
+        CommonResponseDto res = projectService.rollforwardProject(projId, deployInfo, preprocessing);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+
+    }
+
+    @PostMapping("/rollback/{projId}")
+    public ResponseEntity<CommonResponseDto> rollbackProject(
+            @PathVariable String projId,
+            @RequestBody HashMap<String, Object> rollbackInfo
+
+    ) {
+
+        CommonResponseDto res = projectService.rollbackProject(projId, rollbackInfo);
+
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+
+    }
+
     @PatchMapping("/update/{id}")
     public ResponseEntity<CommonResponseDto> updateProjectDeployment(
             @PathVariable String id,
@@ -134,15 +160,15 @@ public class ProjectController {
         return response;
     }
 
-    @GetMapping("/{id}/deployments")
+    @GetMapping("/{projId}/deployments")
     public ResponseEntity<CommonResponseDto> getDeploymentsByProjectId(
-            @PathVariable String id) {
+            @PathVariable String projId) {
         System.out.println("getDeploymentsByProjectId" + "deployments pathano hocche");
         // response dto
         CommonResponseDto res = new CommonResponseDto();
 
         // get project by id
-        List<ProjectDeployment> deps = projectService.getDeployments(id);
+        List<ProjectDeployment> deps = projectService.getDeployments(projId);
         res.setPayload(
                 new HashMap<>() {
                     {
@@ -153,6 +179,21 @@ public class ProjectController {
         ResponseEntity<CommonResponseDto> response = ResponseEntity.status(res.getStatusCode()).body(res);
         return response;
     }
+
+    // @PostMapping("/{projId}/deployments")
+    // public ResponseEntity<CommonResponseDto> createNewProjectDeployment(
+    // @PathVariable String projId,
+    // @RequestBody ProjectDeployment pd) {
+    // System.out.println("createNewDeployment");
+    // // response dto
+    // CommonResponseDto res = new CommonResponseDto();
+
+    // projectService.createProjectDeployment(res, projId, pd);
+
+    // ResponseEntity<CommonResponseDto> response =
+    // ResponseEntity.status(res.getStatusCode()).body(res);
+    // return response;
+    // }
 
     @DeleteMapping("/incomplete/{id}")
     public ResponseEntity<CommonResponseDto> deleteIncompleteProjectById(@PathVariable String id) {

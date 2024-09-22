@@ -16,19 +16,16 @@ import com.google.gson.GsonBuilder;
 import fresh.crafts.engine.v1.config.MessageProducer;
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 import fresh.crafts.engine.v1.dtos.CreateProjectRequestDto;
-import fresh.crafts.engine.v1.entities.DepWizKEventPayload;
+import fresh.crafts.engine.v1.entities.KEventPayloadDepWiz;
 import fresh.crafts.engine.v1.entities.GithubRepoDetailed;
-import fresh.crafts.engine.v1.entities.KEventPayloadInterface;
 import fresh.crafts.engine.v1.entities.ProjectGithubRepo;
-import fresh.crafts.engine.v1.models.AIChatHistory;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.models.Project;
 import fresh.crafts.engine.v1.models.ProjectDeployment;
-import fresh.crafts.engine.v1.repositories.ProjectDeploymentRepository;
 import fresh.crafts.engine.v1.repositories.ProjectRepository;
 import fresh.crafts.engine.v1.utils.CraftUtils;
 import fresh.crafts.engine.v1.utils.UlidGenerator;
-import fresh.crafts.engine.v1.utils.enums.DepWizKEventCommands;
+import fresh.crafts.engine.v1.utils.enums.KEventCommandsDepWiz;
 import fresh.crafts.engine.v1.utils.enums.KEventProducers;
 import fresh.crafts.engine.v1.utils.enums.ProjectDeploymentStatus;
 import fresh.crafts.engine.v1.utils.enums.ProjectStatus;
@@ -68,7 +65,7 @@ public class ProjectService {
         newProject.setId(createProjectDto.getNewProjectId());
         newProject.setStatus(ProjectStatus.AWAIT_INITIAL_SETUP);
         newProject.setType(createProjectDto.getType());
-        newProject.setTotalVersions(0);
+        newProject.setTotalVersions(1); // for first dep
 
         newProject.setProjectDir(createProjectDto.getProjectDir());
 
@@ -91,7 +88,7 @@ public class ProjectService {
         // create first version of project_deployment
         ProjectDeployment newDeployment = new ProjectDeployment();
         newDeployment.setVersion(1);
-        newDeployment.setIteration(1);
+        newDeployment.setIteration(0); // first iteration
         newDeployment.setStatus(ProjectDeploymentStatus.PRE_CREATION);
         newDeployment.setIsDeployed(false);
         // newDeployment.setProject(newProject);
@@ -343,12 +340,12 @@ public class ProjectService {
 
             // send to dep wiz
             KEvent kevent = generateCommonKEvent();
-            DepWizKEventPayload payload = new DepWizKEventPayload();
+            KEventPayloadDepWiz payload = new KEventPayloadDepWiz();
 
             if (isReDeploy) {
-                payload.setCommand(DepWizKEventCommands.RE_DEPLOY);
+                payload.setCommand(KEventCommandsDepWiz.RE_DEPLOY);
             } else {
-                payload.setCommand(DepWizKEventCommands.DEPLOY);
+                payload.setCommand(KEventCommandsDepWiz.DEPLOY);
             }
 
             payload.setCurrentDeployment(projectDeploymentService.getProjectDeploymentById(p.getCurrentDeploymentId()));
@@ -379,7 +376,7 @@ public class ProjectService {
     private KEvent generateCommonKEvent() {
         KEvent kevent = new KEvent();
         kevent.setEventSource(KEventProducers.ENGINE);
-        kevent.setEventDestination(KEventProducers.DEP_WIZ);
+        kevent.setEventDestination(KEventProducers.DEPWIZ);
         return kevent;
     }
 
@@ -443,7 +440,7 @@ public class ProjectService {
         // // send to dep wiz
         // KEvent kevent = generateCommonKEvent();
         // DepWizKEventPayload payload = new DepWizKEventPayload();
-        // payload.setCommand(DepWizKEventCommands.DELETE_DEPLOYMENT);
+        // payload.setCommand(KEventCommandsDepWiz.DELETE_DEPLOYMENT);
 
         // List<ProjectDeployment> deployments =
         // projectDeploymentService.getDeploymentsByProjectId(id);
@@ -473,9 +470,9 @@ public class ProjectService {
 
             // send to dep wiz
             KEvent kevent = generateCommonKEvent();
-            DepWizKEventPayload payload = new DepWizKEventPayload();
+            KEventPayloadDepWiz payload = new KEventPayloadDepWiz();
 
-            payload.setCommand(DepWizKEventCommands.DELETE_DEPLOYMENTS);
+            payload.setCommand(KEventCommandsDepWiz.DELETE_DEPLOYMENTS);
             payload.setProject(p.get());
             payload.setDeploymentList(deployments);
             kevent.setPayload(payload);
@@ -555,9 +552,9 @@ public class ProjectService {
             projectRepository.save(p);
 
             KEvent kevent = generateCommonKEvent();
-            DepWizKEventPayload payload = new DepWizKEventPayload();
+            KEventPayloadDepWiz payload = new KEventPayloadDepWiz();
 
-            payload.setCommand(DepWizKEventCommands.UPDATE_DEPLOYMENT);
+            payload.setCommand(KEventCommandsDepWiz.UPDATE_DEPLOYMENT);
             payload.setProject(p);
             payload.setCurrentDeployment(currentDeployment);
             payload.setActiveDeployment(projectDeploymentService.getProjectDeploymentById(p.getActiveDeploymentId()));
@@ -578,6 +575,199 @@ public class ProjectService {
 
         return res;
 
+    }
+
+    public void createProjectDeployment(CommonResponseDto res, String projId, ProjectDeployment pd) {
+
+        // create new deployment
+        try {
+
+            pd.setId(UlidGenerator.generate());
+            pd.setProjectId(projId);
+            pd.setStatus(ProjectDeploymentStatus.PRE_CREATION);
+            pd.setIsDeployed(false);
+
+            projectDeploymentService.save(pd);
+
+            res.setSuccess(true);
+            res.setStatusCode(201);
+            res.setMessage("Project Deployment created successfully");
+            res.setPayload(pd);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400);
+            res.setMessage("Error: " + e.getMessage());
+        }
+
+    }
+
+    public CommonResponseDto rollforwardProject(String projId, HashMap<String, Object> deployInfo,
+            Boolean preprocessing) {
+
+        CommonResponseDto res = new CommonResponseDto();
+
+        System.out
+                .println("\n\nRollforwardInfo: " + projId + " " + "First Deploy" + " Preprocessing: " + preprocessing);
+        CraftUtils.jsonLikePrint(deployInfo);
+        System.out.println("\n\n");
+
+        try {
+
+            Gson gson = new Gson();
+            // get project
+            Project p = projectRepository.findById(projId).get();
+
+            if (preprocessing) {
+                ProjectDeployment npd = gson.fromJson(gson.toJson(deployInfo), ProjectDeployment.class);
+                npd.setIsDeployed(false);
+                npd.setErrorTraceback("");
+                // proj dep from deployInfo
+                npd.setProjectId(projId);
+                // npd.setVersion(1);
+                npd.setIteration(0);
+                npd.setStatus(ProjectDeploymentStatus.PRE_CREATION);
+
+                System.out.println("New Project Deployment Info: ");
+                CraftUtils.jsonLikePrint(npd);
+                System.out.println("\n\n");
+
+                p.setRollforwardDeploymentId(npd.getId());
+
+                p.setCurrentDeploymentId(npd.getId());
+
+                p.setTotalVersions(p.getTotalVersions() + 1);
+                npd.setVersion(p.getTotalVersions()); // next version
+
+                // save project
+                projectRepository.save(p);
+                // save project deployment
+                projectDeploymentService.save(npd);
+
+                res.setSuccess(true);
+                res.setStatusCode(201);
+                res.setMessage("Rollforward pre-processing completed");
+
+            } else {
+                ProjectDeployment npdPartial = gson.fromJson(gson.toJson(deployInfo), ProjectDeployment.class);
+                ProjectDeployment currDeployment = projectDeploymentService
+                        .getProjectDeploymentById(p.getCurrentDeploymentId());
+
+                p.setPartialMessageList(new ArrayList<String>());
+
+                currDeployment.setSrc(npdPartial.getSrc());
+                // p.setTotalVersions(p.getTotalVersions() + 1); // next version
+                currDeployment.setEnvFile(npdPartial.getEnvFile());
+                currDeployment.setDepCommands(npdPartial.getDepCommands());
+                currDeployment.setProdFiles(npdPartial.getProdFiles());
+
+                p.setStatus(ProjectStatus.PROCESSING_ROLLFORWARD);
+                // p.setRollforwardDeploymentId(null); // remove on success
+                currDeployment.setIteration(1);
+                currDeployment.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+
+                // save project
+                projectRepository.save(p);
+                // save project deployment
+                projectDeploymentService.save(currDeployment);
+
+                // The request
+
+                KEvent kevent = generateCommonKEvent();
+                KEventPayloadDepWiz payload = new KEventPayloadDepWiz();
+
+                payload.setCommand(KEventCommandsDepWiz.ROLLFORWARD);
+                payload.setProject(p);
+                payload.setCurrentDeployment(currDeployment);
+                // don't delete source file for rollforward, just do undeploy
+                payload.setActiveDeployment(
+                        projectDeploymentService.getProjectDeploymentById(p.getActiveDeploymentId()));
+
+                kevent.setPayload(payload);
+                kEventService.createOrUpdate(kevent);
+                messageProducer.sendEvent(kevent);
+
+                res.setSuccess(true);
+                res.setStatusCode(202);
+                res.setMessage("Rollforward request is being processed");
+
+            }
+
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400);
+            res.setMessage("Error: " + e.getMessage());
+        }
+
+        return res;
+
+    }
+
+    public CommonResponseDto rollbackProject(String projId, HashMap<String, Object> rollbackInfo) {
+        CommonResponseDto res = new CommonResponseDto();
+
+        // throw if there is a currentDeployment id for some reason
+
+        try {
+            // project er status gonna change
+            String rollbackId = (String) rollbackInfo.get("rollbackId");
+            if (rollbackId == null) {
+                throw new Exception("Rollback id not provided");
+            }
+
+            Project proj = getProjectById(projId);
+            ProjectDeployment currentDeployment = projectDeploymentService.getProjectDeploymentById(rollbackId);
+            ProjectDeployment activeDeployment = projectDeploymentService
+                    .getProjectDeploymentById(proj.getActiveDeploymentId());
+
+            System.out.println("Proj to -----> Rollback");
+
+            CraftUtils.jsonLikePrint(proj);
+            System.out.println("Active Deployment to -----> Rollback");
+            CraftUtils.jsonLikePrint(activeDeployment);
+            System.out.println("currentDeployment Deployment to -----> Rollback");
+            CraftUtils.jsonLikePrint(currentDeployment);
+
+            proj.setStatus(ProjectStatus.PROCESSING_ROLLBACK);
+            currentDeployment.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+
+            if (activeDeployment != null) {
+                activeDeployment.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+            }
+
+            proj.getPartialMessageList().clear();
+
+            proj.setRollbackDeploymentId(currentDeployment.getId());
+
+            projectRepository.save(proj);
+            projectDeploymentService.save(currentDeployment);
+            projectDeploymentService.save(activeDeployment);
+
+            // f... send it
+
+            KEvent kevent = generateCommonKEvent();
+            KEventPayloadDepWiz payload = new KEventPayloadDepWiz();
+
+            payload.setCommand(KEventCommandsDepWiz.ROLLBACK);
+            payload.setProject(proj);
+            payload.setCurrentDeployment(currentDeployment);
+
+            // it's ok if activeDeployment is null
+            payload.setActiveDeployment(activeDeployment);
+
+            kevent.setPayload(payload);
+            kEventService.createOrUpdate(kevent);
+            messageProducer.sendEvent(kevent);
+
+            res.setSuccess(true);
+            res.setStatusCode(202);
+            res.setMessage("Rollforward request is being processed");
+
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400); // shob dosh client er
+        }
+
+        return res;
     }
 
 }

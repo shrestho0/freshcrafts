@@ -8,8 +8,8 @@
   <button onclick="populate('WIZARD_MYSQL')">WIZARD_MYSQL</button>
   <button onclick="populate('WIZARD_POSTGRES')">WIZARD_POSTGRES</button>
   <button onclick="populate('WIZARD_MONGO')">WIZARD_MONGO</button>
-  <button onclick="populate('WIZARD_NGINX')">WIZARD_NGINX</button>
-  <button onclick="populate('WIZARD_APPLICATION')">WIZARD_APPLICATION</button>
+  <button onclick="populate('DEPWIZ')">DEPWIZ</button>
+  <button onclick="populate('REDWIZ')">REDWIZ</button>
 
 </div>
 <script>
@@ -27,8 +27,101 @@
     "WIZARD_MYSQL": ``,
     "WIZARD_POSTGRES": ``,
     "WIZARD_MONGO": ``,
-    "DEP_WIZ": ``,
-   }
+    "DEPWIZ": `{
+  "command": "FEEDBACK_ROLLFORWARD",
+  "project": {
+    "id": "01J7NF63GDCEAAFBE3NS9C1EP5",
+    "uniqueName": "test01",
+    "type": "LOCAL_FILES",
+    "status": "PROCESSING_ROLLFORWARD",
+    "totalVersions": 1,
+    "activeVersion": null,
+    "activeDeploymentId": "01J7NFCZ4MWCXBG64H69MKTMD3",
+    "currentDeploymentId": "01J7NFE9Z6KEQE5PXNRQGV197Y",
+    "rollforwardDeploymentId": null,
+    "rollbackDeploymentId": null,
+    "githubRepo": null,
+    "updatedAt": null,
+    "domain": "test01.freshcrafts.local",
+    "portAssigned": 51889,
+    "ssl": false,
+    "projectDir": {
+      "path": "../fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5",
+      "absPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5"
+    },
+    "partialMessageList": [
+      "[RUNNING] Removing previous deployment",
+      "[SUCCESS] Previous deployment removed",
+      "[SUCCESS] Deployment update started",
+      "[RUNNING] Checking files and installing dependencies",
+      "[SUCCESS] Checking files and installing done",
+      "[RUNNING] Installing dependencies",
+      "[SUCCESS] Dependencies installed",
+      "[RUNNING] Running post install command",
+      "[SUCCESS] Post install commands executed",
+      "[RUNNING] Binding Setting up application process ",
+      "[SUCCESS] Application process setup complete",
+      "[RUNNING] Setting up nginx",
+      "[SUCCESS] Nginx setup complete",
+      "[SUCCESS] Deployment update completed __REVALIDATE__"
+    ]
+  },
+  "currentDeployment": {
+    "id": "01J7NFE9Z6KEQE5PXNRQGV197Y",
+    "projectId": "01J7NF63GDCEAAFBE3NS9C1EP5",
+    "version": 2,
+    "iteration": null,
+    "status": "READY_FOR_DEPLOYMENT",
+    "isDeployed": false,
+    "errorTraceback": null,
+    "rawFile": null,
+    "envFile": {
+      "name": ".env",
+      "path": "../fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/src/.env",
+      "absPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/src/.env"
+    },
+    "depCommands": {
+      "build": "",
+      "install": "npm install",
+      "postInstall": "echo \"failme\"\necho \"failme2\""
+    },
+    "src": {
+      "filesDirPath": "../fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/src",
+      "filesDirAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/src",
+      "rootDirPath": ".",
+      "rootDirAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/src",
+      "buildDirPath": ".",
+      "buildDirAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/src"
+    },
+    "prodFiles": {
+      "ecoSystemFilePath": "../fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/prod/ecosystem.config.js",
+      "ecoSystemFileAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/prod/ecosystem.config.js",
+      "logsDir": "../fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/logs",
+      "outLogFileAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/prod/logs/out.log",
+      "errorLogFileAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/prod/logs/error.log",
+      "nginxConfFilePath": "../fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/prod/01J7NF63GDCEAAFBE3NS9C1EP5.conf",
+      "nginxConfFileAbsPath": "/media/shrestho/github/tjf/freshcrafts/fc_data/projects/01J7NF63GDCEAAFBE3NS9C1EP5/v2/prod/01J7NF63GDCEAAFBE3NS9C1EP5.conf"
+    }
+  },
+  "activeDeployment": null,
+  "deploymentList": null,
+  "message": "[SUCCESS] Rollforward completed",
+  "success": true,
+  "isPartial": false,
+  "requestEventId": "01J7NFGNEMX4GFT00VFK4MZ0XE",
+  "data": null
+}
+`,
+    "REDWIZ": `{
+      "payload": {
+        "command": "REVOKE_ACCESS_FROM_USER",
+        "username": "user4",
+        "password": "user4",
+        "dbPrefix": "u1"
+      }
+    }`
+
+  }
 
 
   function populate(type) {
@@ -39,7 +132,8 @@
   }
 </script>
 
-<form name="theForm" method="get" style="border:2px solid cornflowerblue; margin:1rem;padding:2rem; display: flex;flex-direction: column;">
+<form name="theForm" method="get"
+  style="border:2px solid cornflowerblue; margin:1rem;padding:2rem; display: flex;flex-direction: column;">
   <br>
   <select name="topic">
     <option {{NOTIFICATION}} value="NOTIFICATION">NOTIFICATION</option>
@@ -47,7 +141,8 @@
     <option {{WIZARD_MYSQL}} value="WIZARD_MYSQL">WIZARD_MYSQL</option>
     <option {{WIZARD_POSTGRES}} value="WIZARD_POSTGRES">WIZARD_POSTGRES</option>
     <option {{WIZARD_MONGO}} value="WIZARD_MONGO">WIZARD_MONGO</option>
-    <option {{DEP_WIZ}} value="DEP_WIZ">DEP_WIZ</option>
+    <option {{DEPWIZ}} value="DEPWIZ">DEPWIZ</option>
+    <option {{REDWIZ}} value="REDWIZ">REDWIZ</option>
   </select>
   <br>
   <textarea rows="10" cols="50" name="message">{{VALUE}}</textarea>

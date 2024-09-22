@@ -13,17 +13,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import fresh.crafts.engine.v1.entities.KEventFeedbackPayload;
+import fresh.crafts.engine.v1.entities.KEventPayloadRedWiz;
 import fresh.crafts.engine.v1.entities.KEventWizardMySQLPayload;
 import fresh.crafts.engine.v1.entities.KEventWizardPostgresPayload;
 import fresh.crafts.engine.v1.entities.KEventWizardMongoPayload;
 import fresh.crafts.engine.v1.models.DBMysql;
 import fresh.crafts.engine.v1.models.DBPostgres;
+import fresh.crafts.engine.v1.models.DBRedis;
 import fresh.crafts.engine.v1.models.DBMongo;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.models.Notification;
+import fresh.crafts.engine.v1.utils.CraftUtils;
 import fresh.crafts.engine.v1.utils.EnvProps;
 import fresh.crafts.engine.v1.utils.enums.DBMysqlStatus;
 import fresh.crafts.engine.v1.utils.enums.DBPostgresStatus;
+import fresh.crafts.engine.v1.utils.enums.DBRedisSortField;
+import fresh.crafts.engine.v1.utils.enums.DBRedisStatus;
+import fresh.crafts.engine.v1.utils.enums.KEventCommandsRedWiz;
 import fresh.crafts.engine.v1.utils.enums.DBMongoStatus;
 import fresh.crafts.engine.v1.utils.enums.KEventCommandsWizardMySQL;
 import fresh.crafts.engine.v1.utils.enums.KEventCommandsWizardPostgres;
@@ -51,6 +57,9 @@ public class EngineMessageService {
 
     @Autowired
     private DBMongoService dbMongoService;
+
+    @Autowired
+    private DBRedisService dbRedisService;
 
     @Autowired
     private NotificationService notificationService;
@@ -623,6 +632,182 @@ public class EngineMessageService {
         }
 
         System.err.println("---------- serveForWizardMongo Ends ----------");
+
+    }
+
+    public void serveForRedwiz(KEvent feedbackKEvent) {
+        System.err.println("---------- serveForRedwiz ----------");
+        try {
+            // Check feedback payload
+            KEventFeedbackPayload feedbackPayload = (KEventFeedbackPayload) feedbackKEvent.getPayload();
+
+            if (feedbackPayload == null) {
+                throw new Exception("Feedback payload is null");
+            }
+
+            // Create notification
+            Notification notification = new Notification();
+
+            try {
+                // // requested KEvent
+                KEvent requestedKEvent = kEventService.getById(feedbackPayload.getRequestEventId());
+
+                if (requestedKEvent == null) {
+                    throw new Exception(" Requested KEvent not found");
+                }
+
+                // requested payload
+                KEventPayloadRedWiz requestedPayload = (KEventPayloadRedWiz) requestedKEvent.getPayload();
+                if (requestedPayload == null) {
+                    throw new Exception(" Requested KEvent payload not found");
+                }
+
+                // db
+                DBRedis requestedDBRedis = dbRedisService.getById(requestedPayload.getDbModelId());
+
+                CraftUtils.throwIfNull(requestedDBRedis, "DBRedis not found");
+
+                KEventCommandsRedWiz requestedCommand = requestedPayload.getCommand();
+
+                if (requestedCommand.equals(KEventCommandsRedWiz.ALLOW_PREFIX_TO_USER)) {
+                    System.err.println("[DEBUG]: KEventCommandsRedWiz feedback from redwiz");
+
+                    notification.setActionHints("GOTO_DBREDIS_" + requestedDBRedis.getId());
+
+                    if (feedbackPayload.getSuccess()) {
+                        // db creation success
+                        requestedDBRedis.setStatus(DBRedisStatus.OK);
+
+                        // set notification
+                        notification.setType(NotificationType.SUCCESS);
+                        notification.setMessage(feedbackPayload.getMessage());
+                    } else {
+                        // db creation failed
+                        requestedDBRedis.setStatus(DBRedisStatus.FAILED);
+                        requestedDBRedis.setReasonFailed(feedbackPayload.getMessage());
+
+                        // set notification
+                        notification.setType(NotificationType.ERROR);
+                        notification.setMessage(
+                                "Failed to create Redis db prefix or user: " + requestedDBRedis.getDbPrefix() + " "
+                                        + requestedDBRedis.getUsername());
+                    }
+
+                    // update db
+                    requestedDBRedis.setLastModifiedDate(Instant.now());
+                    DBRedis updatedDB = dbRedisService.update(requestedDBRedis);
+
+                    System.out.println("[DEBUG]: updatedDB " + updatedDB);
+
+                } else if (requestedCommand.equals(KEventCommandsRedWiz.UPDATE_USER_PASSWORD)) {
+                    System.out.println("---------- UPDATE_USER_PASSWORD Feedback ----------");
+
+                    // remove update message
+                    requestedDBRedis.setUpdateMessage(null);
+                    // notify user about the action
+                    notification.setActionHints("GOTO_DBREDIS" + requestedDBRedis.getId());
+
+                    if (feedbackPayload.getSuccess()) {
+                        CraftUtils.throwIfNull(feedbackPayload.getData(), "Feedback data is null");
+
+                        // Checking if update succeeded
+                        // errors can occur after each step,
+                        // so, update the updated to the db
+                        // if (feedbackPayload.getData().get("updatedDBName") != null) {
+                        // // FIXME: We won't do that in this version
+                        // requestedDbMongo.setDbName(feedbackPayload.getData().get("updatedDBName").toString());
+                        // }
+                        // if (feedbackPayload.getData().get("updatedDBUser") != null) {
+                        // requestedDbMongo.setDbUser(feedbackPayload.getData().get("updatedDBUser").toString());
+                        // }
+                        // if (feedbackPayload.getData().get("updatedUserPassword") != null) {
+                        // requestedDbMongo
+                        // .setDbPassword(feedbackPayload.getData().get("updatedUserPassword").toString());
+                        // }
+
+                        if (feedbackPayload.getData().get("username") != null) {
+                            requestedDBRedis.setUsername(feedbackPayload.getData().get("username").toString());
+                        }
+                        if (feedbackPayload.getData().get("password") != null) {
+                            requestedDBRedis.setPassword(feedbackPayload.getData().get("password").toString());
+                        }
+
+                        // Update db status
+                        requestedDBRedis.setStatus(DBRedisStatus.OK);
+
+                        // notification
+                        notification.setType(NotificationType.SUCCESS);
+                        notification.setMessage(feedbackPayload.getMessage());
+
+                    } else {
+                        /* Operation failed */
+
+                        // Update db status
+                        requestedDBRedis.setStatus(DBRedisStatus.UPDATE_FAILED);
+                        requestedDBRedis.setReasonFailed(feedbackPayload.getMessage());
+
+                        // set notification
+                        notification.setType(NotificationType.ERROR);
+                        notification.setMessage(feedbackPayload.getMessage());
+                    }
+
+                    requestedDBRedis.setLastModifiedDate(Instant.now());
+                    DBRedis updatedDB = dbRedisService.update(requestedDBRedis);
+                    System.out.println("[DEBUG]: updatedDB " + updatedDB);
+
+                    System.out.println("---------- UPDATE_USER_AND_DB Feedback Ends ----------");
+
+                } else if (requestedCommand.equals(KEventCommandsRedWiz.REVOKE_ACCESS_FROM_USER)) {
+                    //
+                    System.err.println("[DEBUG]: REVOKE_ACCESS_FROM_USER feedback from wizard mongo");
+                    // delete db
+                    // to make frontend invalidate data
+                    // SSE TO an invalid endpoint to make frontend invalidate data
+                    notification.setActionHints("GOTO_DBREDIS" + requestedDBRedis.getId());
+
+                    System.err.println("[DEBUG]: requestedDbRedis: " + requestedDBRedis);
+
+                    if (feedbackPayload.getSuccess()) {
+                        // delete db model
+                        dbRedisService.delete(requestedDBRedis);
+                        System.out.println("[DEBUG]: requestedDbRedis deleted");
+                        notification.setType(NotificationType.SUCCESS);
+                        notification.setMessage(feedbackPayload.getMessage());
+                    } else {
+                        // not success,
+                        notification.setType(NotificationType.ERROR);
+                        notification.setMessage("Failed to delete Redis database: " + requestedDBRedis.getDbPrefix());
+                    }
+                }
+
+            } catch (Exception e) {
+
+                System.err.println("[DEBUG]: serveForRedwiz (Inner) Error: " + e.getMessage());
+
+                notification.setType(NotificationType.ERROR);
+                notification.setMessage(e.getMessage());
+            }
+
+            // common work
+            System.out.println("Feedback payload: " + feedbackPayload);
+
+            String payloadString = notification.toJson();
+
+            // Save feedback event to db
+            kEventService.createOrUpdate(feedbackKEvent);
+
+            // Save notification to db for future usage
+            notificationService.createOrUpdate(notification);
+
+            // Send Notification at the end
+            requestNotificationSSE(payloadString);
+        } catch (Exception e) {
+            System.err.println("[DEBUG]: serveForWizardRedis Error: " + e.getMessage());
+            e.printStackTrace();
+
+        }
+
+        System.err.println("---------- serveForRedwiz Ends ----------");
 
     }
 

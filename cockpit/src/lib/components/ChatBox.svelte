@@ -7,23 +7,17 @@
 		InlineLoading,
 		TextArea,
 		TextInput,
+		Checkbox,
 	} from "carbon-components-svelte";
 	import { afterUpdate, onMount, setContext } from "svelte";
 	import { slide } from "svelte/transition";
-	import SvelteMarkdown from "svelte-markdown";
 	import CarbonLabel from "@/ui/icons/CarbonLabel.svelte";
-	import { Carta, Markdown } from "carta-md";
 
-	import "@cartamd/plugin-code/default.css";
-	import { code } from "@cartamd/plugin-code";
-
-	const carta = new Carta({
-		extensions: [code()],
-		sanitizer: (html) => html,
-	});
+	import SvelteMarkdown from "svelte-markdown";
+	import MdCodeBlock from "./MDCodeBlock.svelte";
 
 	export let open: boolean;
-	let chatStarted = false;
+	let chatStarted = localStorage.getItem("chat_started") === "true";
 
 	let messages: AIChatMessage[] = [];
 	$: console.log("messages", messages);
@@ -35,10 +29,15 @@
 
 	let chatContainer: HTMLDivElement;
 
+	const svelteMarkdownRenderers = {
+		code: MdCodeBlock,
+	};
+
 	$: {
 		if (open && !chatStarted) {
 			initChat();
 			chatStarted = true;
+			localStorage.setItem("chat_started", "true");
 		} else if (open && chatStarted) {
 			console.log("chat already started. getting messages");
 			getChatMessage();
@@ -102,11 +101,12 @@
 		}
 		loading = false;
 		loadingMessage = "";
-		showCloseChatOptions = true;
+		// showCloseChatOptions = true; // no idea where it came from
 	}
 
 	let userMessage = "";
 	let inputsDisabled = false;
+	let includeContext = true;
 	async function sendMessage() {
 		loading = true;
 		loadingMessage = "Getting response...";
@@ -119,6 +119,7 @@
 			body: JSON.stringify({
 				command: AIChatCommands.SEND_MESSAGE,
 				data: userMessage.trim(),
+				includeContext,
 			}),
 		})
 			.then((res) => res.json())
@@ -182,7 +183,7 @@
 {#if open}
 	<div
 		transition:slide={{ duration: 300, axis: "x" }}
-		class="chat-container fixed h-screen w-[500px] z-[99999999] top-12 pb-12 right-0 bg-gray-200 flex flex-col items-center justify-between"
+		class="chat-container fixed h-screen w-full sm:w-[40%] z-[99999999] top-12 pb-12 right-0 bg-gray-200 flex flex-col items-center justify-between"
 	>
 		<div
 			class="top w-full pl-4 mb-3 flex items-center justify-between"
@@ -254,8 +255,11 @@
 								? ' bg-[var(--cds-interactive-01)] text-white '
 								: ' bg-gray-300 '} break-all"
 						>
-							<!-- <SvelteMarkdown source={message.content} /> -->
-							<Markdown {carta} value={message.content} />
+							<SvelteMarkdown
+								source={message.content}
+								renderers={svelteMarkdownRenderers}
+							/>
+							<!-- <SvelteMarkdown source={message.content}  /> -->
 							<!-- {message.content} -->
 						</div>
 					</div>
@@ -272,11 +276,20 @@
 			on:submit|preventDefault={sendMessage}
 			class="bottom p-4 w-full flex flex-col gap-2"
 		>
-			<TextInput
-				placeholder="type your message"
-				bind:value={userMessage}
-				disabled={inputsDisabled}
-			/>
+			<div>
+				<TextInput
+					placeholder="type your message"
+					bind:value={userMessage}
+					disabled={inputsDisabled}
+				/>
+				<div class="flex gap-2 items-center">
+					Include context
+					<Checkbox
+						bind:checked={includeContext}
+						disabled={inputsDisabled}
+					/>
+				</div>
+			</div>
 			<div class="flex items-center justify-between">
 				<h2>
 					{#if loading && messages?.length > 0}

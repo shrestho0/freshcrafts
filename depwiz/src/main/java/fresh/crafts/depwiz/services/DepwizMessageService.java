@@ -121,11 +121,6 @@ public class DepwizMessageService {
                         // file name = project_id.conf
 
                         // after all done, finally
-                        // feedbackPayload.setSuccess(true);
-                        // feedbackPayload.setIsPartial(false);
-                        // HashMap<String, Object> m = new HashMap<>();
-                        // feedbackPayload.getProject().
-                        // m.put("project_id", requestPayload.getProject().getId());
 
                         // m.put("partial_feedback", "[SUCCESS] Deployment deletion completed");
                         feedbackPayload.setMessage("[SUCCESS] Deployment deletion completed");
@@ -250,6 +245,7 @@ public class DepwizMessageService {
                                         put("project", requestPayload.getProject());
                                 }
                         };
+
                         if (cmd == DepWizKEventCommands.RE_DEPLOY) {
                                 notNullables.put("currentDeployment", currentDeployment);
                                 CraftUtils.throwIfRequiredValuesAreNull(notNullables);
@@ -262,7 +258,6 @@ public class DepwizMessageService {
                                 helper.sendPartialFeedback(feedbackKEvent, "[RUNNING] Removing previous deployment");
                                 helper.undeploy(activeDeployment, p);
                                 helper.sendPartialFeedback(feedbackKEvent, "[SUCCESS] Previous deployment removed");
-
                         }
 
                         helper.sendPartialFeedback(feedbackKEvent, "[SUCCESS] " + initMessages.get(cmd));

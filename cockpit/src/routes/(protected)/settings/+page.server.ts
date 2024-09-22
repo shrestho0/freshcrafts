@@ -6,7 +6,7 @@ import type { Actions, PageServerLoad } from './$types';
 import { EngineConnection } from '@/server/EngineConnection';
 import { fail } from '@sveltejs/kit';
 
-import { ulid } from '@/utils/ulid';
+import { ulid } from 'ulid';
 
 export const load: PageServerLoad = async ({ locals, url, cookies }) => {
 	let oAuthState: any = cookies.get(OAUTH_STATE_COOKIE_NAME)

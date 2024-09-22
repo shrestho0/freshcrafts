@@ -36,6 +36,11 @@ public class Project {
     // mainly for while deployment is in progress
     String currentDeploymentId;
 
+    // // for rollforward
+    String rollforwardDeploymentId;
+    // // for rollforward
+    String rollbackDeploymentId;
+
     ProjectGithubRepo githubRepo;
 
     String updatedAt;
@@ -53,7 +58,6 @@ public class Project {
 
     public Project() {
         this.id = UlidGenerator.generate();
-        this.totalVersions = 0;
     }
 
 }

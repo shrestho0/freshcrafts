@@ -2,11 +2,12 @@ import { EngineConnection } from '@/server/EngineConnection';
 import { InternalNewProjectType, ProjectType } from '@/types/enums';
 import messages from '@/utils/messages';
 import { json, type RequestHandler } from '@sveltejs/kit';
-import { ulid } from '@/utils/ulid';
+// import { ulid } from '@/utils/ulid';
+import { ulid } from 'ulid';
 
 import { GithubWebhookHelper } from '@/server/GithubWebhookHelper';
 import { FilesHelper } from '@/server/FilesHelper';
-import type { ProjectDeploymentFile, ProjectDeploymentSource } from '@/types/entities';
+import type { ProjectDeployment, ProjectDeploymentFile, ProjectDeploymentSource } from '@/types/entities';
 
 
 
@@ -192,6 +193,51 @@ export const PATCH: RequestHandler = async ({ request }) => {
 			console.log("-------------------\n", x, "\n-------------------");
 			return json(x);
 			// return json({ success: true, message: 'Not implemented yet' });
+		} else if (project_type === InternalNewProjectType.ROLLFORWARD_FROM_LOCAL_FILE) {
+
+			///////////////////////// ROLLBACK PRE_PROCESSING /////////////////////////
+
+
+			data = await request.json();
+			const pdata = await EngineConnection.getInstance().getProject(data.projectId)
+			const project = pdata.project
+			if (!pdata || !project) {
+				return json({ success: false, message: "Failed to retrieve project with id: " + data.projectId })
+			}
+			console.log("project", project, "\nfdata", data)
+			const newVersion = project.totalVersions + 1
+			const fromServer = data.fromServer;
+			const { fileName, filePath, fileAbsPath } = await fileHelper.moveFileToProjectDir(data.projectId, fromServer?.fileName, fromServer?.fileAbsolutePath, newVersion)
+			const { extracted, extractedAbs } = await fileHelper.decompressProjectSource(fileAbsPath, data.projectId, newVersion);
+
+			// create new deployment
+
+			const newCurrDep = await EngineConnection.getInstance().rollforwardProjectPreProcessing(project.id, {
+				version: newVersion,
+				rawFile: {
+					name: fileName,
+					path: filePath,
+					absPath: fileAbsPath,
+				},
+				src: {
+					filesDirPath: extracted,
+					filesDirAbsPath: extractedAbs,
+				},
+				github_repo: null,
+				github_tar_download_url: null,
+			} as unknown as Partial<ProjectDeployment>)
+
+
+			return json(newCurrDep)
+			// console.log("newCurrDep",)
+
+
+			// return json({
+			// 	success: false,
+			// 	message: "Being implimented"
+			// })
+
+
 		} else if (project_type === InternalNewProjectType.LIST_GITHUB_REPO) {
 
 
@@ -298,8 +344,7 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			return json(responseObj);
 
-		}
-		else {
+		} else {
 			return json({ message: 'Invalid command' });
 		}
 

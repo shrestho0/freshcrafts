@@ -6,6 +6,7 @@ from dotenv import dotenv_values
 from rich.status import Status
 from rich.console import Console
 
+from __env import ROOT_ENV_FILE, DOCKER_COMPOSE_FILE
 from systemd_util import SystemDUtil
 
 console = Console()
@@ -17,11 +18,15 @@ class EnvSetup:
         # #parent dir of this
         # root_dir = os.path.dirname(os.path.abspath(__file__))
         
+        
         # root_env_file = os.path.join(root_dir, ".env")
         # env file
-        env_file = ".env"
+        env_file = ROOT_ENV_FILE
         env_path = os.path.abspath(env_file)
         env_vals = dotenv_values(env_path)
+
+        self.make_docker_compose_file(env_vals)
+
         env_map ={
             "cockpit": [],
             "wiz_postgres": [],
@@ -84,6 +89,52 @@ class EnvSetup:
                 console.log(f"Env file {service_name} written with exitcode:{x}", style="blue")
             except Exception as e:
                 console.log(f"Error writing env file {service_name} with error: {e}", style="red")
+                
+    def make_docker_compose_file(self, env_vals: dict[str, str]):
+        
+        # values we need 
+        # For mongo:
+        # _PRIMARY_MONGO_PORT, _PRIMARY_MONGO_USERNAME, _PRIMARY_MONGO_PASSWORD, 
+        # _SECONDARY_MONGO_PORT, _SECONDARY_MONGO_USERNAME, _SECONDARY_MONGO_PASSWORD
+        # For redis: 
+        # _SECONDARY_REDIS_PORT, _SECONDARY_REDIS_PASSWORD,
+        # For mysql: 
+        # _SECONDARY_MYSQL_PORT, _SECONDARY_MYSQL_USERNAME, _SECONDARY_MYSQL_PASSWORD
+        # For postgres: 
+        # _SECONDARY_POSTGRES_PORT, _SECONDARY_POSTGRES_USERNAME, _SECONDARY_POSTGRES_PASSWORD
+        
+        template = ""
+        with open("./templates/docker-compose.yml.template", "r") as f:
+            template = f.read()
+        
+        replacements = [
+            "_PRIMARY_MONGO_PORT",
+            "_PRIMARY_MONGO_USERNAME",
+            "_PRIMARY_MONGO_PASSWORD",
+            "_SECONDARY_MONGO_PORT",
+            "_SECONDARY_MONGO_USERNAME",
+            "_SECONDARY_MONGO_PASSWORD",
+            "_SECONDARY_MYSQL_PORT",
+            "_SECONDARY_MYSQL_PASSWORD",
+            "_SECONDARY_POSTGRES_PORT",
+            "_SECONDARY_POSTGRES_USERNAME",
+            "_SECONDARY_POSTGRES_PASSWORD",
+            "_SECONDARY_REDIS_PASSWORD",
+            "_SECONDARY_REDIS_PORT",
+        ]
+        
+        with open(DOCKER_COMPOSE_FILE, "w+") as f:
+            for k,v in env_vals.items():
+                if k in replacements:
+                    template = template.replace(k, v)
+            
+            f.write(template)
+            
+                    
+                    
+        
+        
+        
 
     def setup_env(self):
         # save current dir

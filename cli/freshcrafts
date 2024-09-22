@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.progress import Progress
 from rich.prompt import Prompt
 from rich.status import Status
-from __env import DOCKER_COMPOSE_COMMAND, DOCKER_COMPOSE_FILE, REQUIRED_OPEN_PORTS, JAVA_17_AVAILABLE,JAVA_17_DIR,SYSTEM_DEPS
+from __env import DOCKER_COMPOSE_DOWN_COMMAND, DOCKER_COMPOSE_UP_COMMAND, DOCKER_COMPOSE_FILE, REQUIRED_OPEN_PORTS, JAVA_17_AVAILABLE,JAVA_17_DIR,SYSTEM_DEPS
 from _utils.utils import parse_domain_from_env_file
 from systemd_util import SystemDUtil
 from setup_env import EnvSetup
@@ -62,6 +62,41 @@ class BarelyWorkingSetupWizard:
         self.docker_compose_up()
 
     
+    def install_dev(self):
+        # service names space separated from sys.argv
+        services = sys.argv[2:]
+        if len(services) == 0:
+            console.print("No services provided to enable", style="red")
+            return
+
+        if services[0] not in self.sysd_util.service_data.keys():
+            console.print("Service not found", style="red")
+            return
+
+        src_dir = self.sysd_util.service_data.get(services[0]).get("SRC_DIR")
+        isCockpit = self.sysd_util.service_data.get(services[0]).get("COCKPIT")
+        isGopher = self.sysd_util.service_data.get(services[0]).get("GOPHER")
+        self.build_service(src_dir, isCockpit, isGopher)
+         
+
+        
+        if self.sysd_util.is_service_running(f"fc_{services[0]}"):
+            print(f"{services[0]} is running, stopping it")
+            # stop it
+            self.sysd_util.stop_service(services[0])
+        
+        if self.sysd_util.is_service_enabled(f"fc_{services[0]}"):
+            print(f"{services[0]} is enabled, disabling it")
+            # disable it
+            self.sysd_util.disable_service(services[0])      
+
+        self.sysd_util.enable_dev_service(services[0])
+        self.sysd_util.start_dev_service(services[0])
+        
+        console.print(f"{services[0]} enabled and started in development mode", style="green")
+    
+
+     
     def install_system_services(self):
         # install system services
         self.sysd_util.install_services()
@@ -144,6 +179,8 @@ class BarelyWorkingSetupWizard:
 
         return x
     
+
+    
     def build_services(self):
         # goto to directory
         # check if build dir exists
@@ -216,18 +253,23 @@ class BarelyWorkingSetupWizard:
         return result.returncode==0, result.returncode
 
     def docker_compose_up(self):
+        
         # find the appropriate docker-compose file
         file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
+              
         console.log("docker-compose file locaton",file)
-        os.chdir(os.path.dirname(file))
-        console.log("Current working directory", os.getcwd())
+        
+        # os.chdir(os.path.dirname(file))
+        
+        # console.log("Current working directory", os.getcwd())
+
         if not os.path.exists(file):
             console.print("docker-compose file not found", style="red")
             sys.exit(1)
         
         # run docker compose up -d
-        command = DOCKER_COMPOSE_COMMAND
-        result = subprocess.run(command, shell=True)
+        command = DOCKER_COMPOSE_UP_COMMAND
+        result = subprocess.run(command, shell=True, cwd=os.path.dirname(file))
 
         if result.returncode == 0:
             console.print("Docker compose up successful", style="green")
@@ -235,19 +277,21 @@ class BarelyWorkingSetupWizard:
             console.print("Docker compose up failed", style="red")
             # console.print(result.stderr.decode("utf-8"), style="red")
             sys.exit(1)
+            
     def docker_compose_down(self):
         # find the appropriate docker-compose file
         file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
-        console.log("docker-compose file locaton",file)
-        os.chdir(os.path.dirname(file))
-        console.log("Current working directory", os.getcwd())
+        # console.log("docker-compose file locaton",file)
+        # os.chdir(os.path.dirname(file))
+        # console.log("Current working directory", os.getcwd())
         if not os.path.exists(file):
             console.print("docker-compose file not found", style="red")
             sys.exit(1)
         
         # run docker compose down
-        command = "docker compose down"
-        result = subprocess.run(command, shell=True)
+        # command = "docker compose down"
+        command = DOCKER_COMPOSE_DOWN_COMMAND
+        result = subprocess.run(command, shell=True, cwd=os.path.dirname(file))
 
         if result.returncode == 0:
             console.print("Docker compose down successful", style="green")
@@ -405,6 +449,7 @@ class BarelyWorkingSetupWizard:
         for service in services:
             self.sysd_util.stop_service(service)
         
+        
     def disable_service(self):
         # service names space separated from sys.argv
         services = sys.argv[2:]
@@ -417,6 +462,28 @@ class BarelyWorkingSetupWizard:
         for service in services:
             self.sysd_util.disable_service(service)
 
+    def uninstall_dev(self):
+        # service names space separated from sys.argv
+        services = sys.argv[2:]
+        if len(services) == 0:
+            console.print("No services provided to uninstall", style="red")
+            return
+        
+        if services[0] not in self.sysd_util.service_data.keys():
+            console.print("Service not found", style="red")
+            return
+        
+        if self.sysd_util.is_service_running(f"fc_{services[0]}"):
+            self.sysd_util.stop_service(services[0])
+            
+        
+        if self.sysd_util.is_service_enabled(f"fc_{services[0]}"):
+            self.sysd_util.disable_service(services[0])        
+            console.print(f"{services[0]} disabled and stopped", style="green")
+        else:
+            console.print(f"{services[0]} is already disabled", style="blue")
+            
+        
     
     def restart_service(self):
         # service names space separated from sys.argv
@@ -450,26 +517,33 @@ class BarelyWorkingSetupWizard:
         service = services[0]
         if service == "cockpit":
             self.dev_util.start_cockpit(self.sysd_util.service_data.get("cockpit"))
-        elif service in ["engine", "depwiz", "wiz_mysql", "wiz_postgres", "wiz_mongo"]:
-            self.dev_util.start_with_build_and_run_file(self.sysd_util.service_data.get(service))
         elif service == "gopher":
             self.dev_util.start_gopher(self.sysd_util.service_data.get("gopher"))
         else:
-            console.print("Service not found", style="red")
-            return
+            self.dev_util.start_with_build_and_run_file(self.sysd_util.service_data.get(service))
                 
 
 
 
     def options(self):
         return {
+            "--setup-env": {
+                "description": "Setup environment files and creates docker-compose file from template",
+                "function": self.setup_env
+            },
+            
+            "--docker-up": {
+                "description": "Start dependency services using docker for development only ", 
+                "function": self.docker_compose_up
+            },
+            "--docker-down": {
+                "description": "Stop and remove dependency services using docker for development only ", 
+                "function": self.docker_compose_down
+            },
+                        
             "--install": {
                 "description": "Install freshcrafts from source",
                 "function": self.install 
-            },
-            "--setup-env": {
-                "description": "Setup environment files",
-                "function": self.setup_env
             },
             "--update": {
                 "description": "Update software from source",
@@ -491,7 +565,14 @@ class BarelyWorkingSetupWizard:
                 "description": "Start a in development mode (eg. --start-dev cockpit)",
                 "function": self.start_dev
             },
-            
+            "--install-dev": {
+                "description": "Enable and starts services on systemD (eg. --install-dev cockpit)",
+                "function": self.install_dev
+            },
+            "--uninstall-dev": {
+                "description": "Disable and stops services on systemD (eg. --uninstall-dev cockpit)",
+                "function": self.uninstall_dev
+            },
             "--restart": {
                 "description": "Restart services (eg. --restart cockpit engine depwiz)",
                 "function": self.restart_service 
