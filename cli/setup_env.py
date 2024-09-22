@@ -33,13 +33,14 @@ class EnvSetup:
             "wiz_mongo": [],
             "wiz_mysql": [],
             "depwiz":[],
+            "redwiz": [],
             "engine": [],
             "gopher": [],
             "all_spring": [], # only if key,val are same
             "group_g": [], # stuff for cockpit and engine, jwt and common stuff basically
             "group_w":[], # stuff for cockpit, and gopher
         }
-        all_spring = ["engine","wiz_postgres", "wiz_mongo", "wiz_mysql","depwiz"]
+        all_spring = ["engine","wiz_postgres", "wiz_mongo", "wiz_mysql","depwiz", "redwiz"]
         group_g = ["cockpit", "engine"]
         group_w = ["cockpit", "gopher"]
         remove_prefix = lambda x: x.split("_", 1)[1]
