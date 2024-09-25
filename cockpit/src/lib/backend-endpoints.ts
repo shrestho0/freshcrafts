@@ -59,6 +59,9 @@ const _endpoints = {
 	API_CHAT_HISTORY: "/ai/chat/history", // Get to get, Post to send, ?page=0&pageSize=1&sort=DESC
 	API_CHAT_HISTORY_BY_ID: "/ai/chat/history/:id", // 
 
+	AI_CODE_DOC: "/ai/code-doc/:id", // Get to Post to create Patch to update,
+	AI_CODE_DOC_BY_PROJECT: "/ai/code-doc/by-project/:id", // Get to get all, Post to create
+
 
 };
 

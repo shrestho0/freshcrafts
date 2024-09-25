@@ -733,7 +733,28 @@ export class EngineConnection {
 	}
 
 
+	async getCodeDocForProject(projectId: string) {
+		return this.customFetch(BackendEndpoints.AI_CODE_DOC_BY_PROJECT.replace(":id", projectId))
+	}
 
+	async createCodeDoc(d: Object) {
+		return this.customFetch(BackendEndpoints.AI_CODE_DOC.replace("/:id", ''), {
+			method: 'POST',
+			body: JSON.stringify(d)
+		})
+	}
+
+	async updateCodeDoc(docId: string, d: Object) {
+		return this.customFetch(BackendEndpoints.AI_CODE_DOC.replace(":id", docId), {
+			method: 'PATCH',
+			body: JSON.stringify(d)
+		})
+	}
+	async deleteCodeDoc(docId: string) {
+		return this.customFetch(BackendEndpoints.AI_CODE_DOC.replace(":id", docId), {
+			method: 'DELETE'
+		})
+	}
 
 
 	////////////// System Specific //////////...

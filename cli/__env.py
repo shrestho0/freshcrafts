@@ -72,6 +72,8 @@ FC_SERVICES_INFO = {
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
     },
     
+ 
+    
     "redwiz": {
         "ENV_FILE": "../redwiz/src/main/resources/application.properties",
         "SRC_DIR": "../redwiz",
@@ -79,7 +81,6 @@ FC_SERVICES_INFO = {
         "SYSTEMD_EXECUTABLE_FILE": "../redwiz/target/redwiz-0.0.1-SNAPSHOT.jar",
         "SYSTEMD_EXEC_COMMAND": "java -jar ",
     },
-    
     
     "depwiz": {
         "ENV_FILE": "../depwiz/src/main/resources/application.properties",

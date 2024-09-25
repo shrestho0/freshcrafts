@@ -1,10 +1,1 @@
-spring.application.name=wiz_postgres
-
-## DB Connection Stuff
-freshCrafts.SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:15432/postgres
-freshCrafts.SPRING_DATASOURCE_USERNAME=root
-freshCrafts.SPRING_DATASOURCE_PASSWORD=password
-
-## Kafka Stuff
-spring.kafka.bootstrap-servers=localhost:9092
-spring.kafka.consumer.group-id=freshCrafts
+# This will be auto-generated from common root .env file

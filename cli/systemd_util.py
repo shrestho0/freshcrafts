@@ -51,15 +51,32 @@ class SystemDUtil:
         self.start_services()
         console.log("Services Installation complete", style="bold green")
  
-    def copy_service_files_to_systemd(self):
-        for service_file in self.temp_service_files:
+    def copy_service_files_to_systemd(self, single:str=''):
+
+        # print(self.temp_service_files) # works
+        
+        xTempFileList  = self.temp_service_files
+        if single:
+            for f in self.temp_service_files:
+                if single in f:
+                    xTempFileList = [f]
+                    break
+
+        for service_file in xTempFileList:
+            # check if file exists
+            if self.check_file_exists(service_file):
+                console.log("service temp file exists", service_file, style="bold green")
+            else:
+                console.log("service temp file does not exists", service_file, style="bold red")
+                exit(69)
+                
             console.log("Copying service file to systemd", service_file)
             os.system(f"sudo cp -r {service_file} /lib/systemd/system/")
             console.log("Service file copied to systemd", service_file)
+            
+        # success
+            
 
-            # check if file exists
-            if self.check_file_exists(service_file):
-                console.log("Service file exists", service_file, style="bold green")
 
     def enable_dev_service(self, service_name):      
         self.perform_service_action_on_service("enable", service_name, self.is_service_not_enabled, "Enabling")
@@ -116,13 +133,25 @@ class SystemDUtil:
     def restart_nginx(self):
         self.perform_service_action_on_service(action="sudo systemctl restart nginx", fc_service_name=None, check_function=lambda x: True, action_name="Restarting", raw=True)
 
-    def generate_service_files(self):
+    def delete_temp_service_files(self):
+        #
+        for f in self.temp_service_files:
+            try:
+                os.remove(f)
+            except Exception as e:
+                pass
 
+    def generate_service_files(self, single:dict=None):
+        
+        self.delete_temp_service_files()
 
-        for k,v in self.service_data.items():
-            # service_name = v.get("SYSTEMD_SERVICE_NAME")
-            # service_name = f"fc_{k}"
-            service_name = f"{k}"
+        xxd = self.service_data.items()
+        if single is not None:
+            xxd = single
+
+        for k,v in xxd:
+            
+            service_name = f"fc_{k}"
 
             # access_log_file = self.log_dir+"/"+service_name + "_access.log"
             access_log, error_log =  self.ensure_service_logs(service_name)
@@ -131,7 +160,7 @@ class SystemDUtil:
 
             isCockpit = v.get("COCKPIT") == True
             isGopher = v.get("GOPHER") == True
-            console.log(k, isCockpit)
+            # console.log(k, isCockpit)
             
             service_template = v.get("SYSTEMD_SERVICE_TEMPLATE_FILE")
             service_exec_command = v.get("SYSTEMD_EXEC_COMMAND")

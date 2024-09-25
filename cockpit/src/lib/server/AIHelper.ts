@@ -1,3 +1,4 @@
+import type { AIChatMessage } from "@/types/entities";
 import { FilesHelper } from "./FilesHelper";
 import { encodingForModel } from "js-tiktoken";
 
@@ -5,6 +6,15 @@ export class AIHelper {
     private static instance: AIHelper;
 
     private filesHelper: FilesHelper = FilesHelper.getInstance();
+
+    private apiKey: string = '';
+    private apiEndpoint: string = '';
+
+    getApiKey() { return this.apiKey; }
+    getApiEndpoint() { return this.apiEndpoint; }
+    setApiKey(apiKey: string) { this.apiKey = apiKey; }
+    setApiEndpoint(apiEndpoint: string) { this.apiEndpoint = apiEndpoint; }
+
 
     private constructor() { }
 
@@ -94,6 +104,37 @@ export class AIHelper {
         } catch (e) {
             return -1
         }
+    }
+
+
+    async generateText(content: string | AIChatMessage[], includeContext = false) {
+
+
+        let body;
+        if (includeContext) {
+            body = JSON.stringify({
+                messages: content
+            })
+        } else {
+            body = JSON.stringify({
+                messages: [{ role: "user", content: content }],
+            })
+        }
+
+        return await fetch(this.getApiEndpoint(), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "api-key": this.getApiKey(),
+            },
+            body,
+        }).then(res => res.json()).catch(e => {
+            console.error(e);
+            return {
+                success: false,
+                message: e?.message || "Failed to generate text"
+            }
+        });
     }
 
 }

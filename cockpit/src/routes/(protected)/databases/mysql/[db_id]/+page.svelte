@@ -214,7 +214,7 @@
 							updateDBAccessModalOpen = true;
 						}}>Update Access</Button
 					>
-					<Button
+					<!-- <Button
 						class="w-full"
 						icon={CarbonEdit}
 						kind="secondary"
@@ -222,7 +222,7 @@
 							// updateDBAccessModalOpen = true;
 							updateDBNameModalOpen = true;
 						}}>Update Database Name</Button
-					>
+					> -->
 
 					<Button
 						class="w-full"

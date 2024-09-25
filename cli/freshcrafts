@@ -73,9 +73,17 @@ class BarelyWorkingSetupWizard:
             console.print("Service not found", style="red")
             return
 
+        # ensure service files are available
+        
+        
+        dict_item = self.sysd_util.service_data.get(services[0])
+        self.sysd_util.generate_service_files(single={}.update(dict_item))
+        self.sysd_util.copy_service_files_to_systemd()
+        
         src_dir = self.sysd_util.service_data.get(services[0]).get("SRC_DIR")
         isCockpit = self.sysd_util.service_data.get(services[0]).get("COCKPIT")
         isGopher = self.sysd_util.service_data.get(services[0]).get("GOPHER")
+
         self.build_service(src_dir, isCockpit, isGopher)
          
 
@@ -110,6 +118,7 @@ class BarelyWorkingSetupWizard:
         self.install_system_services()
         self.setup_cockpit_nginx()
         self.complete_install()
+        
     def update(self):
         self.pre_install_stuff()
         self.prepare_services()
@@ -253,10 +262,11 @@ class BarelyWorkingSetupWizard:
         return result.returncode==0, result.returncode
 
     def docker_compose_up(self):
+         # find the appropriate docker-compose file
+        # file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
         
-        # find the appropriate docker-compose file
-        file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
-              
+        file = os.path.join(os.path.dirname(__file__), DOCKER_COMPOSE_FILE) # as it's relative in /cli      
+        
         console.log("docker-compose file locaton",file)
         
         # os.chdir(os.path.dirname(file))
@@ -280,7 +290,10 @@ class BarelyWorkingSetupWizard:
             
     def docker_compose_down(self):
         # find the appropriate docker-compose file
-        file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
+        # file = self.sysd_util.get_absolute_path(DOCKER_COMPOSE_FILE)
+
+        file = os.path.join(os.path.dirname(__file__), DOCKER_COMPOSE_FILE) # as it's relative in /cli      
+
         # console.log("docker-compose file locaton",file)
         # os.chdir(os.path.dirname(file))
         # console.log("Current working directory", os.getcwd())
@@ -413,6 +426,7 @@ class BarelyWorkingSetupWizard:
         # docker compose down
         self.docker_compose_down()
         # daemon reload
+        # self.sysd_util.delete_actual_systemd_file()
         self.sysd_util.deamon_reload()
         console.print("Uninstall complete", style="green")
     

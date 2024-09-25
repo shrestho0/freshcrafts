@@ -13,8 +13,10 @@ import com.google.gson.Gson;
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 // import fresh.crafts.engine.v1.entities.AIChatMessage;
 import fresh.crafts.engine.v1.models.AIChatHistory;
+import fresh.crafts.engine.v1.models.AICodeDoc;
 import fresh.crafts.engine.v1.models.ThirdPartyApiKeys;
 import fresh.crafts.engine.v1.repositories.AIChatHistoryRepository;
+import fresh.crafts.engine.v1.repositories.AICodeDocRepository;
 
 @Service
 public class AIService {
@@ -24,6 +26,9 @@ public class AIService {
 
     @Autowired
     private AIChatHistoryRepository chatHistoryRepository;
+
+    @Autowired
+    private AICodeDocRepository codeDocRepository;
 
     public CommonResponseDto getAzureChatApiKeys() {
         CommonResponseDto res = new CommonResponseDto();
@@ -108,6 +113,61 @@ public class AIService {
             res.setSuccess(false);
             res.setStatusCode(400);
             res.setMessage("Failed to delete chat history");
+        }
+        return res;
+    }
+
+    public List<AICodeDoc> getProjectCodeDocs(String projectId) {
+        return codeDocRepository.findByProjectId(projectId);
+    }
+
+    public CommonResponseDto updateCodeDoc(AICodeDoc codeDoc) {
+        CommonResponseDto res = new CommonResponseDto();
+        try {
+            AICodeDoc x = codeDocRepository.save(codeDoc);
+            res.setSuccess(true);
+            res.setStatusCode(200);
+            res.setMessage("Code doc updated successfully");
+            res.setPayload(x);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400);
+            res.setMessage("Failed to update code doc");
+        }
+
+        return res;
+    }
+
+    public CommonResponseDto createCodeDoc(AICodeDoc codeDoc) {
+        CommonResponseDto res = new CommonResponseDto();
+        try {
+            AICodeDoc x = codeDocRepository.save(codeDoc);
+            res.setSuccess(true);
+            res.setStatusCode(201);
+            res.setMessage("Code doc saved successfully");
+            res.setPayload(x);
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400);
+            res.setMessage("Failed to save code doc");
+        }
+
+        return res;
+
+    }
+
+    public CommonResponseDto deleteCodeDoc(String id) {
+
+        CommonResponseDto res = new CommonResponseDto();
+        try {
+            codeDocRepository.deleteById(id);
+            res.setSuccess(true);
+            res.setStatusCode(200);
+            res.setMessage("Code doc deleted successfully");
+        } catch (Exception e) {
+            res.setSuccess(false);
+            res.setStatusCode(400);
+            res.setMessage("Failed to delete code doc");
         }
         return res;
     }

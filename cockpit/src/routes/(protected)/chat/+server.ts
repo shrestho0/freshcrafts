@@ -5,6 +5,7 @@ import { AIChatCommands } from "@/types/enums";
 // import { ulid } from "@/utils/ulid";
 import { ulid } from "ulid";
 import { error, json, type RequestHandler } from "@sveltejs/kit";
+import { AIHelper } from "@/server/AIHelper";
 // import { AzureOpenAI } from "openai";
 
 
@@ -105,8 +106,12 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
 
                 // messages.push(d);
+                if (!apiData || !apiData?.azureChatApiEndpoint || !apiData?.azureChatApiKey)
+                    throw new Error("OpenAI client not initialized");
 
-                msg = await generateText(JSON.stringify(messages));
+                AIHelper.getInstance().setApiEndpoint(apiData.azureChatApiEndpoint);
+                AIHelper.getInstance().setApiKey(apiData.azureChatApiKey);
+                msg = await AIHelper.getInstance().generateText(JSON.stringify(messages));
 
                 console.log("AI response", msg);
 
@@ -167,43 +172,3 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
     }
 };
 
-
-async function generateText(content: string | AIChatMessage[], includeContext = false) {
-    if (!apiData || !apiData?.azureChatApiEndpoint || !apiData?.azureChatApiKey)
-        throw new Error("OpenAI client not initialized");
-
-    let body;
-    if (includeContext) {
-        body = JSON.stringify({
-            messages: content
-        })
-    } else {
-        body = JSON.stringify({
-            messages: [{ role: "user", content: content }],
-        })
-    }
-
-    return await fetch(apiData.azureChatApiEndpoint, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "api-key": apiData.azureChatApiKey,
-        },
-        body,
-    }).then(res => res.json()).catch(e => {
-        console.error(e);
-        return {
-            success: false,
-            message: e?.message || "Failed to generate text"
-        }
-    });
-
-
-
-    // return await openAiClient.chat.completions.create({
-    //     model: "gpt-4o-mini",
-    //     messages: [{ role: "user", content: content }],
-    // });
-
-
-}

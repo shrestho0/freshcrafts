@@ -142,5 +142,6 @@ export enum InternalDeploymentActions {
 
 export enum InternalDocGenerationCommands {
 	GET_DOCS = 'get-docs',
-	GENERATE_DOC = 'generate-doc'
+	GENERATE_DOC = 'generate-doc',
+	DELETE_DOC = 'delete-doc'
 }

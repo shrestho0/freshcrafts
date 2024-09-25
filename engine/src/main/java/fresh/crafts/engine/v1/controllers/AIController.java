@@ -1,6 +1,7 @@
 package fresh.crafts.engine.v1.controllers;
 
 import java.util.HashMap;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -10,6 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 import fresh.crafts.engine.v1.models.AIChatHistory;
+import fresh.crafts.engine.v1.models.AICodeDoc;
 import fresh.crafts.engine.v1.services.AIService;
 import fresh.crafts.engine.v1.utils.enums.CommonSortField;
 
@@ -82,5 +85,40 @@ public class AIController {
 
     // create vulnaribility report (another type chat history)
     // get vulnaribility report
+
+    // Code Doc Stuff
+    // @GetMapping("/code-doc/:id")
+    // // return by project id
+
+    @PostMapping("/code-doc")
+    public ResponseEntity<CommonResponseDto> createCodeDoc(
+            @RequestBody AICodeDoc codeDoc) {
+        CommonResponseDto res = aiService.createCodeDoc(codeDoc);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @PatchMapping("/code-doc/{id}")
+    public ResponseEntity<CommonResponseDto> updateCodeDoc(
+            @PathVariable String id,
+            @RequestBody AICodeDoc codeDoc) {
+        codeDoc.setId(id);
+        CommonResponseDto res = aiService.updateCodeDoc(codeDoc);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
+
+    @GetMapping("/code-doc/by-project/{projectId}")
+    public List<AICodeDoc> getProjectCodeDocs(
+            @PathVariable String projectId) {
+
+        return aiService.getProjectCodeDocs(projectId);
+
+    }
+
+    @DeleteMapping("/code-doc/{id}")
+    public ResponseEntity<CommonResponseDto> deleteCodeDoc(
+            @PathVariable String id) {
+        CommonResponseDto res = aiService.deleteCodeDoc(id);
+        return ResponseEntity.status(res.getStatusCode()).body(res);
+    }
 
 }

@@ -32,11 +32,11 @@
 	
 	<dependencies>
 
-<dependency>
-    <groupId>redis.clients</groupId>
-    <artifactId>jedis</artifactId>
-    <version>4.3.0</version> <!-- Use the latest version -->
-</dependency>
+	<dependency>
+		<groupId>redis.clients</groupId>
+		<artifactId>jedis</artifactId>
+		<version>4.3.0</version> <!-- Use the latest version --> 
+	</dependency>
 
 
 		<dependency>

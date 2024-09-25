@@ -24,6 +24,11 @@ class EnvSetup:
         env_file = ROOT_ENV_FILE
         env_path = os.path.abspath(env_file)
         env_vals = dotenv_values(env_path)
+        
+        # check if values are present
+        if len(env_vals) == 0: 
+            console.print("Make sure you have .env in the root and it has values", style="red")
+            exit(1)
 
         self.make_docker_compose_file(env_vals)
 

@@ -152,6 +152,15 @@ export type ProjectDeployment = {
 	depCommands: DepPostInstallCommands,
 }
 
+export type AICodeDoc = {
+	id: string,
+	projectId: string,
+	content: string,
+	prompt: string,
+	message: string,
+	status: "REQUESTED" | "CREATED" | "FAILED",
+}
+
 export type DepPostInstallCommands = {
 	build: string,
 	install: string,
