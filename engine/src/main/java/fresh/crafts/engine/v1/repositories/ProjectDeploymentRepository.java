@@ -1,6 +1,7 @@
 package fresh.crafts.engine.v1.repositories;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 import java.util.List;
 
@@ -11,5 +12,7 @@ public interface ProjectDeploymentRepository extends MongoRepository<ProjectDepl
 
     // @Query("{ 'project.id' : ?0 }")
     List<ProjectDeployment> findByProjectId(String id);
+
+    List<ProjectDeployment> findTop5ByOrderByIdDesc();
 
 }

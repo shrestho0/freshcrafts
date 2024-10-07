@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import fresh.crafts.engine.v1.models.DBMysql;
+import fresh.crafts.engine.v1.utils.enums.DBMysqlStatus;
 
 @Repository
 public interface DBMysqlRepository extends MongoRepository<DBMysql, String> {
@@ -25,5 +26,8 @@ public interface DBMysqlRepository extends MongoRepository<DBMysql, String> {
     // List<DBMysql> findBydbNameLike(String dbName);
 
     Page<DBMysql> findAll(Pageable pageable);
+
+    // Count By Status
+    long countByStatus(DBMysqlStatus status);
 
 }

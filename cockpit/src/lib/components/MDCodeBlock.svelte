@@ -29,7 +29,14 @@
     {:else}
         {@html htmlX.replace(
             "shiki vitesse-dark",
-            "shiki vitesse-dark p-4 rounded m-4 max-w-2xl",
+            "shiki vitesse-dark p-4 rounded m-4 ",
         )}
+        <!-- <CodeSnippet code={text} ></CodeSnippet> -->
     {/if}
 </div>
+
+<style>
+    :global(code) {
+        white-space: pre-wrap !important;
+    }
+</style>

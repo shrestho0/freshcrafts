@@ -67,7 +67,7 @@
 </script>
 
 <div class=" select-none">
-	selectedFileRelativeUrl: {selectedFileRelativeUrl}
+	<!-- selectedFileRelativeUrl: {selectedFileRelativeUrl} -->
 	<ExpandableSection bind:open={expanded} title="Select Project Root">
 		<Tile>
 			{#if projectRootSelectionStatus == "checking"}

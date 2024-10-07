@@ -68,6 +68,10 @@
 		if (res?.success) {
 			actionStatus = "finished";
 			actionMessage = res?.message + " Page will be redirected soon.";
+
+			// window.location.href = `/projects/${projectId}/processing`;
+			window.location.href = `/projects/all`;
+
 			// if (data.project.status === ProjectStatus.PROCESSING_DELETION) {
 			// gotoAfterMS(`/projects/all`);
 			// this is not acceptable

@@ -63,4 +63,8 @@ public class ProjectDeploymentService {
 
     }
 
+    public List<ProjectDeployment> getLast5DeploymentsWithProject() {
+        return projectDeploymentRepository.findTop5ByOrderByIdDesc();
+    }
+
 }

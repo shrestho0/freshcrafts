@@ -1,3 +1,165 @@
+<!-- <script lang="ts">
+	import type { AIChatMessage } from "@/types/entities";
+	import { AIChatCommands } from "@/types/enums";
+	import {
+		Button,
+		Checkbox,
+		InlineLoading,
+		TextInput,
+	} from "carbon-components-svelte";
+	import { onMount } from "svelte";
+	import { slide } from "svelte/transition";
+
+	// States
+	export let open: boolean;
+	let showCloseChatOptions = false;
+	let chatState = {
+		status: "idle",
+		description: "",
+		messages: [],
+		inputsDisabled: false,
+
+		userMessage: "",
+		includeContext: true,
+	} as {
+		status: "idle" | "initialized" | "loading" | "error" | "close-options";
+		messages: AIChatMessage[];
+
+		description: string;
+		inputsDisabled: boolean;
+
+		// Input Bindings
+		userMessage: string;
+		includeContext: boolean;
+	};
+
+	async function getState() {
+		const res = await fetch("/chat", {
+			method: "PATCH",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ command: AIChatCommands.GET_STATE }),
+		})
+			.then((res) => res.json())
+			.catch((err) => {
+				console.error(err);
+				chatState.status = "error";
+				chatState.description = "Failed to load chat bot";
+			});
+
+		if (res.chatInit == true) {
+			chatState.status = "initialized";
+			chatState.messages = res.messages;
+		}else{
+
+		}
+	}
+
+	async function sendMessage() {}
+	async function closeChat(save: boolean) {
+		if (save) {
+			console.log("Save and close");
+		} else {
+			console.log("Just close");
+		}
+
+		chatState.status = "idle";
+		open = false;
+	}
+
+	onMount(async () => {
+		chatState.status = "loading";
+		chatState.description = "Loading chat bot";
+		console.log("onMount");
+
+		// chatState.status = "loading";
+		// chatState.description = "Loading chat bot";
+		// await getState();
+		// chatState.status = "initialized";
+	});
+</script>
+
+{#if open}
+	<div
+		transition:slide={{ duration: 300, axis: "x" }}
+		class="chat-container fixed h-screen w-full sm:w-[40%] z-[99999999] top-12 pb-12 right-0 bg-gray-200 flex flex-col items-center justify-between"
+	>
+		{JSON.stringify(chatState, null, 2)}
+		<div
+			class="top w-full pl-4 mb-3 flex items-center justify-between"
+			style="border-bottom:2px solid blue;"
+		>
+			<h1 class="text-2xl">FreshChat</h1>
+			<Button
+				on:click={() => {
+					chatState.status = "close-options";
+				}}>Close</Button
+			>
+		</div>
+
+		{#if chatState.status == "close-options"}
+			<div
+				class="flex items-center w-full flex-col gap-3 justify-center items-center"
+			>
+				{#if chatState.messages?.length > 1}
+					<Button
+						class="w-full"
+						kind="tertiary"
+						on:click={async () => await closeChat(true)}
+						>Save and close</Button
+					>
+				{/if}
+				<Button
+					class="w-full"
+					kind="danger-tertiary"
+					on:click={async () => await closeChat(false)}
+					>Just close it</Button
+				>
+				<Button
+					class="w-full"
+					on:click={() => {
+						showCloseChatOptions = false;
+					}}>Continue Chat</Button
+				>
+			</div>
+		{/if}
+
+		<form
+			on:submit|preventDefault={sendMessage}
+			class="bottom p-4 w-full flex flex-col gap-2"
+		>
+			<div>
+				<TextInput
+					placeholder="type your message"
+					bind:value={chatState.userMessage}
+					disabled={chatState.inputsDisabled}
+				/>
+				<div class="flex gap-2 items-center">
+					Include context
+					<Checkbox
+						bind:checked={chatState.includeContext}
+						disabled={chatState.inputsDisabled}
+					/>
+				</div>
+			</div>
+			<div class="flex items-center justify-between">
+				<h2>
+					{#if chatState.status == "loading" && chatState.messages?.length > 0}
+						<InlineLoading
+							description={chatState.description}
+							status="active"
+						/>
+					{:else}
+						Type your message.
+					{/if}
+				</h2>
+				<Button type="submit" disabled={chatState.inputsDisabled}
+					>Send</Button
+				>
+			</div>
+		</form>
+	</div>
+{/if} -->
+
 <script lang="ts">
 	import type { EngineCommonResponseDto } from "@/types/dtos";
 	import type { AIChatMessage } from "@/types/entities";
@@ -17,7 +179,9 @@
 	import MdCodeBlock from "./MDCodeBlock.svelte";
 
 	export let open: boolean;
-	let chatStarted = localStorage.getItem("chat_started") === "true";
+	// let chatStarted = localStorage.getItem("chat_started") === "true";
+
+	let chatStarted = false;
 
 	let messages: AIChatMessage[] = [];
 	$: console.log("messages", messages);
@@ -34,10 +198,11 @@
 	};
 
 	$: {
-		if (open && !chatStarted) {
+		if (!open) {
+			// ignore
+		} else if (open && !chatStarted) {
 			initChat();
 			chatStarted = true;
-			localStorage.setItem("chat_started", "true");
 		} else if (open && chatStarted) {
 			console.log("chat already started. getting messages");
 			getChatMessage();
@@ -49,6 +214,7 @@
 			chatContainer.scrollTo({ top: 1000000, behavior: "smooth" });
 		}
 	}
+
 	async function initChat() {
 		loading = true;
 		loadingMessage = "Initializing chat...";
@@ -183,7 +349,7 @@
 {#if open}
 	<div
 		transition:slide={{ duration: 300, axis: "x" }}
-		class="chat-container fixed h-screen w-full sm:w-[40%] z-[99999999] top-12 pb-12 right-0 bg-gray-200 flex flex-col items-center justify-between"
+		class="chat-container fixed h-screen w-full sm:w-[40%] z-[99999999] top-12 pb-12 right-0 bg-[var(--cds-ui-01)] flex flex-col items-center justify-between"
 	>
 		<div
 			class="top w-full pl-4 mb-3 flex items-center justify-between"
@@ -201,7 +367,6 @@
 			<div
 				class="flex items-center w-full flex-col gap-3 justify-center items-center"
 			>
-				<!-- save chat and close-->
 				{#if messages?.length > 1}
 					<Button
 						class="w-full"
@@ -222,7 +387,6 @@
 						showCloseChatOptions = false;
 					}}>Continue Chat</Button
 				>
-				<!-- just close it -->
 			</div>
 		{:else if hasError}
 			<div class="p-4 w-full flex items-center justify-center gap-2">
@@ -245,22 +409,19 @@
 				{#each messages as message}
 					<div
 						title={message.timestamp}
-						class="p-2 w-full flex items-center gap-2 {message.role ===
-						'user'
-							? 'justify-end'
-							: 'justify-start'} "
+						class="p-2 w-full flex items-center gap-2
+
+						{message.role === 'user' ? 'justify-end' : 'justify-start'} "
 					>
 						<div
 							class="p-2 rounded-lg {message.role === 'user'
 								? ' bg-[var(--cds-interactive-01)] text-white '
-								: ' bg-gray-300 '} break-all"
+								: ' bg-gray-300 dark:bg-[var(--cds-ui-04)] '} break-all"
 						>
 							<SvelteMarkdown
 								source={message.content}
 								renderers={svelteMarkdownRenderers}
 							/>
-							<!-- <SvelteMarkdown source={message.content}  /> -->
-							<!-- {message.content} -->
 						</div>
 					</div>
 				{/each}

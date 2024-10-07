@@ -1,99 +1,115 @@
 <script lang="ts">
-import { goto } from '$app/navigation';
-import { page } from '$app/stores';
-import type {
-	EngineCommonResponseDto,
-	EnginePostgreSQLCreateError,
-	EnginePostgreSQLCreatePayload
-} from '@/types/dtos';
-import {
-	Button,
-	Form,
-	FormItem,
-	Loading,
-	PasswordInput,
-	TextInput,
-	InlineNotification
-} from 'carbon-components-svelte';
-
-const newDBData = {
-	dbName: '',
-	dbUser: '',
-	dbPassword: ''
-};
-
-let loading = false;
-
-let errors: EnginePostgreSQLCreateError = {
-	dbName: '',
-	dbUser: '',
-	dbPassword: ''
-};
-
-let error_message = '';
-
-async function handleFormSubmission() {
-	console.log(newDBData);
-	loading = true;
-	error_message = '';
-	const res = (await fetch('', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(newDBData)
-	}).then((res) => res.json())) as EngineCommonResponseDto<
+	import { goto } from "$app/navigation";
+	import { page } from "$app/stores";
+	import type {
+		EngineCommonResponseDto,
+		EnginePostgreSQLCreateError,
 		EnginePostgreSQLCreatePayload,
-		EnginePostgreSQLCreateError
-	>;
-	// as {
-	// 	success: boolean;
-	// 	message?: string;
-	// 	payload: {
-	// 		id: '01J3FM5SKADJ81V6CYH1FFB694';
-	// 		dbName: 'test__3';
-	// 		dbUser: 'test__3';
-	// 		dbPassword: 'test__3';
-	// 		status: null;
-	// 		reasonFailed: null;
-	// 	};
-	// 	errors: {
-	// 		dbName: string;
-	// 		dbUser: string;
-	// 		dbPassword: string;
-	// 	};
-	// };
+	} from "@/types/dtos";
+	import {
+		Button,
+		Form,
+		FormItem,
+		Loading,
+		PasswordInput,
+		TextInput,
+		InlineNotification,
+	} from "carbon-components-svelte";
 
-	if (res.success) {
-		// redirect to the new database page. /postgres/:id
-		let url = $page.url.href;
-		url = url.split('/').slice(0, -1).join('/');
-		url += `/${res.payload.id}`;
-		goto(url);
-	} else {
-		// show error message
-		if (res?.message) error_message = res.message;
-		if (res?.errors) errors = res.errors;
+	const newDBData = {
+		dbName: "",
+		dbUser: "",
+		dbPassword: "",
+	};
+
+	let loading = false;
+
+	let errors: EnginePostgreSQLCreateError = {
+		dbName: "",
+		dbUser: "",
+		dbPassword: "",
+	};
+
+	let error_message = "";
+
+	async function handleFormSubmission() {
+		console.log(newDBData);
+		loading = true;
+		error_message = "";
+		const res = (await fetch("", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify(newDBData),
+		}).then((res) => res.json())) as EngineCommonResponseDto<
+			EnginePostgreSQLCreatePayload,
+			EnginePostgreSQLCreateError
+		>;
+		// as {
+		// 	success: boolean;
+		// 	message?: string;
+		// 	payload: {
+		// 		id: '01J3FM5SKADJ81V6CYH1FFB694';
+		// 		dbName: 'test__3';
+		// 		dbUser: 'test__3';
+		// 		dbPassword: 'test__3';
+		// 		status: null;
+		// 		reasonFailed: null;
+		// 	};
+		// 	errors: {
+		// 		dbName: string;
+		// 		dbUser: string;
+		// 		dbPassword: string;
+		// 	};
+		// };
+
+		if (res.success) {
+			// redirect to the new database page. /postgres/:id
+			let url = $page.url.href;
+			url = url.split("/").slice(0, -1).join("/");
+			url += `/${res.payload.id}`;
+			goto(url);
+		} else {
+			// show error message
+			if (res?.message) error_message = res.message;
+			if (res?.errors) errors = res.errors;
+		}
+
+		loading = false;
+		console.log(res);
+		JSON.parse("{}");
 	}
 
-	loading = false;
-	console.log(res);
-	JSON.parse('{}');
-}
+	let showDummies = false;
 </script>
 
 <h2 class="text-2xl pb-4">New PostgreSQL Database</h2>
 
 <div class="max-w-lg">
-	{#each Array(20) as _, i}
-		<Button
+	<div class="dummy-data-section">
+		<button
+			class="text-sm text-gray-500 underline"
 			on:click={() => {
-				newDBData.dbName = `test__${i}`;
-				newDBData.dbUser = `test__${i}`;
-				newDBData.dbPassword = `test__${i}`;
-			}}>test__{i}</Button
+				showDummies = !showDummies;
+			}}
 		>
-	{/each}
+			{showDummies ? "Hide" : "Show"} dummy data
+		</button>
+		<div class="">
+			{#if showDummies}
+				{#each Array(20) as _, i}
+					<Button
+						on:click={() => {
+							newDBData.dbName = `test__${i}`;
+							newDBData.dbUser = `test__${i}`;
+							newDBData.dbPassword = `test__${i}`;
+						}}>test__{i}</Button
+					>
+				{/each}
+			{/if}
+		</div>
+	</div>
 	<form
 		method="post"
 		class="flex flex-col justify-center gap-3"
@@ -142,12 +158,16 @@ async function handleFormSubmission() {
 		/>
 
 		{#if error_message}
-			<InlineNotification title={'Error'} subtitle={error_message} />
+			<InlineNotification title={"Error"} subtitle={error_message} />
 		{/if}
 
 		<div class="w-full">
-			<Button type="reset" kind="secondary" disabled={loading}>Reset</Button>
-			<Button type="submit" kind="primary" disabled={loading}>Create Database</Button>
+			<Button type="reset" kind="secondary" disabled={loading}
+				>Reset</Button
+			>
+			<Button type="submit" kind="primary" disabled={loading}
+				>Create Database</Button
+			>
 		</div>
 	</form>
 </div>

@@ -283,6 +283,8 @@ export class EngineConnection {
 
 
 
+
+
 	////////////////////////////////////////// DB POSTGRES //////////////////////////////////////////
 
 	async getPostgresDBs({
@@ -755,6 +757,23 @@ export class EngineConnection {
 			method: 'DELETE'
 		})
 	}
+
+
+	////////////////// Dashboard //////////////////
+
+	async getDashboardDBsData(): Promise<EngineCommonResponseDto<{
+		activeMySqlCount: number,
+		activePostgresCount: number,
+		activeMongoCount: number,
+		activeRedisCount: number
+	}>> {
+		return this.customFetch(BackendEndpoints.DASHBOARD_DBS)
+	}
+
+	async getDashboardDeploymentsData(): Promise<EngineCommonResponseDto<ProjectDeployment[]>> {
+		return this.customFetch(BackendEndpoints.DAShBOARD_DEPS)
+	}
+
 
 
 	////////////// System Specific //////////...

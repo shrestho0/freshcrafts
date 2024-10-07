@@ -364,4 +364,8 @@ public class DBMysqlService {
         return res;
     }
 
+    public long getActiveDBCount() {
+        return dbMysqlRepository.countByStatus(DBMysqlStatus.OK);
+    }
+
 }

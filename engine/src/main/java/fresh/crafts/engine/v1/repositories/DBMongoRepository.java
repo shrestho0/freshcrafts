@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import fresh.crafts.engine.v1.models.DBMongo;
+import fresh.crafts.engine.v1.utils.enums.DBMongoStatus;
 
 @Repository
 public interface DBMongoRepository extends MongoRepository<DBMongo, String> {
@@ -24,5 +25,7 @@ public interface DBMongoRepository extends MongoRepository<DBMongo, String> {
     List<DBMongo> searchBydbNameOrdbUser(String query);
 
     Page<DBMongo> findAll(Pageable pageable);
+
+    long countByStatus(DBMongoStatus status);
 
 }

@@ -81,7 +81,10 @@ public class ProjectService {
             newGithubRepo.setDeploymentsUrl(githubRepo.getDeployments_url());
             newGithubRepo.setDefaultBranch(githubRepo.getDefault_branch());
             newGithubRepo.setTarDownloadUrl(createProjectDto.getGithub_tar_download_url());
-
+            newGithubRepo.setDefault_branch_commit_date(githubRepo.getDefault_branch_commit_date());
+            newGithubRepo.setDefault_branch_commit_sha(githubRepo.getDefault_branch_commit_sha());
+            newGithubRepo.setOwner_login(githubRepo.getOwner_login());
+            newGithubRepo.setOwner_id(githubRepo.getOwner_id());
             newProject.setGithubRepo(newGithubRepo);
         }
 
@@ -729,19 +732,26 @@ public class ProjectService {
 
             proj.setStatus(ProjectStatus.PROCESSING_ROLLBACK);
             currentDeployment.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
-
+            System.out.println("[DEBUG] Rollback Request: status set");
             if (activeDeployment != null) {
                 activeDeployment.setStatus(ProjectDeploymentStatus.READY_FOR_DEPLOYMENT);
+                System.out.println("[DEBUG] Rollback Request: activeDeployment status set");
             }
 
+            // remove partial messages
             proj.getPartialMessageList().clear();
+            System.out.println("[DEBUG] Rollback Request: partial messages cleared");
 
             proj.setRollbackDeploymentId(currentDeployment.getId());
+            System.out.println("[DEBUG] Rollback Request: rollbackDeploymentId set");
 
             projectRepository.save(proj);
             projectDeploymentService.save(currentDeployment);
-            projectDeploymentService.save(activeDeployment);
+            if (activeDeployment != null) {
+                projectDeploymentService.save(activeDeployment);
+            }
 
+            System.out.println("[DEBUG] Rollback Request: stuff saved");
             // f... send it
 
             KEvent kevent = generateCommonKEvent();
@@ -750,19 +760,31 @@ public class ProjectService {
             payload.setCommand(KEventCommandsDepWiz.ROLLBACK);
             payload.setProject(proj);
             payload.setCurrentDeployment(currentDeployment);
+            System.out.println("[DEBUG] Rollback Request: currentDeployment set in payload");
 
             // it's ok if activeDeployment is null
             payload.setActiveDeployment(activeDeployment);
+            System.out.println("[DEBUG] Rollback Request: activeDeployment set in payload");
 
             kevent.setPayload(payload);
+            System.out.println("[DEBUG] Rollback Request: payload set");
             kEventService.createOrUpdate(kevent);
+            System.out.println("[DEBUG] Rollback Request: kevent created or updated");
+
             messageProducer.sendEvent(kevent);
+
+            System.out.println("[DEBUG] Rollback Request: kevent send");
 
             res.setSuccess(true);
             res.setStatusCode(202);
             res.setMessage("Rollforward request is being processed");
 
+            System.out.println("[DEBUG] Rollback Request: success");
+
         } catch (Exception e) {
+            System.out.println("[DEBUG] Rollback Request: failure");
+            res.setMessage("Error: " + e.getMessage());
+
             res.setSuccess(false);
             res.setStatusCode(400); // shob dosh client er
         }

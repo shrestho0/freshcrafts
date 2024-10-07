@@ -389,4 +389,8 @@ public class DBPostgresService {
         return res;
     }
 
+    public long getActiveDBCount() {
+        return dbPostgresRepository.countByStatus(DBPostgresStatus.OK);
+    }
+
 }

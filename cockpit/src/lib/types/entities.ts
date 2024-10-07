@@ -73,14 +73,19 @@ export type DBRedis = {
 // }
 
 export type ProjectGithubRepo = {
-	id: string,
-	name: string,
-	fullName: string,
-	isPrivate: boolean,
-	downloadsUrl: string,
-	tarDownloadUrl: string,
-	defaultBranch: string,
-	deploymentsUrl: string,
+	id: string;
+	name: string;
+	fullName: string;
+	isPrivate: boolean;
+	downloadsUrl: string;
+	tarDownloadUrl: string;
+	defaultBranch: string;
+	deploymentsUrl: string;
+	default_branch_commit_sha: string;
+	default_branch_commit_date: string;
+	owner_login: string;
+	owner_id: string;
+
 }
 
 export type ProjectDeploymentFile = {
@@ -112,6 +117,7 @@ export type Project = {
 	totalVersions: number,
 	activeVersion: number,
 	activeDeploymentId: string,
+	currentDeploymentId: string,
 	rollforwardDeploymentId: string,
 	rollbackDeploymentId: string,
 	portAssigned: number,
@@ -137,7 +143,7 @@ export type ProjectProdFiles = {
 
 export type ProjectDeployment = {
 	id?: string,
-	// project?: Project,
+	project?: Project,
 	projectId: string,
 	version: number,
 	iteration: number,

@@ -111,6 +111,7 @@ export class AIHelper {
 
 
         let body;
+
         if (includeContext) {
             body = JSON.stringify({
                 messages: content
@@ -136,5 +137,8 @@ export class AIHelper {
             }
         });
     }
+
+
+
 
 }

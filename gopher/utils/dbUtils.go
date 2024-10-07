@@ -3,8 +3,10 @@ package utils
 import (
 	"context"
 	"database/sql"
+	"log"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -59,6 +61,37 @@ func IsPostgresDBConnectionOk(dsn string) bool {
 
 	db.Close()
 	// log.Println("err", err, "db", db, "errNil", err == nil)
+
+	return err == nil
+}
+
+func IsRedisConnectionOk(port string, password string) bool {
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel() // Ensure the context is cancelled when done
+
+	// Create a Redis client
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:" + port,
+		Password: password,
+		DB:       0, // use default DB
+	})
+
+	// Check connection by pinging Redis
+	err := rdb.Ping(ctx).Err()
+	if err != nil {
+		log.Printf("Could not connect to Redis: %v\n", err)
+	}
+
+	// log.Println("Connected to Redis successfully!")
+
+	// Close the Redis client connection
+	defer func() {
+		if err := rdb.Close(); err != nil {
+			log.Printf("Could not close Redis connection: %v\n", err)
+		}
+		log.Println("Redis connection closed successfully!")
+	}()
 
 	return err == nil
 }

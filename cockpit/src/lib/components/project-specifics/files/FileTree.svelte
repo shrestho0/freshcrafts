@@ -87,7 +87,7 @@
 </script>
 
 <SelectableTile
-	class=" bg-gray-300 hover:bg-gray-300 flex items-center "
+	class=" bg-gray-300 dark:bg-[var(--cds-interactive-02)] flex items-center outline-none focus:outline-none focus-visible:outline-none"
 	selected={selectedFileRelativeUrl === "."}
 	on:select={() => {
 		activeId = null;

@@ -77,7 +77,7 @@ class BarelyWorkingSetupWizard:
         
         
         dict_item = self.sysd_util.service_data.get(services[0])
-        self.sysd_util.generate_service_files(single={}.update(dict_item))
+        self.sysd_util.generate_service_files(single=services[0])
         self.sysd_util.copy_service_files_to_systemd()
         
         src_dir = self.sysd_util.service_data.get(services[0]).get("SRC_DIR")
@@ -381,7 +381,10 @@ class BarelyWorkingSetupWizard:
             
 
             # keep a backup of the old file
-            os.system(f"sudo cp /etc/nginx/sites-available/{service_name}.conf /etc/nginx/sites-available/{service_name}.conf.fcbak")
+            if os.path.exists(f'/etc/nginx/sites-available/{service_name}.conf'):
+                console.log(f"Old conf file can be found on: /etc/nginx/sites-available/{service_name}.conf.fcbak")
+                os.system(f"sudo cp /etc/nginx/sites-available/{service_name}.conf /etc/nginx/sites-available/{service_name}.conf.fcbak")
+            
             # copy the file to /etc/nginx/sites-available
             os.system(f"sudo mv  {self.sysd_util.temp_dir}/{service_name}.conf /etc/nginx/sites-available/")
 

@@ -11,6 +11,8 @@ import org.springframework.stereotype.Repository;
 
 import fresh.crafts.engine.v1.models.DBPostgres;
 
+import fresh.crafts.engine.v1.utils.enums.DBPostgresStatus;
+
 @Repository
 public interface DBPostgresRepository extends MongoRepository<DBPostgres, String> {
 
@@ -24,5 +26,7 @@ public interface DBPostgresRepository extends MongoRepository<DBPostgres, String
     List<DBPostgres> searchBydbNameOrdbUser(String query);
 
     Page<DBPostgres> findAll(Pageable pageable);
+
+    long countByStatus(DBPostgresStatus status);
 
 }

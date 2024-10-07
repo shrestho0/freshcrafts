@@ -9,10 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import fresh.crafts.engine.v1.dtos.CommonResponseDto;
 import fresh.crafts.engine.v1.models.WatchDogServicesStatus;
 import fresh.crafts.engine.v1.services.WatchDogServicesStatusService;
-import fresh.crafts.engine.v1.utils.CraftUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(value = "/api/v1/watchdog-service-status", consumes = "application/json", produces = "application/json")

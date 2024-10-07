@@ -1,40 +1,40 @@
 <script lang="ts">
-import { enhance } from '$app/forms';
-import { goto, invalidateAll } from '$app/navigation';
-import PreDebug from '@/components/dev/PreDebug.svelte';
-import type { DBPostgres } from '@/types/entities';
-import { DBPostgresStatus } from '@/types/enums';
-import type { ActionResult } from '@sveltejs/kit';
-import {
-	Button,
-	ComposedModal,
-	ModalBody,
-	ModalFooter,
-	ModalHeader
-} from 'carbon-components-svelte';
+	import { enhance } from "$app/forms";
+	import { goto, invalidateAll } from "$app/navigation";
+	import PreDebug from "@/components/dev/PreDebug.svelte";
+	import type { DBPostgres } from "@/types/entities";
+	import { DBPostgresStatus } from "@/types/enums";
+	import type { ActionResult } from "@sveltejs/kit";
+	import {
+		Button,
+		ComposedModal,
+		ModalBody,
+		ModalFooter,
+		ModalHeader,
+	} from "carbon-components-svelte";
 
-export let db: DBPostgres;
-export let open: boolean;
+	export let db: DBPostgres;
+	export let open: boolean;
 
-function enhancedFormSubmission() {
-	// FIXME: Errors not handled
-	return async ({ result }: { result: ActionResult }) => {
-		console.log('[DEBUG]: enhancedFormSubmission:', result);
-		switch (result.type) {
-			case 'success':
-				db.status = DBPostgresStatus.PENDING_DELETE;
+	function enhancedFormSubmission() {
+		// FIXME: Errors not handled
+		return async ({ result }: { result: ActionResult }) => {
+			console.log("[DEBUG]: enhancedFormSubmission:", result);
+			switch (result.type) {
+				case "success":
+					db.status = DBPostgresStatus.PENDING_DELETE;
 
-				const timeout = setTimeout(() => {
-					goto('/databases/postgres');
-					clearTimeout(timeout);
-				}, 1000);
+					const timeout = setTimeout(() => {
+						goto("/databases/postgres");
+						clearTimeout(timeout);
+					}, 1000);
 
-				break;
-			default:
-				break;
-		}
-	};
-}
+					break;
+				default:
+					break;
+			}
+		};
+	}
 </script>
 
 <ComposedModal bind:open class="select-none" preventCloseOnClickOutside>
@@ -42,7 +42,7 @@ function enhancedFormSubmission() {
 	<ModalBody>
 		<p>Are you sure you want to delete this database?</p>
 		<p>This action cannot be undone.</p>
-		<PreDebug data={{ db }} title="" />
+		<!-- <PreDebug data={{ db }} title="" /> -->
 	</ModalBody>
 	<ModalFooter class="w-full grid grid-cols-2">
 		<Button
@@ -51,13 +51,17 @@ function enhancedFormSubmission() {
 				open = false;
 			}}>Cancel</Button
 		>
-		<form action="?/delete" method="post" use:enhance={enhancedFormSubmission}>
+		<form
+			action="?/delete"
+			method="post"
+			use:enhance={enhancedFormSubmission}
+		>
 			<Button
 				type="submit"
 				class="w-full"
 				kind="danger"
 				on:click={() => {
-					console.log('Delete');
+					console.log("Delete");
 					// do something then close
 					open = false;
 				}}>Delete</Button

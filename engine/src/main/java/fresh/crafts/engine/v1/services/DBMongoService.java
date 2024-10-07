@@ -384,4 +384,9 @@ public class DBMongoService {
         return res;
     }
 
+    public long getActiveDBCount() {
+        return dbMongoRepository.countByStatus(DBMongoStatus.OK);
+
+    }
+
 }

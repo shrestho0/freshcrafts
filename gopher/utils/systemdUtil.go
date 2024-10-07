@@ -20,8 +20,9 @@ func CheckSystemdServiceRunning(service string) bool {
 	switch exitCode {
 	case 0:
 		fallthrough
-	case 3:
-		return true
+	// case 3:
+	// return true
+	// fallthrough
 	default:
 		return err == nil // error nil so no error thus success
 	}

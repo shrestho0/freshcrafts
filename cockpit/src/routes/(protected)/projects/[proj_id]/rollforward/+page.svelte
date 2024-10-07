@@ -1,9 +1,12 @@
 <script lang="ts">
     import { ProjectStatus, ProjectType } from "@/types/enums";
-    import RollbackLocalFile from "./RollbackLocalFile.svelte";
+    import RollforwardLocalFile from "./RollforwardLocalFile.svelte";
     import { Button } from "carbon-components-svelte";
     import ProjectSpecificWarningBox from "@/components/project-specifics/ProjectSpecificWarningBox.svelte";
     import CarbonArrowLeft from "@/ui/icons/CarbonArrowLeft.svelte";
+    import RollforwardGithub from "./RollforwardGithub.svelte";
+    import PreDebug from "@/components/dev/PreDebug.svelte";
+    import type { EngineSystemConfigResponseDto } from "@/types/dtos";
 
     export let data;
 
@@ -11,6 +14,8 @@
     const currentDeployment = data.currentDeployment;
     const activeDeployment = data.activeDeployment;
     const envFileContent = data.envFileContent;
+    const githubBranchInfoCurrent = data.githubBranchInfoCurrent;
+    const sysConf: EngineSystemConfigResponseDto = data.sysConf!;
 </script>
 
 {#if project.status != ProjectStatus.ACTIVE}
@@ -21,15 +26,19 @@
         iconLeft={CarbonArrowLeft}
     />
 {:else if project.type === ProjectType.LOCAL_FILES}
-    <RollbackLocalFile
+    <RollforwardLocalFile
         {project}
         {currentDeployment}
         {activeDeployment}
         {envFileContent}
     />
 {:else if project.type === ProjectType.GITHUB_REPO}
-    Github Repo, This should be updated upon update on default branch of github
-    repository the project initiated from
-
-    <Button>Re-check if any update</Button>
+    <RollforwardGithub
+        {project}
+        {currentDeployment}
+        {activeDeployment}
+        {envFileContent}
+        {githubBranchInfoCurrent}
+        {sysConf}
+    />
 {/if}

@@ -40,9 +40,9 @@
 	});
 </script>
 
-<h2 class="text-2xl">Watch Dog Service Status</h2>
+<h2 class="text-2xl pb-3">Watch Dog Service Status</h2>
 
-<p class="py-2">Last Updated: {humanizedTimeDifference(lastUpdated)}</p>
+<!-- <p class="py-2">Last Updated: {humanizedTimeDifference(lastUpdated)}</p> -->
 <!-- <p class="py-2">Last Updated Watchdog: {lastUpdatedWatchDog}</p> -->
 
 {#if data.success}
@@ -75,5 +75,7 @@
 	{:else}
 		Service Status Not Available
 	{/if}
+{:else}
+	<p>Service Status Not Available</p>
 {/if}
-<PreDebug {data} />
+<!-- <PreDebug {data} /> -->

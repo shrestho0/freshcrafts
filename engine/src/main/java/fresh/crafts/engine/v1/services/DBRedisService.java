@@ -18,6 +18,7 @@ import fresh.crafts.engine.v1.entities.KEventPayloadRedWiz;
 import fresh.crafts.engine.v1.models.DBRedis;
 import fresh.crafts.engine.v1.models.KEvent;
 import fresh.crafts.engine.v1.repositories.DBRedisRepository;
+import fresh.crafts.engine.v1.utils.enums.DBPostgresStatus;
 import fresh.crafts.engine.v1.utils.enums.DBRedisSortField;
 import fresh.crafts.engine.v1.utils.enums.DBRedisStatus;
 import fresh.crafts.engine.v1.utils.enums.KEventCommandsRedWiz;
@@ -393,4 +394,7 @@ public class DBRedisService {
         return res;
     }
 
+    public long getActiveDBCount() {
+        return dbRedisRepository.countByStatus(DBRedisStatus.OK);
+    }
 }

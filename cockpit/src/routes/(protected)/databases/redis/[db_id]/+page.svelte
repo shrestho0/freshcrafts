@@ -36,7 +36,7 @@
 
 	export let data: EngineCommonResponseDto<DBRedis, EngineRedisDBGetOneError>;
 
-	if (browser && data?.payload?.status != DBRedisStatus.OK) {
+	if (browser && data?.payload && data?.payload?.status != DBRedisStatus.OK) {
 		// (data?.payload?.status == DBRedisStatus.REQUESTED ||
 		// 	data?.payload?.status == DBRedisStatus.PENDING_DELETE)
 		console.log("sse hit hobe");
@@ -250,7 +250,7 @@
 		{:else if data.payload.status === DBRedisStatus.FAILED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<OctagonX class=" h-12 w-12" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Failed to create Redis Database
 					</div>
@@ -274,7 +274,7 @@
 		{:else if data.payload.status === DBRedisStatus.PENDING_DELETE}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Your request to delete the database is being processed
 					</div>
@@ -287,7 +287,7 @@
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<!-- <OctagonX class=" h-12 h-12" /> -->
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Your request is being processed
 					</div>
@@ -299,7 +299,7 @@
 		{:else if data.payload.status === DBRedisStatus.UPDATE_REQUESTED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						{data?.payload?.updateMessage ??
 							"Your request to update the database is being processed"}
@@ -312,7 +312,7 @@
 		{:else if data.payload.status === DBRedisStatus.UPDATE_FAILED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<OctagonX class=" h-12 h-12" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Failed to update Redis Database
 					</div>
@@ -337,15 +337,13 @@
 	{:else}
 		<Tile class="w-full flex flex-col items-center justify-center">
 			<OctagonAlert class=" h-12 h-12" />
-			<div
-				class="text-center text-lg font-normal text-[var(--cds-interactive-02)]"
-			>
+			<div class="text-center text-lg font-normal">
 				No Redis Database found <br />
 			</div>
 		</Tile>
 	{/if}
 </div>
-<PreDebug {data} />
+<!-- <PreDebug {data} /> -->
 
 {#if data?.payload}
 	<UpdateDbModal bind:open={updateDBAccessModalOpen} />

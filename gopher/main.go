@@ -8,8 +8,6 @@ import (
 
 func main() {
 
-	// run while application runs
-
 	log.Println("Gopher has started")
 	go services.StartCrons()
 

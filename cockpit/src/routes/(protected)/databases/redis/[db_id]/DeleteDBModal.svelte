@@ -42,7 +42,7 @@
 	<ModalBody>
 		<p>Are you sure you want to delete this database?</p>
 		<p>This action cannot be undone.</p>
-		<PreDebug data={{ db }} title="" />
+		<!-- <PreDebug data={{ db }} title="" /> -->
 	</ModalBody>
 	<ModalFooter class="w-full grid grid-cols-2">
 		<Button

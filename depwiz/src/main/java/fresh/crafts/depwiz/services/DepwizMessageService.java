@@ -249,7 +249,18 @@ public class DepwizMessageService {
                         if (cmd == DepWizKEventCommands.RE_DEPLOY) {
                                 notNullables.put("currentDeployment", currentDeployment);
                                 CraftUtils.throwIfRequiredValuesAreNull(notNullables);
-                        } else {
+                        } else if( cmd== DepWizKEventCommands.ROLLBACK) {
+                                notNullables.put("currentDeployment", currentDeployment);
+                                CraftUtils.throwIfRequiredValuesAreNull(notNullables);
+
+                                if(activeDeployment != null) {
+                                        helper.sendPartialFeedback(feedbackKEvent, "[RUNNING] Removing previous deployment");
+                                        helper.undeploy(activeDeployment, p);
+                                        helper.sendPartialFeedback(feedbackKEvent, "[SUCCESS] Previous deployment removed");
+                                }
+
+                               
+                        }else  {
                                 notNullables.put("currentDeployment", currentDeployment);
                                 notNullables.put("activeDeployment", activeDeployment);
                                 CraftUtils.throwIfRequiredValuesAreNull(notNullables);

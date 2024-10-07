@@ -29,6 +29,7 @@ type (
 		SecondaryMongo    bool   `bson:"secondary_mongo"`
 		SecondaryMysql    bool   `bson:"secondary_mysql"`
 		SecondaryPostgres bool   `bson:"secondary_postgres"`
+		SecondaryRedis    bool   `bson:"secondary_redis"`
 	}
 
 	ServiceTestResult struct {
@@ -39,5 +40,6 @@ type (
 		WizardMongo    bool   `bson:"wizard_mongo"`
 		WizardPostgres bool   `bson:"wizard_postgres"`
 		WizardMysql    bool   `bson:"wizard_mysql"`
+		Redwiz         bool   `bson:"redwiz"`
 	}
 )

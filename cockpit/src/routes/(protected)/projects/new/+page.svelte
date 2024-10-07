@@ -74,7 +74,7 @@
 	</div>
 
 	{#if selected === null}
-		<p class="">Select an option</p>
+		<!-- <p class="">Select an option</p> -->
 	{:else if items[selected].value === "fromDevice"}
 		<FromDevice />
 	{:else if items[selected].value === "fromGithub"}
@@ -92,7 +92,7 @@
 			</Tile>
 		{/if}
 	{/if}
-	<PreDebug {data} />
+	<!-- <PreDebug {data} /> -->
 
 	<!-- {#if items[selected].value === 'fromDevice'}
 	<FromDevice />

@@ -28,6 +28,9 @@ export async function fetchDataSelf(body: any, method: any, fallback: any = null
 	return res;
 }
 
+
+
+
 export async function delay(ms: number = 500) {
 	await new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -77,10 +80,25 @@ export const hintToWebUrlMap = new Map([
 	['DBMYSQL', '/databases/mysql'],
 	['DBMONGO', '/databases/mongodb'],
 	['DBPOSTGRES', '/databases/postgres'],
-
-
+	['PROJECTS', '/projects'],
 	// more will be added later
 ]);
+
+
+export function actionHintToUrl(actionHint: string): string {
+	try {
+		const [action, service, id] = actionHint.split('_');
+		if (!action || !service || !id) return '';
+
+		if (hintToWebUrlMap.has(service)) {
+			return hintToWebUrlMap.get(service) + '/' + (id || '');
+		}
+		throw new Error('Something is invalid error');
+	} catch (e) {
+		// console.error(e);
+	}
+	return '';
+}
 
 export const hintToSSEUrlMap = new Map([
 	['DBMYSQL', '/sse/databases/mysql']

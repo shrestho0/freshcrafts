@@ -110,40 +110,54 @@
 
 <SideNav
 	bind:isOpen={isSideNavOpen}
-	class="dark:bg-[var(--cds-ui-background)]  "
+	class="dark:bg-[var(--cds-ui-background)] "
 	expansionBreakpoint={1500}
 >
 	<SideNavItems>
 		{#each navBarLink as item}
 			{#if item.children}
 				<!-- style={item.serviceType === serviceType ? 'background-color: var(--cds-ui-03)' : ''} -->
-				<SideNavMenu text={item.title} expanded={true}>
+				<SideNavMenu
+					text={item.title}
+					expanded={true}
+					class="dark:text-[#f4f4f4]/80"
+				>
 					<!-- expanded={serviceType === item.serviceType} -->
+					<!-- text={child.title}
+							class=" {child.href == relativeUrl
+								? ' bg-stone-200 bg-[var(--cds-ui-03] dark:bg-[#f4f4f4]/20 dark:text-[#f4f4f4]/80 '
+								: ''} " -->
 					{#each item.children as child}
-						<SideNavMenuItem
-							class="dark:text-[var(--cds-ui-text-01)] dark:hover:text-[var(--cds-ui-text-02)] dark:hover:bg-[var(--cds-ui-background)] dark:bg-[var(--cds-ui-background)] dark:hover:bg-opacity-10 dark:bg-opacity-10"
-							text={child.title}
-							isSelected={child.href == relativeUrl}
-							href={child.href}
-						>
-							<div class="flex">
+						<li class="bx--side-nav__menu-item">
+							<a
+								href={child.href}
+								class="bx--side-nav__submenu flex h-[2rem] min-h-[2rem] pl-[2rem] {child.href ==
+								relativeUrl
+									? ' bg-stone-200 bg-[var(--cds-ui-03] dark:bg-[#f4f4f4]/20 dark:text-[#f4f4f4]/80 '
+									: '  dark:text-[#f4f4f4]/80 dark:hover:bg-[#f4f4f4]/30 '}"
+								style="font-weight: normal;"
+							>
 								{#if child.icon}
 									<svelte:component
 										this={child.icon}
-										classes="w-6 h-6 mr-2 "
+										classes="w-5 h-5 mr-2 "
 									/>
 								{/if}
 								{child.title}
-							</div>
-						</SideNavMenuItem>
+							</a>
+						</li>
 					{/each}
 				</SideNavMenu>
 			{:else if item.href}
-				<SideNavLink
-					isSelected={item.href == relativeUrl}
-					href={item.href}
-					text={item.title}
-				/>
+				<li class="bx--side-nav__menu-item">
+					<a
+						href={item.href}
+						class="bx--side-nav__link {item.href == relativeUrl
+							? ' bg-stone-200 bg-[var(--cds-ui-03] dark:bg-[#f4f4f4]/20 dark:text-[#f4f4f4]/80 '
+							: ' dark:text-[#f4f4f4]/80 dark:hover:bg-[#f4f4f4]/30 '}"
+						>{item.title}</a
+					>
+				</li>
 			{/if}
 		{/each}
 	</SideNavItems>

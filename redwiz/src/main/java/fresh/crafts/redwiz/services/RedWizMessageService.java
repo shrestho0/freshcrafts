@@ -89,6 +89,9 @@ public class RedWizMessageService {
             feedbackPayload.setData(data);
         } catch (Exception e) {
             System.err.println("[DEBUG]: Exception: " + e.getMessage());
+            feedbackPayload.setSuccess(false);
+            feedbackPayload.setMessage("Error: " + e.getMessage());
+            
         }
 
         messageProducer.sendEvent(feedbackKEvent);

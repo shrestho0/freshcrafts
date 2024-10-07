@@ -16,6 +16,7 @@ public class WatchDogServicesStatus {
     String secondary_mongo;
     String secondary_mysql;
     String secondary_postgres;
+    String secondary_redis;
 
     String cockpit;
     String depwiz;
@@ -23,4 +24,5 @@ public class WatchDogServicesStatus {
     String wizard_mongo;
     String wizard_mysql;
     String wizard_postgres;
+    String redwiz;
 }

@@ -14,6 +14,7 @@
 		DataTableSkeleton,
 		Pagination,
 		Tag,
+		Tile,
 	} from "carbon-components-svelte";
 
 	import { page } from "$app/stores";
@@ -233,11 +234,9 @@
 					</TableBody>
 				</Table>
 			{:else}
-				<div
-					class="w-full py-4 flex items-center justify-center bg-[#f4f4f4]"
+				<Tile class="w-full py-4 flex items-center justify-center"
+					>No data found!</Tile
 				>
-					No data found!
-				</div>
 			{/if}
 		{:else if dataStuff.status === "LOADING" || dataStuff.status === "SEARCHING"}
 			<DataTableSkeleton
@@ -278,11 +277,9 @@
 					</TableBody>
 				</Table>
 			{:else}
-				<div
-					class="w-full py-4 flex items-center justify-center bg-[#f4f4f4]"
-				>
+				<Tile class="w-full py-4 flex items-center justify-center">
 					No result found!
-				</div>
+				</Tile>
 			{/if}
 		{/if}
 
@@ -317,8 +314,5 @@
 		{/if}
 	</DataTable>
 
-	<PreDebug {data} />
+	<!-- <PreDebug {data} /> -->
 {/if}
-<pre>
-	{JSON.stringify(dataStuff, null, 2)}
-</pre>

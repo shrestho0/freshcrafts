@@ -38,7 +38,7 @@
         >
     {/each}
 </div>
-
+<!-- 
 <PreDebug data={project} title="proj" />
 <PreDebug data={currentDeployment} title="current " />
-<PreDebug data={activeDeployment} title="active " />
+<PreDebug data={activeDeployment} title="active " /> -->

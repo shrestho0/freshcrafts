@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import fresh.crafts.engine.v1.models.DBRedis;
+import fresh.crafts.engine.v1.utils.enums.DBRedisStatus;
 
 @Repository
 public interface DBRedisRepository extends MongoRepository<DBRedis, String> {
@@ -24,5 +25,7 @@ public interface DBRedisRepository extends MongoRepository<DBRedis, String> {
     List<DBRedis> searchBydbPrefixOrUsername(String query);
 
     Page<DBRedis> findAll(Pageable pageable);
+
+    long countByStatus(DBRedisStatus status);
 
 }

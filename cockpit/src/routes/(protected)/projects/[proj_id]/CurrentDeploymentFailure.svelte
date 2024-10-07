@@ -13,7 +13,11 @@
 	export let currentDeployment: ProjectDeployment | undefined;
 </script>
 
-<CommonErrorBox error_msg="Initial deployment failed">
+<CommonErrorBox
+	error_msg={project.totalVersions > 1
+		? "Deployment failed"
+		: "Initial deployment failed"}
+>
 	<DeploymentProcessingHistory messages={project.partialMessageList ?? []} />
 	<div class="flex gap-3 py-4 w-full justify-center">
 		<div></div>
@@ -56,22 +60,3 @@
 		<p class="text-center">No error traceback available</p>
 	{/if}
 </CommonErrorBox>
-<!-- 
-<ComposedModal preventCloseOnClickOutside bind:open={show_delete_modal}>
-	<ModalHeader closeClass="hidden">Are you sure you want to delete this deployment?</ModalHeader>
-	<ModalBody>
-		<p>
-			Deleting this deployment will remove all the data associated with it. This action cannot be
-			undone.
-		</p>
-		<div class="delete_progress">
-			<p>Deleting deployment...</p>
-		</div>
-	</ModalBody>
-	<ModalFooter>
-		<div class="flex gap-2 justify-end">
-			<Button kind="secondary" on:click={() => (show_delete_modal = false)}>Cancel</Button>
-			<Button kind="danger" on:click={() => (show_delete_modal = false)}>Delete</Button>
-		</div>
-	</ModalFooter>
-</ComposedModal> -->

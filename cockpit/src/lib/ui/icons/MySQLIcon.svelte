@@ -1,5 +1,5 @@
 <script lang="ts">
-export let classes = '';
+	export let classes = "";
 </script>
 
 <svg viewBox="0 0 128 128" class={classes} {...$$restProps}>

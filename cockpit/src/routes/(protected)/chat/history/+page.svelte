@@ -150,15 +150,14 @@
 			{#each selectedItem.messages as message}
 				<div
 					title={message.timestamp}
-					class="p-2 w-full flex items-center gap-2 {message.role ===
-					'user'
-						? 'justify-end'
-						: 'justify-start'} "
+					class="p-2 w-full flex items-center gap-2
+
+			{message.role === 'user' ? 'justify-end' : 'justify-start'} "
 				>
 					<div
 						class="p-2 rounded-lg {message.role === 'user'
 							? ' bg-[var(--cds-interactive-01)] text-white '
-							: ' bg-gray-300 '} break-all"
+							: ' bg-gray-300 dark:bg-[var(--cds-ui-04)] '} break-all"
 					>
 						<SvelteMarkdown
 							source={message.content}
@@ -203,4 +202,4 @@
 				}} -->
 	</div>
 </section>
-<PreDebug data={pageData} />
+<!-- <PreDebug data={pageData} /> -->

@@ -84,4 +84,10 @@ public class GithubRepoDetailed {
     Integer watchers;
     String default_branch;
     GithubRepoPermissions permissions;
+
+    // more custom
+    String default_branch_commit_sha;
+    String default_branch_commit_date;
+    String owner_login;
+    String owner_id;
 }

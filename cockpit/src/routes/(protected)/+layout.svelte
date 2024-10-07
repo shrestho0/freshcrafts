@@ -24,16 +24,16 @@
 	<!-- {#key $page.url}
 	{/key} -->
 	<!-- <Content> -->
-	{#key $page.url}
-		<main id="main-content" class="bx--content" style="" in:fade>
-			<Grid>
-				<Row>
-					<Column>
-						<slot />
-					</Column>
-				</Row>
-			</Grid>
+	{#if $page.url.pathname.startsWith("/databases")}
+		<main id="main-content" class="bx--content">
+			<Grid><Row><Column><slot /></Column></Row></Grid>
 		</main>
-	{/key}
+	{:else}
+		{#key $page.url}
+			<main id="main-content" class="bx--content" style="" in:fade>
+				<Grid><Row><Column><slot /></Column></Row></Grid>
+			</main>
+		{/key}
+	{/if}
 	<!-- </Content> -->
 {/if}

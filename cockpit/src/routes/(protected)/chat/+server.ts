@@ -14,7 +14,10 @@ let apiData: {
     azureChatApiKey: string;
 } | undefined = undefined;
 
+
 let messages: AIChatMessage[] = [];
+let chatInit = false;
+let apiKeyOk = false
 
 
 // let openAiClient: AzureOpenAI | undefined = undefined;
@@ -30,6 +33,8 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
     console.warn(JSON.stringify({ command, data }));
     try {
         switch (command) {
+            case AIChatCommands.GET_STATE:
+                return json({ success: true, payload: chatInit, messages, apiData });
             case AIChatCommands.INIT_CHAT:
 
                 if (apiData === undefined) {
@@ -67,6 +72,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
                     // First message Bot theke na asholeo chole
                     // so,
+
                     const augmented: AIChatMessage = {
                         role: "bot",
                         content: `Hello, ${locals.user.name}! Welcome to Freshcrafts! 🎉 If you have any questions or need assistance with your Node.js deployment, feel free to ask. Happy crafting!`,
@@ -75,6 +81,7 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
                     messages.push(augmented);
 
+                    chatInit = true;
 
                     return json({ success: true, message: "Chat initialized", payload: messages });
                 }
@@ -95,23 +102,20 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
                 messages.push(userMsg)
 
 
-
-                // // // DUMMY
-                // // const d: AIChatMessage = {
-                // //     role: "bot",
-                // //     content: msg,
-                // //     timestamp: new Date().toISOString(),
-                // // }
-
-
-
                 // messages.push(d);
                 if (!apiData || !apiData?.azureChatApiEndpoint || !apiData?.azureChatApiKey)
                     throw new Error("OpenAI client not initialized");
 
                 AIHelper.getInstance().setApiEndpoint(apiData.azureChatApiEndpoint);
                 AIHelper.getInstance().setApiKey(apiData.azureChatApiKey);
-                msg = await AIHelper.getInstance().generateText(JSON.stringify(messages));
+
+
+                if (includeContext) {
+                    msg = await AIHelper.getInstance().generateText(JSON.stringify(messages));
+                } else {
+                    msg = await AIHelper.getInstance().generateText(JSON.stringify(userMsg));
+                }
+
 
                 console.log("AI response", msg);
 
@@ -171,4 +175,5 @@ export const PATCH: RequestHandler = async ({ request, locals }) => {
 
     }
 };
+
 

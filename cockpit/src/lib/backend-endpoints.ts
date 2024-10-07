@@ -62,6 +62,9 @@ const _endpoints = {
 	AI_CODE_DOC: "/ai/code-doc/:id", // Get to Post to create Patch to update,
 	AI_CODE_DOC_BY_PROJECT: "/ai/code-doc/by-project/:id", // Get to get all, Post to create
 
+	DASHBOARD_DBS: "/dashboard/dbs",
+	DAShBOARD_DEPS: "/dashboard/deployments",
+
 
 };
 

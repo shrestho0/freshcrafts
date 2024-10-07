@@ -64,16 +64,22 @@ class SystemDUtil:
 
         for service_file in xTempFileList:
             # check if file exists
-            if self.check_file_exists(service_file):
-                console.log("service temp file exists", service_file, style="bold green")
-            else:
+            # if self.check_file_exists(service_file):
+            #     console.log("service temp file exists", service_file, style="bold green")
+            # else:
+            #     console.log("service temp file does not exists", service_file, style="bold red")
+            #     exit(69)
+            if not self.check_file_exists(service_file):
                 console.log("service temp file does not exists", service_file, style="bold red")
                 exit(69)
-                
-            console.log("Copying service file to systemd", service_file)
-            os.system(f"sudo cp -r {service_file} /lib/systemd/system/")
-            console.log("Service file copied to systemd", service_file)
             
+            try:
+                # console.log("Copying service file to systemd", service_file)
+                os.system(f"sudo cp -r {service_file} /lib/systemd/system/")
+                # console.log("Service file copied to systemd", service_file)
+            except Exception as e:
+                console.log("Failed to copy service file ")
+                print(e)        
         # success
             
 
@@ -141,16 +147,17 @@ class SystemDUtil:
             except Exception as e:
                 pass
 
-    def generate_service_files(self, single:dict=None):
+    def generate_service_files(self, single:str=''):
         
         self.delete_temp_service_files()
 
         xxd = self.service_data.items()
-        if single is not None:
-            xxd = single
-
         for k,v in xxd:
             
+            if single != None and single != k:
+                continue
+                
+             
             service_name = f"fc_{k}"
 
             # access_log_file = self.log_dir+"/"+service_name + "_access.log"

@@ -36,9 +36,9 @@
 	import CarbonEdit from "@/ui/icons/CarbonEdit.svelte";
 	import CarbonDelete from "@/ui/icons/CarbonDelete.svelte";
 
-	export let data: EngineCommonResponseDto<DBMysql, EngineMySQLGetOneError>;
+	export let data;
 
-	if (browser && data?.payload?.status != DBMysqlStatus.OK) {
+	if (browser && data?.payload && data?.payload?.status != DBMysqlStatus.OK) {
 		// (data?.payload?.status == DBMysqlStatus.REQUESTED ||
 		// 	data?.payload?.status == DBMysqlStatus.PENDING_DELETE)
 		console.log("sse hit hobe");
@@ -50,7 +50,7 @@
 		if (value) {
 			setTimeout(() => {
 				invalidateAll();
-			}, 1000);
+			}, 2000);
 			console.log("Value", value.json());
 		}
 	}
@@ -243,7 +243,7 @@
 		{:else if data.payload.status === DBMysqlStatus.FAILED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<OctagonX class=" h-12 w-12" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Failed to create MySQL Database
 					</div>
@@ -267,7 +267,7 @@
 		{:else if data.payload.status === DBMysqlStatus.PENDING_DELETE}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Your request to delete the database is being processed
 					</div>
@@ -280,7 +280,7 @@
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<!-- <OctagonX class=" h-12 h-12" /> -->
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Your request is being processed
 					</div>
@@ -292,7 +292,7 @@
 		{:else if data.payload.status === DBMysqlStatus.UPDATE_REQUESTED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						{data?.payload?.updateMessage ??
 							"Your request to update the database is being processed"}
@@ -305,7 +305,7 @@
 		{:else if data.payload.status === DBMysqlStatus.UPDATE_FAILED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<OctagonX class=" h-12 h-12" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Failed to update MySQL Database
 					</div>
@@ -330,15 +330,13 @@
 	{:else}
 		<Tile class="w-full flex flex-col items-center justify-center">
 			<OctagonAlert class=" h-12 h-12" />
-			<div
-				class="text-center text-lg font-normal text-[var(--cds-interactive-02)]"
-			>
+			<div class="text-center text-lg font-normal">
 				No MySQL Database found <br />
 			</div>
 		</Tile>
 	{/if}
 </div>
-<PreDebug {data} />
+<!-- <PreDebug {data} /> -->
 
 {#if data?.payload}
 	<UpdateDbModal bind:open={updateDBAccessModalOpen} />

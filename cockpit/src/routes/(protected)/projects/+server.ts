@@ -223,6 +223,7 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
             case InternalProjectSetupCommand.ROLLBACK:
                 const { project_id, rollback_id } = data as any;
                 console.log(data)
+
                 if (!project_id) throw new Error("Project id missing")
                 if (!rollback_id) throw new Error("Rollback id missing")
 
@@ -230,6 +231,8 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
                 const res = await EngineConnection.getInstance().rollbackProject(project_id, {
                     rollbackId: rollback_id,
                 })
+
+                console.log('rollback', res)
 
                 return json(res)
 

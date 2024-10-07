@@ -74,10 +74,6 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			// github stuff
 
-			let ooctokit = GithubWebhookHelper.getInstance().getOctokitInstance()
-			if (!ooctokit) {
-				return json({ success: false, message: 'Failed to create octokit instance' });
-			}
 
 			if (repo?.downloads_url) {
 				try {
@@ -96,6 +92,34 @@ export const PATCH: RequestHandler = async ({ request }) => {
 								'Authorization': `token ${gh_token}`
 							}
 						}).then(res => res.blob())
+
+
+
+
+						const branchShortInfo = await GithubWebhookHelper.getInstance().getLastCommitShortInfo(
+							sysConf.systemUserOauthGithubData?.user_access_token ?? '',
+							repo.owner.login,
+							repo.name,
+							repo.default_branch
+						)
+
+						repo.default_branch_commit_sha = branchShortInfo.sha
+						repo.default_branch_commit_date = branchShortInfo.date
+						repo.owner_login = repo.owner.login
+						repo.owner_id = repo.owner.id
+						// repo.default_branch_commit_message = branchShortInfo.message
+
+						console.log("BRANCH INFO", branchShortInfo);
+
+						// let ooctokit = GithubWebhookHelper.getInstance().getOctokitInstance(sysConf.systemUserOauthGithubData?.user_access_token)
+
+						// if (!ooctokit) {
+						// 	return json({ success: false, message: 'Failed to create octokit instance' });
+						// }
+
+						// let ooctokit = GithubWebhookHelper.getInstance().getOctokitInstance(sysConf.systemUserOauthGithubData?.user_access_token)
+
+						// get the branch info and save the last commint commit.sha, commit.commit.author.date
 
 						// const fileHelper = FileHelper.getInstance();
 						const projectId: string = ulid();
@@ -126,6 +150,8 @@ export const PATCH: RequestHandler = async ({ request }) => {
 							github_repo: repo,
 							github_tar_download_url: tar_download_url,
 						}
+
+						await FilesHelper.getInstance().writeToFile("./test.json", JSON.stringify(repo, null, 2))
 
 						// console.log(projectCreationRepoData);
 
@@ -230,14 +256,84 @@ export const PATCH: RequestHandler = async ({ request }) => {
 
 			return json(newCurrDep)
 			// console.log("newCurrDep",)
+		} else if (project_type === InternalNewProjectType.ROLLFORWARD_FROM_GITHUB) {
+			// initial stuff
+			const { projectId, gh_token } = await request.json();
+			const project = (await EngineConnection.getInstance().getProject(projectId)).project
+
+			if (!project) return json({ success: false, message: "Failed to retrieve project with id: " + projectId })
 
 
-			// return json({
-			// 	success: false,
-			// 	message: "Being implimented"
-			// })
+			const newVersion = project.totalVersions + 1
+
+			try {
+
+				// get latest github file
+
+				// write to proper dir
+				// const { fileName, filePath, fileAbsPath } = await fileHelper.moveFileToProjectDir(data.projectId, fromServer?.fileName, fromServer?.fileAbsolutePath, newVersion)
+
+				// create new current deployment for the project
+
+				const repo = project.githubRepo
+				if (!repo?.tarDownloadUrl) throw new Error('No tar download url found in project.githubRepo')
+
+				if (!gh_token) throw new Error('No github token found')
+
+				const download = await fetch(repo?.tarDownloadUrl, {
+					headers: {
+						'Authorization': `token ${gh_token}`
+					}
+				}).then(res => res.blob())
 
 
+				const branchShortInfo = await GithubWebhookHelper.getInstance().getLastCommitShortInfo(
+					gh_token ?? '',
+					repo.owner_login,
+					repo.name,
+					repo.defaultBranch
+				)
+
+				repo.default_branch_commit_sha = branchShortInfo.sha // patch on project
+				repo.default_branch_commit_date = branchShortInfo.date // patch on project
+
+
+
+
+				const _fileName = `${repo.name}-${ulid()?.slice(0, 6)}.tar.gz`;
+				const { fileName, filePath, fileAbsPath } = await fileHelper.writeProjectSourceFile(projectId, _fileName, Buffer.from(await download.arrayBuffer()), newVersion)
+
+				const { extracted, extractedAbs } = await fileHelper.decompressProjectSource(fileAbsPath, projectId, newVersion);
+
+				console.log("DECOMPRESSED", extracted, extractedAbs);
+
+
+				const newCurrDep = await EngineConnection.getInstance().rollforwardProjectPreProcessing(project.id, {
+					version: newVersion,
+					rawFile: {
+						name: fileName,
+						path: filePath,
+						absPath: fileAbsPath,
+					},
+					src: {
+						filesDirPath: extracted,
+						filesDirAbsPath: extractedAbs,
+					},
+					github_repo: repo,
+					github_tar_download_url: repo.tarDownloadUrl,
+				} as unknown as Partial<ProjectDeployment>)
+
+				return json(newCurrDep)
+
+
+
+			} catch (err) {
+				console.log(err)
+			}
+			return json({
+				success: true,
+				message: 'Failed to rollforward project from github',
+			}, { status: 400 });
 		} else if (project_type === InternalNewProjectType.LIST_GITHUB_REPO) {
 
 

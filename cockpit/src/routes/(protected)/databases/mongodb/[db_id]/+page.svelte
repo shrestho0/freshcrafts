@@ -38,7 +38,11 @@
 
 	export let data: EngineCommonResponseDto<DBMongo, EngineMongoDBGetOneError>;
 
-	if (browser && data?.payload?.status != DBMongoStatus.OK) {
+	if (
+		browser &&
+		data?.payload != null &&
+		data?.payload?.status != DBMongoStatus.OK
+	) {
 		// (data?.payload?.status == DBMongoStatus.REQUESTED ||
 		// 	data?.payload?.status == DBMongoStatus.PENDING_DELETE)
 		console.log("sse hit hobe");
@@ -52,6 +56,7 @@
 				invalidateAll();
 			}, 1000);
 			console.log("Value", value.json());
+			console.log("Database", data.payload);
 		}
 	}
 
@@ -215,16 +220,6 @@
 						}}>Update Access</Button
 					>
 
-					<!-- <Button
-						class="w-full"
-						icon={CarbonEdit}
-						kind="secondary"
-						on:click={() => {
-							// updateDBAccessModalOpen = true;
-							updateDBNameModalOpen = true;
-						}}>Update Database Name</Button
-					> -->
-
 					<Button
 						class="w-full"
 						icon={CarbonDelete}
@@ -244,7 +239,7 @@
 		{:else if data.payload.status === DBMongoStatus.FAILED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<OctagonX class=" h-12 w-12" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Failed to create MongoDB Database
 					</div>
@@ -268,7 +263,7 @@
 		{:else if data.payload.status === DBMongoStatus.PENDING_DELETE}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Your request to delete the database is being processed
 					</div>
@@ -281,7 +276,7 @@
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<!-- <OctagonX class=" h-12 h-12" /> -->
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Your request is being processed
 					</div>
@@ -293,7 +288,7 @@
 		{:else if data.payload.status === DBMongoStatus.UPDATE_REQUESTED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<InlineLoading class="w-auto" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						{data?.payload?.updateMessage ??
 							"Your request to update the database is being processed"}
@@ -306,7 +301,7 @@
 		{:else if data.payload.status === DBMongoStatus.UPDATE_FAILED}
 			<Tile class="w-full flex flex-col items-center justify-center">
 				<OctagonX class=" h-12 h-12" />
-				<div class="text-center text-[var(--cds-interactive-02)]">
+				<div class="text-center">
 					<div class="text-lg font-normal">
 						Failed to update MongoDB Database
 					</div>
@@ -331,15 +326,13 @@
 	{:else}
 		<Tile class="w-full flex flex-col items-center justify-center">
 			<OctagonAlert class=" h-12 h-12" />
-			<div
-				class="text-center text-lg font-normal text-[var(--cds-interactive-02)]"
-			>
+			<div class="text-center text-lg font-normal">
 				No MongoDB Database found <br />
 			</div>
 		</Tile>
 	{/if}
 </div>
-<PreDebug {data} />
+<!-- <PreDebug {data} /> -->
 
 {#if data?.payload}
 	<UpdateDbModal bind:open={updateDBAccessModalOpen} />

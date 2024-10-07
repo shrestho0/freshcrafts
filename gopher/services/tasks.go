@@ -83,7 +83,7 @@ func checkProjectDomains() {
 			log.Println("Error: DomainRequest", err)
 		}
 
-		_, portStatusCode, err := utils.RequestGet("http://localhost" + strconv.Itoa(site.Port))
+		_, portStatusCode, err := utils.RequestGet("http://localhost:" + strconv.Itoa(site.Port))
 
 		if err != nil {
 			log.Println("Error: PortRequest", err)
@@ -150,6 +150,7 @@ func checkServices() {
 		SecondaryMongo:    utils.CheckSecondaryMongoRunning(),
 		SecondaryMysql:    utils.CheckSecondaryMysqlRunning(),
 		SecondaryPostgres: utils.CheckSecondaryPostgresRunning(),
+		SecondaryRedis:    utils.CheckSecondaryRedisRunning(),
 	}
 
 	// check systemd service status for these
@@ -161,6 +162,7 @@ func checkServices() {
 		WizardMongo:    utils.CheckWizardMongoRunning(),
 		WizardPostgres: utils.CheckWizardPostgresRunning(),
 		WizardMysql:    utils.CheckWizardMysqlRunning(),
+		Redwiz:         utils.CheckRedwizRunning(),
 	}
 
 	// update

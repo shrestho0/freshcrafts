@@ -88,6 +88,11 @@
 		search: false,
 		notification: false,
 		chat: false,
+	} as {
+		search: boolean;
+		notification: boolean;
+		chat: boolean;
+		selectedTheme: undefined | "g100" | "white";
 	};
 	function handleGlobalKeyEvents(event: KeyboardEvent) {
 		if (event.altKey) {
@@ -105,6 +110,11 @@
 				case "l":
 					handleLogout();
 					break;
+				case "m":
+					gloaballyActiveables.selectedTheme =
+						gloaballyActiveables.selectedTheme === "g100"
+							? "white"
+							: "g100";
 				default:
 					break;
 			}
@@ -127,7 +137,9 @@
 
 	<HeaderUtilities>
 		<HeaderSearchThingy bind:active={gloaballyActiveables.search} />
-		<HeaderThemeSwitcher />
+		<HeaderThemeSwitcher
+			selectedTheme={gloaballyActiveables.selectedTheme}
+		/>
 
 		<button
 			type="button"
@@ -195,4 +207,7 @@
 		</div>
 	</div>
 {/if}
-<ChatBox bind:open={gloaballyActiveables.chat} />
+
+{#if gloaballyActiveables.chat}
+	<ChatBox bind:open={gloaballyActiveables.chat} />
+{/if}

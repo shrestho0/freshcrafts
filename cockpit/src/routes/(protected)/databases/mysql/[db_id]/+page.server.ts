@@ -2,8 +2,9 @@ import { EngineConnection } from '@/server/EngineConnection';
 import type { Actions, PageServerLoad } from './$types';
 import { fail } from '@sveltejs/kit';
 
-export const load: PageServerLoad = async ({ locals, params }) => {
+export const load: PageServerLoad = async ({ locals, params, parent }) => {
 	// find db with param
+	await parent(); // wait for the parent to load
 
 	const { db_id } = params;
 

@@ -1,103 +1,109 @@
 <script lang="ts">
-import { enhance } from '$app/forms';
-import { invalidateAll } from '$app/navigation';
-import Account from '@/components/Account.svelte';
-import CommonOAuth from '@/components/CommonOAuth.svelte';
-import PreDebug from '@/components/dev/PreDebug.svelte';
-import ExpandableSection from '@/components/ExpandableSection.svelte';
-import type { EngineCommonResponseDto, EngineSystemConfigResponseDto } from '@/types/dtos.js';
-import CarbonLogoGithub from '@/ui/icons/CarbonLogoGithub.svelte';
-import GoogleIcon from '@/ui/icons/GoogleIcon.svelte';
-import type { ActionResult } from '@sveltejs/kit';
-import {
-	Button,
-	ClickableTile,
-	ExpandableTile,
-	InlineNotification,
-	PasswordInput,
-	TextInput,
-	Tile
-} from 'carbon-components-svelte';
-import { onMount } from 'svelte';
-import { toast } from 'svelte-sonner';
-export let data: {
-	sysConf: EngineSystemConfigResponseDto;
-	githubLoginUrl: string;
-	googleLoginUrl: string;
-	githubAppInstallUrl: string;
-	azureChatApi: EngineCommonResponseDto<
-		{
-			azureChatApiEndpoint: string;
-			azureChatApiKey: string;
-		},
-		null
-	>;
-};
-
-let partialSysConf = {
-	systemUserName: data?.sysConf?.systemUserName ?? '',
-	systemUserEmail: data?.sysConf?.systemUserEmail ?? ''
-	// systemUserPasswordHash: data?.sysConf?.systemUserPasswordHash ?? ''
-} as Partial<EngineSystemConfigResponseDto>;
-let errors: any = {
-	userInfoUpdateError: '',
-	passwordUpdateError: ''
-};
-function resetErrors() {
-	errors = {
-		userInfoUpdateError: '',
-		passwordUpdateError: ''
+	import { enhance } from "$app/forms";
+	import { invalidateAll } from "$app/navigation";
+	import Account from "@/components/Account.svelte";
+	import CommonOAuth from "@/components/CommonOAuth.svelte";
+	import PreDebug from "@/components/dev/PreDebug.svelte";
+	import ExpandableSection from "@/components/ExpandableSection.svelte";
+	import type {
+		EngineCommonResponseDto,
+		EngineSystemConfigResponseDto,
+	} from "@/types/dtos.js";
+	import CarbonLogoGithub from "@/ui/icons/CarbonLogoGithub.svelte";
+	import GoogleIcon from "@/ui/icons/GoogleIcon.svelte";
+	import type { ActionResult } from "@sveltejs/kit";
+	import {
+		Button,
+		ClickableTile,
+		ExpandableTile,
+		InlineNotification,
+		PasswordInput,
+		TextInput,
+		Tile,
+	} from "carbon-components-svelte";
+	import { onMount } from "svelte";
+	import { toast } from "svelte-sonner";
+	export let data: {
+		sysConf: EngineSystemConfigResponseDto;
+		githubLoginUrl: string;
+		googleLoginUrl: string;
+		githubAppInstallUrl: string;
+		azureChatApi: EngineCommonResponseDto<
+			{
+				azureChatApiEndpoint: string;
+				azureChatApiKey: string;
+			},
+			null
+		>;
 	};
-}
 
-const expandables = {
-	user_info: true,
-	password_update: true,
-	oauth_modify: true,
-	azure_chat_api_modify: true
-};
+	let partialSysConf = {
+		systemUserName: data?.sysConf?.systemUserName ?? "",
+		systemUserEmail: data?.sysConf?.systemUserEmail ?? "",
+		// systemUserPasswordHash: data?.sysConf?.systemUserPasswordHash ?? ''
+	} as Partial<EngineSystemConfigResponseDto>;
+	let errors: any = {
+		userInfoUpdateError: "",
+		passwordUpdateError: "",
+	};
+	function resetErrors() {
+		errors = {
+			userInfoUpdateError: "",
+			passwordUpdateError: "",
+		};
+	}
 
-onMount(() => {});
+	const expandables = {
+		user_info: false,
+		password_update: false,
+		oauth_modify: false,
+		azure_chat_api_modify: false,
+	};
 
-function enhancedSaveUserInfo(type: 'userInfoUpdate' | 'passwordUpdate') {
-	return async ({ result }: { result: ActionResult }) => {
-		console.log('result', result);
-		if (result.type == 'success') {
-			if (type === 'passwordUpdate') {
-				toast('Password updated successfully');
-			} else if (type === 'userInfoUpdate') {
-				toast('User info updated successfully');
+	onMount(() => {});
+
+	function enhancedSaveUserInfo(type: "userInfoUpdate" | "passwordUpdate") {
+		return async ({ result }: { result: ActionResult }) => {
+			console.log("result", result);
+			if (result.type == "success") {
+				if (type === "passwordUpdate") {
+					toast("Password updated successfully");
+				} else if (type === "userInfoUpdate") {
+					toast("User info updated successfully");
+				}
+				invalidateAll();
+			} else if (result.type == "failure") {
+				if (type === "passwordUpdate") {
+					errors.passwordUpdateError = result?.data?.message;
+				} else if (type === "userInfoUpdate") {
+					errors.userInfoUpdateError = result?.data?.message;
+				}
 			}
-			invalidateAll();
-		} else if (result.type == 'failure') {
-			if (type === 'passwordUpdate') {
-				errors.passwordUpdateError = result?.data?.message;
-			} else if (type === 'userInfoUpdate') {
-				errors.userInfoUpdateError = result?.data?.message;
-			}
-		}
-	};
-}
+		};
+	}
 
-function enhancedAzureApiKeySave() {
-	return async ({ result }: { result: ActionResult }) => {
-		if (result.type == 'success') {
-			toast('Azure Chat API saved successfully');
-			invalidateAll();
-		} else {
-			toast('Failed to save Azure Chat API');
-		}
-	};
-}
+	function enhancedAzureApiKeySave() {
+		return async ({ result }: { result: ActionResult }) => {
+			if (result.type == "success") {
+				toast("Azure Chat API saved successfully");
+				invalidateAll();
+			} else {
+				toast("Failed to save Azure Chat API");
+			}
+		};
+	}
 </script>
 
-<section class="select-none">
-	<ExpandableSection title="Update User Info" bind:open={expandables.user_info}>
+<section class="select-none flex flex-col gap-3">
+	<ExpandableSection
+		title="Update User Info"
+		bind:open={expandables.user_info}
+	>
 		<form
 			action="?/saveUserInfo"
 			method="post"
 			class="w-full"
-			use:enhance={() => enhancedSaveUserInfo('userInfoUpdate')}
+			use:enhance={() => enhancedSaveUserInfo("userInfoUpdate")}
 		>
 			<TextInput
 				size="xl"
@@ -125,16 +131,21 @@ function enhancedAzureApiKeySave() {
 				/>
 			{/if}
 
-			<Button on:click={resetErrors} class="w-full my-3   " type="submit">Update</Button>
+			<Button on:click={resetErrors} class="w-full my-3   " type="submit"
+				>Update</Button
+			>
 		</form>
 	</ExpandableSection>
 
-	<ExpandableSection title="Update Password" bind:open={expandables.password_update}>
+	<ExpandableSection
+		title="Update Password"
+		bind:open={expandables.password_update}
+	>
 		<form
 			action="?/updatePassword"
 			method="post"
 			class="w-full"
-			use:enhance={() => enhancedSaveUserInfo('passwordUpdate')}
+			use:enhance={() => enhancedSaveUserInfo("passwordUpdate")}
 		>
 			<PasswordInput
 				autocomplete="one-time-code"
@@ -165,11 +176,16 @@ function enhancedAzureApiKeySave() {
 				/>
 			{/if}
 
-			<Button on:click={resetErrors} class="w-full my-3" type="submit">Update Password</Button>
+			<Button on:click={resetErrors} class="w-full my-3" type="submit"
+				>Update Password</Button
+			>
 		</form>
 	</ExpandableSection>
 
-	<ExpandableSection title="OAuth Connections" bind:open={expandables.oauth_modify}>
+	<ExpandableSection
+		title="OAuth Connections"
+		bind:open={expandables.oauth_modify}
+	>
 		{#key data?.sysConf}
 			<div class="w-full flex flex-col gap-3 items-center">
 				<CommonOAuth
@@ -190,12 +206,16 @@ function enhancedAzureApiKeySave() {
 		{/key}
 	</ExpandableSection>
 
-	<ExpandableSection title="Azure Chat API" bind:open={expandables.azure_chat_api_modify}>
+	<ExpandableSection
+		title="Azure Chat API"
+		bind:open={expandables.azure_chat_api_modify}
+	>
 		{#if !data?.azureChatApi?.success}
 			<InlineNotification
 				kind="warning-alt"
 				class="w-full"
-				subtitle={data?.azureChatApi?.message ?? 'Failed to fetch Azure Chat API'}
+				subtitle={data?.azureChatApi?.message ??
+					"Failed to fetch Azure Chat API"}
 			/>
 		{/if}
 		<form
@@ -242,5 +262,5 @@ function enhancedAzureApiKeySave() {
 
 	{/if} -->
 
-	<PreDebug {data} />
+	<!-- <PreDebug {data} /> -->
 </section>

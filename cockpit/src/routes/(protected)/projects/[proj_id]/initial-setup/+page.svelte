@@ -13,6 +13,10 @@
 	import { InlineLoading } from "carbon-components-svelte";
 	import ActionsButtons from "@/components/project-specifics/ActionsButtons.svelte";
 	import { browser } from "$app/environment";
+	import DepInfo from "@/components/project-specifics/DepInfo.svelte";
+	import messages from "@/utils/messages";
+	import DeploymentProcessingHistory from "../DeploymentProcessingHistory.svelte";
+	import PreDepInfo from "@/components/project-specifics/PreDepInfo.svelte";
 
 	const project: Project = data.project!;
 	const currentDeployment: ProjectDeployment = data.currentDeployment!;
@@ -88,6 +92,16 @@
 	})();
 </script>
 
+<div class="grid grid-cols-2 gap-6">
+	<div>
+		<h2 class="text-xl pb-2">Project Information</h2>
+		<PreDepInfo
+			project={data.project}
+			currentDeployment={data.currentDeployment}
+			activeDeployment={data.activeDeployment}
+		/>
+	</div>
+</div>
 {#if project.status != ProjectStatus.AWAIT_INITIAL_SETUP}
 	<CommonWarningBox
 		msg="Initial setup is already complete for this project"

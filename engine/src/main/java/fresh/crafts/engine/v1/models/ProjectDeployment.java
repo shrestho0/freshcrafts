@@ -20,6 +20,9 @@ public class ProjectDeployment {
 
     String projectId;
 
+    // Optional
+    Project project;
+
     Integer version;
     Integer iteration;
 
