@@ -31,9 +31,18 @@ jobs:
             cd freshcrafts
             git pull 
 
-            cli/freshcrafts --update
+            # cli/freshcrafts --update
 
             # sudo certbot  --nginx -d thisthing.works --non-interactive --agree-tos --email ssl@shrestho.me
+
+            cli/freshcrafts --setup-env
+            cli/freshcrafts --docker-up
+            
+            # cli/freshcrafts --install-dev redwiz
+            # cli/freshcrafts --install-dev depwiz
+
+
+
 
             echo "tripple bam!"
  

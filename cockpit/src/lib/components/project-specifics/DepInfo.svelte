@@ -33,7 +33,7 @@
 			<StructuredListCell class="flex items-center gap-2">
 				{#if project.domain}
 					<a
-						href="//{project?.domain}"
+						href="http://{project?.domain}"
 						target="_blank"
 						class="hover:text-[var(--cds-link-02)] hover:cursor-pointer flex items-center gap-1"
 						>{project.uniqueName}

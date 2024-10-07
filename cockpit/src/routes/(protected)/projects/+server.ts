@@ -75,6 +75,7 @@ export const PATCH: RequestHandler = async ({ request, cookies }) => {
                         },
                     })
                 } catch (e) {
+                    console.error('Error in reading screenshot file', e)
                     // console.error('Error in reading screenshot file', e)
                     return json({ success: false, message: 'Error in reading screenshot file' }, { status: 400 });
                 }
