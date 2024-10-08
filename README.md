@@ -45,11 +45,9 @@ The main issue of this project is that it does not scale automatically, mostly s
 
 
 
-## Planning and Stuff
-https://app.eraser.io/workspace/czWqMuIkEatOlxSZzzcA
+## Micro-services architecture 
 
 <img src="cli/assets//microservice-architecture-design.png">
-
 
 
 ## Installation and Setup
