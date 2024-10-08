@@ -2,7 +2,6 @@
 
 Self hosted application deployment platform. This is version 0.1 (alpha) and currently supports only nodejs based projects. 
 
-This project built for `Therap Javafest 2024`. Check this out [here](https://www.therapjavafest.com/)
 
 
 ## Features
@@ -28,11 +27,6 @@ This project built for `Therap Javafest 2024`. Check this out [here](https://www
         - Code Documentation
 
 
-
-[[
-    [[IGNORE IT:]]
-    Code review and documentation features that will help users get better insights. An AI feature that will help users to learn potential vulnerabilities and get suggestions according to it. And finally an AI chatBot that will help and guide users through different queries about the application.
-]]
 
 
 ## Who need this? There are so many other options. 
